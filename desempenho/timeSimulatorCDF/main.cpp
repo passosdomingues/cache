@@ -35,17 +35,19 @@
 #include <random>
 #include <cmath>
 
+using namespace std;
+
 // Class to generate exponential random times
 class ExponentialGenerator {
 private:
     double lambda;  // Rate parameter
-    std::mt19937 rng;  // Mersenne Twister random number generator
-    std::uniform_real_distribution<double> uniform_dist;  // Uniform [0,1)
+    mt19937 rng;  // Mersenne Twister random number generator
+    uniform_real_distribution<double> uniform_dist;  // Uniform [0,1)
 
 public:
     // Constructor: initializes lambda and RNG
     ExponentialGenerator(double lambda_value)
-        : lambda(lambda_value), rng(std::random_device{}()), uniform_dist(0.0, 1.0) {}
+        : lambda(lambda_value), rng(random_device{}()), uniform_dist(0.0, 1.0) {}
 
     /* 
         Generate a single exponential random time.
@@ -54,14 +56,14 @@ public:
     */
     double generate() {
         double u = uniform_dist(rng);  // Generate U in (0,1)
-        return -std::log(u) / lambda;  // Transform using inverse CDF
+        return -log(u) / lambda;       // Transform using inverse CDF
     }
 
     /*
         Generate 'n' exponential random times and return as a vector.
     */
-    std::vector<double> generate(int n) {
-        std::vector<double> samples;
+    vector<double> generate(int n) {
+        vector<double> samples;
         samples.reserve(n);
         for (int i = 0; i < n; ++i) {
             samples.push_back(generate());
@@ -75,23 +77,23 @@ int main() {
     int n_samples;
 
     // Ask the user for the exponential rate parameter
-    std::cout << "Enter lambda (rate parameter): ";
-    std::cin >> lambda;
+    cout << "Enter lambda (rate parameter): ";
+    cin >> lambda;
 
     // Ask the user how many random times to generate
-    std::cout << "Enter number of samples: ";
-    std::cin >> n_samples;
+    cout << "Enter number of samples: ";
+    cin >> n_samples;
 
     // Create an exponential generator object
     ExponentialGenerator generator(lambda);
 
     // Generate the exponential times
-    std::vector<double> times = generator.generate(n_samples);
+    vector<double> times = generator.generate(n_samples);
 
     // Output the generated times to the console
-    std::cout << "Generated exponential times:\n";
+    cout << "Generated exponential times:\n";
     for (double t : times) {
-        std::cout << t << "\n";
+        cout << t << "\n";
     }
 
     return 0;
