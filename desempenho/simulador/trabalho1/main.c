@@ -1,199 +1,225 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<math.h>
-#include<time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <time.h>
 
+/**
+ * Estrutura para armazenar métricas da Lei de Little
+ */
 typedef struct {
-    double tempo_anterior;
-    unsigned long int qt_requisicoes;
-    double soma_area;
-} medida_little;
+    double tempoAnterior;
+    unsigned long int quantidadeRequisicoes;
+    double somaArea;
+} MetricasLittle;
 
-double aleatorio() {
-	double u = rand() / ((double) RAND_MAX + 1);
-	//limitando entre (0,1]
-	u = 1.0 - u;
-
-	return (u);
+/**
+ * Gera um número pseudoaleatório entre 0 e 1
+ */
+double gerarNumeroAleatorio() {
+    double numeroAleatorio = rand() / ((double) RAND_MAX + 1);
+    numeroAleatorio = 1.0 - numeroAleatorio;
+    return numeroAleatorio;
 }
 
-double exponencial(double l){
-    return (-1.0/l)*log(aleatorio());
+/**
+ * Gera uma amostra da distribuição exponencial
+ */
+double distribuiçãoExponencial(double parametroTaxa) {
+    return (-1.0 / parametroTaxa) * log(gerarNumeroAleatorio());
 }
 
-double minimo(double n1, double n2){
-    if(n1 < n2) return n1;
-    return n2;
+/**
+ * Encontra o mínimo entre dois números
+ */
+double encontrarMinimo(double numero1, double numero2) {
+    if (numero1 < numero2) return numero1;
+    return numero2;
 }
 
-void inicia_little(medida_little * medidas){
-    medidas->tempo_anterior = 0.0;
-    medidas->qt_requisicoes = 0;
-    medidas->soma_area = 0.0;
+/**
+ * Inicializa as métricas da Lei de Little
+ */
+void inicializarMetricasLittle(MetricasLittle* metricas) {
+    metricas->tempoAnterior = 0.0;
+    metricas->quantidadeRequisicoes = 0;
+    metricas->somaArea = 0.0;
 }
 
-void main(){
+/**
+ * Executa a simulação de fila para um cenário específico
+ */
+void executarSimulacao(double ocupacaoDesejada, double tempoTotalSimulacao, const char* nomeArquivo) {
     srand(time(NULL));
 
-    /**
-     * declaracao little
-     */
-    medida_little E_N;
-    medida_little E_W_chegadas;
-    medida_little E_W_saidas;
-    /**
-     * iniciando variaveis de little
-     */
-    inicia_little(&E_N);
-    inicia_little(&E_W_chegadas);
-    inicia_little(&E_W_saidas);
+    // Abre arquivo para escrita dos dados
+    FILE* arquivo = fopen(nomeArquivo, "w");
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo %s\n", nomeArquivo);
+        return;
+    }
     
-    //início 0,0 segundos
-    double tempo_decorrido = 0.0;
+    // Escreve cabeçalho do arquivo
+    fprintf(arquivo, "Tempo,Ocupacao,NumeroMedioRequisicoes,TempoMedioEspera,TamanhoFila\n");
 
-    //tempo total que desejo simular (24 horas)
-    double tempo_simulacao = 86400.0;
-
-    //intervalo entre requisições
-    double media_inter_requisicoes;
-
-    //tempo medio gasto em um atendimento
-    double media_tempo_servico;
-
-    //marca sempre o tempo de chegada da
-    //proxima requisição
-    double proxima_requisicao;
-
-    //possui o tempo de serviço da
-    //requisição atualmente em atendimento
-    //pelo servidor
-    double tempo_servico;
-
-    //fila
-    unsigned long int fila = 0;
-    unsigned long int max_fila = 0;
-
-    //variaveis para validacao matematica
-    unsigned long int qtd_requisicoes = 0;
-    double soma_inter_requisicoes;
-    unsigned long int qtd_servicos = 0;
-    double soma_tempo_servico = 0.0;
+    MetricasLittle metricasNumeroRequisicoesSistema;
+    MetricasLittle metricasTempoEsperaChegadas;
+    MetricasLittle metricasTempoEsperaSaidas;
     
-
-    printf("Informe a media de tempo entre requisicoes: ");
-    scanf("%lF", &media_inter_requisicoes);
-    //precisamos do valor do parametro l para
-    //gerar os numeros pseudo-aleatorios.
-    //lembre-se que l = 1.0/media.
-    media_inter_requisicoes = 1.0/media_inter_requisicoes;
-
-    printf("Informe a media de tempo para atendimentos: ");
-    scanf("%lF", &media_tempo_servico);
-    //de maneira semelhante...
-    media_tempo_servico = 1.0/media_tempo_servico;
-
-    //gerando o tempo de chegada da primeira requisição
-    proxima_requisicao = exponencial(media_inter_requisicoes);
-
-    qtd_requisicoes++;
-    soma_inter_requisicoes = proxima_requisicao;
+    inicializarMetricasLittle(&metricasNumeroRequisicoesSistema);
+    inicializarMetricasLittle(&metricasTempoEsperaChegadas);
+    inicializarMetricasLittle(&metricasTempoEsperaSaidas);
     
-    while(tempo_decorrido < tempo_simulacao){
-        tempo_decorrido = fila ?
-            minimo(proxima_requisicao, tempo_servico) :
-            proxima_requisicao;
-        printf("tempo_decorrido: %lF\n", tempo_decorrido);
+    double tempoDecorrido = 0.0;
+    double taxaServico = 1.0;
+    double taxaChegada = ocupacaoDesejada * taxaServico;
 
-        //hora de tratar os eventos!
-        //chegada acontecendo!
-        if(tempo_decorrido == proxima_requisicao){
-            //printf("chegada: %lF\n", tempo_decorrido);
-            fila++;
-            max_fila = fila > max_fila ?
-                fila :
-                max_fila;
+    double proximaChegada = distribuiçãoExponencial(taxaChegada);
+    double proximaSaida = 0.0;
+    double tempoServicoAtual = 0.0;
 
-            //ambiente estava ocioso!
-            //inicia o atendimento imediatamente
-            if(fila == 1){
-                tempo_servico = tempo_decorrido +
-                exponencial(media_tempo_servico);
+    unsigned long int tamanhoFila = 0;
+    unsigned long int tamanhoMaximoFila = 0;
 
-                qtd_servicos++;
-                soma_tempo_servico += 
-                    tempo_servico - tempo_decorrido;
-            }
+    unsigned long int totalRequisicoes = 0;
+    double somaIntervalosChegada = 0.0;
+    unsigned long int totalAtendimentos = 0;
+    double somaTemposServico = 0.0;
 
-            proxima_requisicao = tempo_decorrido + 
-            exponencial(media_inter_requisicoes);
+    double proximaMedicao = 10.0;
+    int contadorMedicoes = 1;
 
-            qtd_requisicoes++;
-            soma_inter_requisicoes +=
-                proxima_requisicao - tempo_decorrido;
+    // Loop principal de simulação
+    while (tempoDecorrido < tempoTotalSimulacao) {
+        tempoDecorrido = tamanhoFila ? 
+            encontrarMinimo(proximaChegada, proximaSaida) : 
+            proximaChegada;
+
+        // Realiza medições periódicas e escreve no arquivo
+        while (tempoDecorrido >= proximaMedicao && proximaMedicao <= tempoTotalSimulacao) {
+            double ocupacaoAtual = somaTemposServico / proximaMedicao;
+            double numeroMedioRequisicoes = metricasNumeroRequisicoesSistema.somaArea / proximaMedicao;
+            double tempoMedioEspera = (metricasTempoEsperaChegadas.somaArea - metricasTempoEsperaSaidas.somaArea) / 
+                                     metricasTempoEsperaChegadas.quantidadeRequisicoes;
             
-            /**
-             * little
-             */
-            E_N.soma_area += (tempo_decorrido - E_N.tempo_anterior)
-                * E_N.qt_requisicoes;
-            E_N.qt_requisicoes++;
-            E_N.tempo_anterior = tempo_decorrido;
+            // Escreve dados no arquivo
+            fprintf(arquivo, "%.0f,%.6f,%.6f,%.6f,%lu\n", 
+                   proximaMedicao, ocupacaoAtual, numeroMedioRequisicoes, tempoMedioEspera, tamanhoFila);
+            
+            proximaMedicao += 10.0;
+            contadorMedicoes++;
+        }
 
-            E_W_chegadas.soma_area += (tempo_decorrido - E_W_chegadas.tempo_anterior)
-                * E_W_chegadas.qt_requisicoes;
-            E_W_chegadas.qt_requisicoes++;
-            E_W_chegadas.tempo_anterior = tempo_decorrido;
-        }else{ //saída acontecendo
-            //printf("saída: %lF\n", tempo_decorrido);
-            fila--;
-
-            if(fila){
-                tempo_servico = tempo_decorrido +
-                exponencial(media_tempo_servico);
-                
-                qtd_servicos++;
-                soma_tempo_servico += 
-                    tempo_servico - tempo_decorrido;
+        // Processamento de eventos
+        if (tempoDecorrido == proximaChegada) {
+            tamanhoFila++;
+            
+            if (tamanhoFila > tamanhoMaximoFila) {
+                tamanhoMaximoFila = tamanhoFila;
             }
 
-            /**
-             * little
-             */
-            E_N.soma_area += (tempo_decorrido - E_N.tempo_anterior)
-                * E_N.qt_requisicoes;
-            E_N.qt_requisicoes--;
-            E_N.tempo_anterior = tempo_decorrido;
+            if (tamanhoFila == 1) {
+                tempoServicoAtual = distribuiçãoExponencial(taxaServico);
+                proximaSaida = tempoDecorrido + tempoServicoAtual;
+                
+                totalAtendimentos++;
+                somaTemposServico += tempoServicoAtual;
+            }
 
-            E_W_saidas.soma_area += (tempo_decorrido - E_W_saidas.tempo_anterior)
-                * E_W_saidas.qt_requisicoes;
-            E_W_saidas.qt_requisicoes++;
-            E_W_saidas.tempo_anterior = tempo_decorrido;
+            double intervaloChegada = distribuiçãoExponencial(taxaChegada);
+            proximaChegada = tempoDecorrido + intervaloChegada;
+            
+            totalRequisicoes++;
+            somaIntervalosChegada += intervaloChegada;
+            
+            // Atualiza métricas
+            metricasNumeroRequisicoesSistema.somaArea += 
+                (tempoDecorrido - metricasNumeroRequisicoesSistema.tempoAnterior) * 
+                metricasNumeroRequisicoesSistema.quantidadeRequisicoes;
+            metricasNumeroRequisicoesSistema.quantidadeRequisicoes++;
+            metricasNumeroRequisicoesSistema.tempoAnterior = tempoDecorrido;
+
+            metricasTempoEsperaChegadas.somaArea += 
+                (tempoDecorrido - metricasTempoEsperaChegadas.tempoAnterior) * 
+                metricasTempoEsperaChegadas.quantidadeRequisicoes;
+            metricasTempoEsperaChegadas.quantidadeRequisicoes++;
+            metricasTempoEsperaChegadas.tempoAnterior = tempoDecorrido;
+        } else {
+            tamanhoFila--;
+
+            if (tamanhoFila > 0) {
+                tempoServicoAtual = distribuiçãoExponencial(taxaServico);
+                proximaSaida = tempoDecorrido + tempoServicoAtual;
+                
+                totalAtendimentos++;
+                somaTemposServico += tempoServicoAtual;
+            }
+
+            // Atualiza métricas
+            metricasNumeroRequisicoesSistema.somaArea += 
+                (tempoDecorrido - metricasNumeroRequisicoesSistema.tempoAnterior) * 
+                metricasNumeroRequisicoesSistema.quantidadeRequisicoes;
+            metricasNumeroRequisicoesSistema.quantidadeRequisicoes--;
+            metricasNumeroRequisicoesSistema.tempoAnterior = tempoDecorrido;
+
+            metricasTempoEsperaSaidas.somaArea += 
+                (tempoDecorrido - metricasTempoEsperaSaidas.tempoAnterior) * 
+                metricasTempoEsperaSaidas.quantidadeRequisicoes;
+            metricasTempoEsperaSaidas.quantidadeRequisicoes++;
+            metricasTempoEsperaSaidas.tempoAnterior = tempoDecorrido;
         }
     }
-    E_W_chegadas.soma_area += (tempo_decorrido - E_W_chegadas.tempo_anterior) // pulo do gato é somar 0 no final, e computar as áreas certinho, nos últimos tempos
-        * E_W_chegadas.qt_requisicoes;
 
-    E_W_saidas.soma_area += (tempo_decorrido - E_W_saidas.tempo_anterior)
-        * E_W_saidas.qt_requisicoes;
+    // Ajuste final das métricas
+    metricasTempoEsperaChegadas.somaArea += 
+        (tempoDecorrido - metricasTempoEsperaChegadas.tempoAnterior) * 
+        metricasTempoEsperaChegadas.quantidadeRequisicoes;
 
-    printf("\n---=== Métricas e Validações ===---\n");
-    printf("max fila: %d\n", max_fila);
-    printf("media entre requisicoes: %lF\n", 
-        soma_inter_requisicoes/qtd_requisicoes);
-    printf("media tempos de sevico: %lF\n", 
-        soma_tempo_servico/qtd_servicos);
-    printf("ocupacao esperada:%lF\n", media_inter_requisicoes/media_tempo_servico);
-    printf("ocupacao calculada:%lF\n", soma_tempo_servico/tempo_decorrido);
-    printf("\n--== Lei de Little ==--\n");
-    double E_N_final = E_N.soma_area/tempo_decorrido;
-    double E_W_final = (E_W_chegadas.soma_area - E_W_saidas.soma_area)/E_W_chegadas.qt_requisicoes;
-    double lambda = E_W_chegadas.qt_requisicoes/tempo_decorrido;
-    double erro_little = E_N_final - lambda * E_W_final;
+    metricasTempoEsperaSaidas.somaArea += 
+        (tempoDecorrido - metricasTempoEsperaSaidas.tempoAnterior) * 
+        metricasTempoEsperaSaidas.quantidadeRequisicoes;
+
+    // Cálculo das métricas finais
+    double numeroMedioRequisicoesSistema = metricasNumeroRequisicoesSistema.somaArea / tempoDecorrido;
+    double tempoMedioEsperaSistema = 
+        (metricasTempoEsperaChegadas.somaArea - metricasTempoEsperaSaidas.somaArea) / 
+        metricasTempoEsperaChegadas.quantidadeRequisicoes;
+    double taxaChegadaMedia = metricasTempoEsperaChegadas.quantidadeRequisicoes / tempoDecorrido;
+    double erroLittle = numeroMedioRequisicoesSistema - taxaChegadaMedia * tempoMedioEsperaSistema;
     
-    printf("E[N]: %lF\n", 
-        E_N_final);
-    printf("E[W]: %lF\n", 
-        E_W_final);
-    printf("Erro little: %lF\n", 
-        erro_little);
+    double ocupacaoCalculada = somaTemposServico / tempoDecorrido;
+    
+    // Exibição dos resultados finais
+    printf("\n=== Resultados para ocupação %.3f ===\n", ocupacaoDesejada);
+    printf("Tamanho máximo da fila: %lu\n", tamanhoMaximoFila);
+    printf("Ocupação calculada: %.6f\n", ocupacaoCalculada);
+    printf("E[N] (Número médio de requisições no sistema): %.6f\n", numeroMedioRequisicoesSistema);
+    printf("E[W] (Tempo médio de espera no sistema): %.6f\n", tempoMedioEsperaSistema);
+    printf("Erro na Lei de Little: %.6f\n", erroLittle);
+    
+    // Fecha o arquivo
+    fclose(arquivo);
+}
+
+/**
+ * Função principal
+ */
+int main() {
+    double cenariosOcupacao[4] = {0.80, 0.90, 0.95, 0.999};
+    const char* nomesArquivos[4] = {
+        "data/dados_ocupacao_080.csv",
+        "data/dados_ocupacao_090.csv", 
+        "data/dados_ocupacao_095.csv",
+        "data/dados_ocupacao_0999.csv"
+    };
+    
+    double tempoSimulacao = 86400.0; // 24 horas em segundos
+
+    for (int i = 0; i < 4; i++) {
+        executarSimulacao(cenariosOcupacao[i], tempoSimulacao, nomesArquivos[i]);
+        printf("Dados salvos em: %s\n", nomesArquivos[i]);
+        printf("----------------------------------------\n");
+    }
+
+    printf("Simulação concluída. Use o script Python para visualizar os dados.\n");
+    return 0;
 }
