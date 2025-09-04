@@ -225,7 +225,7 @@ int main() {
             atualizaLittleComBug(&E_W_saidas, metricas.tempoDecorrido, 1);
             
             // Atualiza medições de Little (VERSÃO CORRIGIDA)
-            // atualizaLittle(&E_N, metricas.tempoDecorrido, fila);
+            atualizaLittle(&E_N, metricas.tempoDecorrido, fila);
         }
     }
     
