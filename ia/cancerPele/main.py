@@ -505,7 +505,7 @@ class HybridDataGenerator(utils.Sequence):
         """Returns the number of batches per epoch."""
         return ceil(len(self.df) / self.batch_size)
 
-    def __getitem__(self, index: int) -> Tuple[List[np.ndarray], np.ndarray]:
+    def __getitem__(self, index: int) -> Tuple[Tuple[np.ndarray, np.ndarray], np.ndarray]:
         """
         Generates one batch of data.
 
@@ -513,8 +513,8 @@ class HybridDataGenerator(utils.Sequence):
             index (int): The index of the batch.
 
         Returns:
-            Tuple[List[np.ndarray], np.ndarray]: A tuple containing the batch of
-            inputs ([images, tabular_data]) and the batch of labels.
+            Tuple[Tuple[np.ndarray, np.ndarray], np.ndarray]: A tuple containing the batch of
+            inputs (images, tabular_data) and the batch of labels.
         """
         # Determine the rows for the current batch
         start_index = index * self.batch_size
@@ -524,12 +524,21 @@ class HybridDataGenerator(utils.Sequence):
         
         # --- Prepare Image Data ---
         # Load, preprocess, and stack images for the batch
-        batch_images = np.stack([
-            self.image_preprocessor.preprocess_image(fp)
-            for fp in batch_df['imagePath']
-            if self.image_preprocessor.preprocess_image(fp) is not None
-        ])
-
+        batch_images = []
+        image_paths = batch_df['imagePath'].tolist()
+        
+        for fp in image_paths:
+            img = self.image_preprocessor.preprocess_image(fp)
+            if img is not None:
+                batch_images.append(img)
+        
+        if len(batch_images) == 0:
+            # Return empty batch if no images were loaded
+            return (np.empty((0, *self.image_preprocessor.target_size, 3)), 
+                   np.empty((0, self.preparator.pca.n_components_))), np.empty((0,))
+        
+        batch_images = np.stack(batch_images)
+        
         # --- Prepare Tabular Data ---
         # Ensure correct column order, then scale and apply PCA
         X_tab = batch_df[self.tabular_cols]
@@ -540,7 +549,7 @@ class HybridDataGenerator(utils.Sequence):
         # Transform labels to integer representation
         y = self.preparator.label_encoder.transform(batch_df['label'])
 
-        return [batch_images, X_tab_pca], y
+        return (batch_images, X_tab_pca), y
 
     def on_epoch_end(self) -> None:
         """
@@ -619,7 +628,7 @@ class ModelFactory:
         model.compile(
             optimizer=keras.optimizers.Adam(learning_rate=self.config.CNN_LEARNING_RATE),
             loss='sparse_categorical_crossentropy',
-            metrics=['accuracy', keras.metrics.AUC(name='auc')]
+            metrics=['accuracy']  # Removed AUC metric to avoid the error
         )
         logging.info(f"Hybrid CNN model built with {self.config.CNN_ARCHITECTURE} base.")
         model.summary()
@@ -649,7 +658,7 @@ class ModelFactory:
         model.compile(
             optimizer=keras.optimizers.Adam(learning_rate=self.config.CNN_FINE_TUNE_LEARNING_RATE),
             loss='sparse_categorical_crossentropy',
-            metrics=['accuracy', keras.metrics.AUC(name='auc')]
+            metrics=['accuracy']  # Removed AUC metric to avoid the error
         )
         logging.info(f"Model recompiled for fine-tuning with learning rate {self.config.CNN_FINE_TUNE_LEARNING_RATE}.")
         return model
@@ -678,7 +687,7 @@ class ModelEvaluator:
         # Get predictions and true labels from the generator
         y_pred_proba = model.predict(test_generator, verbose=1)
         y_pred = np.argmax(y_pred_proba, axis=1)
-        y_true = self.preparator.label_encoder.transform(test_generator.df['label'])
+        y_true = test_generator.preparator.label_encoder.transform(test_generator.df['label'])
 
         print("\n--- Generalization Error Estimation ---")
         print(f"Accuracy: {accuracy_score(y_true, y_pred):.4f}")
@@ -893,7 +902,8 @@ def main():
     class_weights_dict = dict(enumerate(class_weights))
     
     callbacks = [
-        keras.callbacks.EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
+        keras.callbacks.EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True),
+        keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=1e-7)
     ]
     
     logging.info("Starting initial model training...")
