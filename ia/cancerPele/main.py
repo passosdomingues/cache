@@ -4,7 +4,7 @@
 End-to-End Skin Lesion Diagnosis Pipeline (Professional Workflow)
 ================================================================================
 Author: Rafael Passos Domingues
-Last Update: 2025-09-01
+Last Update: 2025-09-04
 
 Description:
 This script implements a comprehensive, robust, and elegant Machine Learning
@@ -114,7 +114,7 @@ class PipelineConfiguration:
     RANDOM_STATE_SEED: int = 42
     
     # --- Preprocessing & Feature Engineering ---
-    IMAGE_TARGET_DIMENSIONS: Tuple[int, int] = (128, 128)
+    IMAGE_TARGET_DIMENSIONS: Tuple[int, int] = (224, 224)  # Increased for transfer learning
     ISOPHOTE_ANALYSIS_SAMPLE_SIZE: Optional[int] = 2000  # None for full dataset
     PCA_EXPLAINED_VARIANCE_TARGET: float = 0.95
 
@@ -136,6 +136,8 @@ class PipelineConfiguration:
     CNN_BATCH_SIZE: int = 32
     CNN_LEARNING_RATE: float = 0.001
     CNN_ARCHITECTURE: str = "EfficientNetB0"  # Options: "SimpleCNN", "ResNet50", "EfficientNetB0"
+    CNN_FINE_TUNE_EPOCHS: int = 10  # Additional epochs for fine-tuning
+    CNN_FINE_TUNE_LEARNING_RATE: float = 0.0001  # Lower LR for fine-tuning
 
     # --- Model Monitoring ---
     DRIFT_DETECTION_THRESHOLD: float = 0.7  # Jensen-Shannon divergence threshold
@@ -724,80 +726,126 @@ class ModelFactory:
 
     def _buildEfficientNetB0(self, image_input_shape, tabular_input_shape, num_classes):
         """
-        Builds EfficientNetB0 transfer learning model.
-        If input images are grayscale, a small preprocessing lambda converts them to RGB
-        so pretrained imagenet weights can be used safely.
+        Builds EfficientNetB0 transfer learning model with proper handling of input channels.
+        If input images are grayscale, converts them to RGB format using a Lambda layer.
         """
-        # image_input_shape is expected as (height, width, channels)
         h, w, c = image_input_shape
-
-        # Primary input remains the original shape the pipeline uses
+        
+        # Image input branch
         image_input = keras.Input(shape=(h, w, c), name='image_input')
-
-        # If channel is 1, convert to 3 channels on the graph using tensorflow op
+        
+        # Handle grayscale to RGB conversion
         if c == 1:
-            logging.info("Input images have 1 channel. Converting to 3 channels on the model graph so imagenet weights can be used.")
-            rgb_tensor = layers.Lambda(lambda x: tf.image.grayscale_to_rgb(x), name='gray_to_rgb')(image_input)
+            logging.info("Input images have 1 channel. Converting to 3 channels for EfficientNet.")
+            x = layers.Lambda(lambda x: tf.image.grayscale_to_rgb(x))(image_input)
         else:
-            rgb_tensor = image_input  # already 3 channels
-
-        # Use imagenet weights because the base model receives a 3 channel tensor
+            x = image_input
+        
+        # Load EfficientNetB0 with pre-trained ImageNet weights
         base_model = applications.EfficientNetB0(
             weights='imagenet',
             include_top=False,
-            input_tensor=rgb_tensor
+            input_shape=(h, w, 3)  # Always 3 channels after conversion
         )
-        base_model.trainable = False
-
-        x = layers.GlobalAveragePooling2D()(base_model.output)
+        base_model.trainable = False  # Freeze base model initially
+        
+        # Pass through base model
+        x = base_model(x)
+        x = layers.GlobalAveragePooling2D()(x)
         x = layers.Dense(128, activation='relu')(x)
         x = layers.Dropout(0.5)(x)
 
+        # Tabular input branch
         tabular_input = keras.Input(shape=tabular_input_shape, name='tabular_input')
         y = layers.Dense(64, activation='relu')(tabular_input)
         y = layers.Dropout(0.5)(y)
 
+        # Combine branches
         combined = layers.concatenate([x, y])
         output = layers.Dense(num_classes, activation='softmax')(combined)
-
-        # Make sure the final model exposes the original image_input as its input
-        model = keras.Model(inputs=[image_input, tabular_input], outputs=output)
-        return model
+        
+        return keras.Model(inputs=[image_input, tabular_input], outputs=output)
 
     def _buildResNet50(self, image_input_shape, tabular_input_shape, num_classes):
         """
-        Builds ResNet50 transfer learning model.
-        If input images are grayscale, convert to RGB on the graph so imagenet weights can be used.
+        Builds ResNet50 transfer learning model with proper handling of input channels.
+        If input images are grayscale, converts them to RGB format using a Lambda layer.
         """
         h, w, c = image_input_shape
+        
+        # Image input branch
         image_input = keras.Input(shape=(h, w, c), name='image_input')
-
+        
+        # Handle grayscale to RGB conversion
         if c == 1:
-            logging.info("Input images have 1 channel. Converting to 3 channels on the model graph for ResNet50.")
-            rgb_tensor = layers.Lambda(lambda x: tf.image.grayscale_to_rgb(x), name='gray_to_rgb_resnet')(image_input)
+            logging.info("Input images have 1 channel. Converting to 3 channels for ResNet50.")
+            x = layers.Lambda(lambda x: tf.image.grayscale_to_rgb(x))(image_input)
         else:
-            rgb_tensor = image_input
-
+            x = image_input
+        
+        # Load ResNet50 with pre-trained ImageNet weights
         base_model = applications.ResNet50(
             weights='imagenet',
             include_top=False,
-            input_tensor=rgb_tensor
+            input_shape=(h, w, 3)  # Always 3 channels after conversion
         )
-        base_model.trainable = False
-
-        x = layers.GlobalAveragePooling2D()(base_model.output)
+        base_model.trainable = False  # Freeze base model initially
+        
+        # Pass through base model
+        x = base_model(x)
+        x = layers.GlobalAveragePooling2D()(x)
         x = layers.Dense(128, activation='relu')(x)
         x = layers.Dropout(0.5)(x)
 
+        # Tabular input branch
         tabular_input = keras.Input(shape=tabular_input_shape, name='tabular_input')
         y = layers.Dense(64, activation='relu')(tabular_input)
         y = layers.Dropout(0.5)(y)
 
+        # Combine branches
         combined = layers.concatenate([x, y])
         output = layers.Dense(num_classes, activation='softmax')(combined)
+        
+        return keras.Model(inputs=[image_input, tabular_input], outputs=output)
 
-        model = keras.Model(inputs=[image_input, tabular_input], outputs=output)
-        return model
+    def fineTuneModel(self, model: Any, train_data: Tuple, val_data: Tuple, num_classes: int):
+        """
+        Fine-tunes a pre-trained model by unfreezing some layers and training with a lower learning rate.
+        """
+        print("="*80)
+        print("FINE-TUNING CNN MODEL")
+        print("="*80)
+        
+        # Unfreeze the base model layers for fine-tuning
+        for layer in model.layers:
+            if "efficientnet" in layer.name or "resnet" in layer.name:
+                layer.trainable = True
+                # Freeze the first N layers and unfreeze the rest
+                # You can adjust this based on your dataset size and similarity to ImageNet
+                if "block1" in layer.name or "block2" in layer.name or "stem" in layer.name:
+                    layer.trainable = False
+        
+        # Recompile the model with a lower learning rate
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=self.config.CNN_FINE_TUNE_LEARNING_RATE),
+            loss='sparse_categorical_crossentropy',
+            metrics=['accuracy', tf.keras.metrics.AUC(name='auc')]
+        )
+        
+        logging.info("Fine-tuning the model...")
+        model.summary()
+        
+        # Train the model with fine-tuning
+        history = model.fit(
+            train_data[0], train_data[1],
+            epochs=self.config.CNN_FINE_TUNE_EPOCHS,
+            batch_size=self.config.CNN_BATCH_SIZE,
+            validation_data=val_data,
+            verbose=1
+        )
+        
+        print("="*80 + "\n")
+        return model, history
 
 # ==============================================================================
 # CHECKLIST STEP 7: PRESENT YOUR SOLUTION (EVALUATION)
@@ -1089,6 +1137,15 @@ def main():
         ),
         verbose=1
     )
+
+    # Fine-tune the model if using transfer learning
+    if config.CNN_ARCHITECTURE in ["EfficientNetB0", "ResNet50"]:
+        cnn_model, fine_tune_history = modelFactory.fineTuneModel(
+            cnn_model,
+            ([X_train_img_resampled, X_train_tab_resampled], y_train_resampled),
+            ([X_val_img, X_val_tab], y_val),
+            num_classes
+        )
 
     # Step 7: Evaluate the CNN model
     modelEvaluator = ModelEvaluator(config)
