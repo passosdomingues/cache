@@ -850,12 +850,20 @@ def evaluate_cascade(config, test_df, label_encoder, first_stage_model, second_s
     melanoma_mask = np.array(all_labels) == melanoma_idx
     
     # First stage metrics
-    first_stage_recall = recall_score(np.array(all_labels)[melanoma_mask], 
-                                     np.array(all_first_preds)[melanoma_mask]) if any(melanoma_mask) else 0
-    
+    if any(melanoma_mask):
+        first_stage_recall = recall_score(np.array(all_labels)[melanoma_mask],
+                                         np.array(all_first_preds)[melanoma_mask],
+                                         average='binary', pos_label=melanoma_idx)
+    else:
+        first_stage_recall = 0
+
     # Final cascade metrics
-    cascade_recall = recall_score(np.array(all_labels)[melanoma_mask], 
-                                 np.array(all_final_preds)[melanoma_mask]) if any(melanoma_mask) else 0
+    if any(melanoma_mask):
+        cascade_recall = recall_score(np.array(all_labels)[melanoma_mask],
+                                     np.array(all_final_preds)[melanoma_mask],
+                                     average='binary', pos_label=melanoma_idx)
+    else:
+        cascade_recall = 0
     
     # Precision-Recall AUC
     precision, recall, _ = precision_recall_curve(all_labels == melanoma_idx, 
