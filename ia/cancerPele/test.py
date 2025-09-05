@@ -391,7 +391,8 @@ class SkinLesionDataset(Dataset):
         
         # Generate polar transformed image
         polar_image = self.generate_polar_image(image)
-        polar_image = torch.from_numpy(polar_image).float()
+        # Convert from (H, W, C) to (C, H, W) for PyTorch
+        polar_image = torch.from_numpy(polar_image).float().permute(2, 0, 1)
         
         # Prepare label
         if self.is_melanoma_binary:
@@ -425,7 +426,18 @@ class SkinLesionDataset(Dataset):
             center = (image.shape[1] // 2, image.shape[0] // 2)
         
         max_radius = min(center[0], center[1], image.shape[1]-center[0], image.shape[0]-center[1])
-        polar = warp_polar(image, center=center, radius=max_radius, output_shape=(224, 224))
+        
+        # Convert to grayscale for polar transformation
+        if len(image.shape) == 3:
+            image_gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+        else:
+            image_gray = image
+        
+        polar = warp_polar(image_gray, center=center, radius=max_radius, output_shape=(224, 224))
+        
+        # Convert back to 3 channels by repeating the single channel
+        polar = np.repeat(polar[:, :, np.newaxis], 3, axis=-1)
+        
         return polar
 
 class HybridLesionModel(nn.Module):
