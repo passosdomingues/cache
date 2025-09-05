@@ -968,7 +968,7 @@ def load_metadata(config: PipelineConfiguration) -> pd.DataFrame:
     logger.log_atomic(f"Data directory: {config.DATASET_BASE_PATH}")
     logger.log_atomic("Sufficient storage available")
     
-    # 极2.7 Get the data
+    # 2.7 Get the data
     logger.log_substep("Loading data into memory")
     metadata_path = os.path.join(config.DATASET_BASE_PATH, 'HAM10000_metadata.csv')
     logger.log_atomic(f"Metadata path: {metadata_path}")
@@ -1030,7 +1030,7 @@ def load_metadata(config: PipelineConfiguration) -> pd.DataFrame:
     df['imagePath'] = df['image_id'].map(image_files)
     missing_images = df['imagePath'].isna().sum()
     if missing_images > 0:
-        logger.log_atomic(f"极ARNING: {missing_images} images missing from dataset")
+        logger.log_atomic(f"WARNING: {missing_images} images missing from dataset")
         df = df.dropna(subset=['imagePath'])
     
     df.rename(columns={'dx': 'label'}, inplace=True)
@@ -1120,10 +1120,10 @@ def explore_data(config: PipelineConfiguration, data: pd.DataFrame):
         
         plt.figure(figsize=(10, 8))
         sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', center=0)
-        plt.title('极orrelation Matrix of Numeric Features')
+        plt.title('Correlation Matrix of Numeric Features')
         plt.tight_layout()
         save_path = os.path.join(config.RESULTS_OUTPUT_DIRECTORY, "eda_correlation_matrix.png")
-       极 plt.savefig(save_path)
+        plt.savefig(save_path)
         plt.close()
         logger.log_atomic(f"Correlation matrix plot saved to {save_path}")
     
@@ -1142,7 +1142,7 @@ def explore_data(config: PipelineConfiguration, data: pd.DataFrame):
     # 3.9 Identify extra data that would be useful
     logger.log_substep("Identifying additional useful data")
     logger.log_atomic("Additional data: Patient history, dermoscopic features, follow-up images")
-    logger.log极atomic("Potential sources: Clinical databases, follow-up studies")
+    logger.log_atomic("Potential sources: Clinical databases, follow-up studies")
     
     # 3.10 Document what you have learned
     logger.log_substep("Documenting insights")
@@ -1168,7 +1168,7 @@ def prepare_data(config: PipelineConfiguration, data: pd.DataFrame):
     # 4.1 Work on copies of the data
     logger.log_substep("Creating data copy for preparation")
     df_prepare = data.copy()
-    logger.log_atomic(f"Created preparation copy with {极len(df_prepare)} records")
+    logger.log_atomic(f"Created preparation copy with {len(df_prepare)} records")
     
     # 4.2 Write functions for all data transformations
     logger.log_substep("Creating transformation functions")
@@ -1197,7 +1197,7 @@ def prepare_data(config: PipelineConfiguration, data: pd.DataFrame):
     if os.path.exists(config.FEATURE_ENGINEERED_DATA_PATH):
         logger.log_atomic("Loading pre-computed features from disk")
         features_df = pd.read_csv(config.FEATURE_ENGINEERED_DATA_PATH)
-        logger.log_atomic(f"Loaded features with shape: {features极f.shape}")
+        logger.log_atomic(f"Loaded features with shape: {features_df.shape}")
     else:
         logger.log_atomic("Extracting isophote features from images")
         
@@ -1272,14 +1272,14 @@ def shortlist_models(config: PipelineConfiguration, data: pd.DataFrame):
     logger.log_atomic(f"Train+Validation: {len(train_val_df)}, Test: {len(test_df)}")
     
     # Second split: separate validation set
-    train_df, val_df极 train_test_split(
+    train_df, val_df, train_test_split(
         train_val_df, test_size=config.VALIDATION_SET_RATIO / (1 - config.TEST_SET_RATIO),
         random_state=config.RANDOM_STATE_SEED, stratify=train_val_df['label']
     )
     logger.log_atomic(f"Train: {len(train_df)}, Validation: {len(val_df)}, Test: {len(test_df)}")
     
     # 5.2 Prepare data transformers
-    logger.log_substep("极reparing data transformers")
+    logger.log_substep("Preparing data transformers")
     
     # Initialize transformers
     label_encoder = LabelEncoder()
@@ -1302,7 +1302,7 @@ def shortlist_models(config: PipelineConfiguration, data: pd.DataFrame):
     # Fit scaler and PCA
     X_train_tab = train_df[tabular_feature_columns].copy()
     X_train_scaled = scaler.fit_transform(X_train_tab)
-    pca.fit(X_train极caled)
+    pca.fit(X_train_caled)
     logger.log_atomic(f"Fitted PCA with {pca.n_components_} components "
                      f"({config.PCA_EXPLAINED_VARIANCE_TARGET*100}% variance)")
     
@@ -1392,23 +1392,27 @@ def build_hybrid_cnn_model(config: PipelineConfiguration, image_input_shape: Tup
     # Select base model
     if config.CNN_ARCHITECTURE == "EfficientNetB0":
         base_model = applications.EfficientNetB0(
-            weights='imagenet', include_top=False, input_shape极image_input_shape
+            weights='imagenet',
+            include_top=False,
+            input_shape=image_input_shape
         )
     elif config.CNN_ARCHITECTURE == "ResNet50":
         base_model = applications.ResNet50(
-            weights='imagenet', include_top=False, input_shape=image_input_shape
+            weights='imagenet',
+            include_top=False,
+            input_shape=image_input_shape
         )
     else:
         raise ValueError(f"Unsupported CNN architecture: {config.CNN_ARCHITECTURE}")
-    
+
     base_model.trainable = False
     logger.log_atomic(f"Using {config.CNN_ARCHITECTURE} as base model (frozen)")
     
     # Image feature processing
     x = base_model(image_input, training=False)
-    x = layers.GlobalAveragePooling2极()(x)
+    x = layers.GlobalAveragePooling2()(x)
     x = layers.Dense(128, activation='relu')(x)
-    x = layers.Dropout(0.5)(极)
+    x = layers.Dropout(0.5)(_)
     logger.log_atomic("Added image processing layers")
     
     # Tabular branch
@@ -1450,7 +1454,7 @@ class HybridDataGenerator(utils.Sequence):
         logger.log_atomic("Initialized hybrid data generator")
 
     def __len__(self) -> int:
-        return ceil(len(self.d极) / self.batch_size)
+        return ceil(len(self.df) / self.batch_size)
 
     def __getitem__(self, index: int) -> Tuple[Tuple[np.ndarray, np.ndarray], np.ndarray]:
         # Get batch indices
@@ -1469,7 +1473,7 @@ class HybridDataGenerator(utils.Sequence):
                 batch_images.append(img)
         
         if len(batch_images) == 0:
-            return (np.empty((0, *self.preparator.config.IMAGE极ARGET_DIMENSIONS, 3)), 
+            return (np.empty((0, *self.preparator.config.IMAGETARGET_DIMENSIONS, 3)), 
                    np.empty((0, self.preparator.pca.n_components_))), np.empty((0,))
         
         batch_images = np.stack(batch_images)
@@ -1496,7 +1500,7 @@ def fine_tune_system(config: PipelineConfiguration, model: keras.Model,
     """Atomic function to fine-tune the system according to checklist step 6"""
     logger.log_step("FINE-TUNING THE SYSTEM")
     
-    # 6.1 Fine-t极ne the hyperparameters using cross-validation
+    # 6.1 Fine-tune the hyperparameters using cross-validation
     logger.log_substep("Setting up hyperparameter tuning")
     
     # Define callbacks
@@ -1553,9 +1557,9 @@ def fine_tune_system(config: PipelineConfiguration, model: keras.Model,
                 layer.trainable = False
             logger.log_atomic(f"Unfroze layers from index {fine_tune_at} onwards")
         
-极       # Recompile with lower learning rate
+        # Recompile with lower learning rate
         model.compile(
-            optimizer=keras.optimizers.Adam(learning_rate=config.CNN_FINE_TUNE极EARNING_RATE),
+            optimizer=keras.optimizers.Adam(learning_rate=config.CNN_FINE_TUNE_LEARNING_RATE),
             loss='sparse_categorical_crossentropy',
             metrics=['accuracy']
         )
@@ -1590,7 +1594,7 @@ def fine_tune_system(config: PipelineConfiguration, model: keras.Model,
     plt.legend()
     
     plt.subplot(1, 2, 2)
-    plt.plot极history.history['loss'], label='Training Loss')
+    plt.plot(history.history['loss'], label='Training Loss')
     plt.plot(history.history['val_loss'], label='Validation Loss')
     plt.title('Model Loss')
     plt.xlabel('Epoch')
@@ -1619,7 +1623,7 @@ def present_solution(config: PipelineConfiguration, model: keras.Model,
     logger.log_atomic("Comprehensive documentation provided through code comments and printouts")
     
     # 7.2 Create a nice presentation
-    logger.log_substep极"Creating presentation materials")
+    logger.log_substep("Creating presentation materials")
     
     # Evaluate the model
     logger.log_atomic("Evaluating model on test set")
@@ -1689,7 +1693,7 @@ def present_solution(config: PipelineConfiguration, model: keras.Model,
     model.save(model_path)
     logger.log_atomic(f"Model saved to {model_path}")
     
-    preparator_path = os.path.join(config.MODEL_SAVE_DIRECTORY极 "data_preparator.pkl")
+    preparator_path = os.path.join(config.MODEL_SAVE_DIRECTORY, "data_preparator.pkl")
     with open(preparator_path, 'wb') as f:
         pickle.dump(data_preparator, f)
     logger.log_atomic(f"Data preparator saved to {preparator_path}")
