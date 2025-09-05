@@ -598,8 +598,12 @@ def train_first_stage(config, train_df, val_df, label_encoder):
         val_loss /= len(val_loader)
         melanoma_idx = label_encoder.transform(['mel'])[0]
         melanoma_mask = np.array(all_labels) == melanoma_idx
-        melanoma_recall = recall_score(np.array(all_labels)[melanoma_mask], 
-                                      np.array(all_preds)[melanoma_mask]) if any(melanoma_mask) else 0
+        if any(melanoma_mask):
+            melanoma_recall = recall_score(np.array(all_labels)[melanoma_mask],
+                                          np.array(all_preds)[melanoma_mask],
+                                          average='binary', pos_label=melanoma_idx)
+        else:
+            melanoma_recall = 0
         
         logger.log_atomic(f"Epoch {epoch+1}: Train Loss: {train_loss/len(train_loader):.4f}, "
                          f"Val Loss: {val_loss:.4f}, Melanoma Recall: {melanoma_recall:.4f}")
@@ -758,7 +762,12 @@ def train_second_stage(config, train_df, val_df, label_encoder, hard_negatives_i
         all_probs = np.array(all_probs)
         
         melanoma_mask = all_labels == 1
-        melanoma_recall = recall_score(all_labels[melanoma_mask], all_preds[melanoma_mask]) if any(melanoma_mask) else 0
+        if any(melanoma_mask):
+            melanoma_recall = recall_score(all_labels[melanoma_mask],
+                                          all_preds[melanoma_mask],
+                                          average='binary')
+        else:
+            melanoma_recall = 0
         
         # Calculate sensitivity at 95% specificity
         if any(all_labels == 0):  # If there are non-melanoma cases
