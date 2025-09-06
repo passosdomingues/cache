@@ -655,8 +655,8 @@ def identify_confident_nevi(config, model, df, label_encoder, confidence_thresho
             
             # Find confident nevi predictions
             batch_confident = (probs.argmax(dim=1) == nevi_idx) & (probs[:, nevi_idx] > confidence_threshold)
-            batch_indices = np.where(batch_confident.cpu().numpy())[0] + i * config.ENHANCED_BATCH_SIZE
-            confident_nevi_indices.extend(batch_indices)
+            batch_original_indices = df.iloc[batch_indices].index.tolist()
+            confident_nevi_indices.extend(batch_original_indices)
     
     # Find hard nevi (misclassified by first model)
     all_probs = np.vstack(all_probs)
@@ -1846,6 +1846,10 @@ def enhanced_main():
             prepared_data, test_size=config.TEST_SET_RATIO,
             random_state=config.RANDOM_STATE_SEED, stratify=prepared_data['label']
         )
+
+        train_df = train_df.reset_index(drop=True)
+        val_df = val_df.reset_index(drop=True)
+        test_df = test_df.reset_index(drop=True)
         
         train_df, val_df = train_test_split(
             train_val_df, test_size=config.VALIDATION_SET_RATIO / (1 - config.TEST_SET_RATIO),
@@ -1862,7 +1866,8 @@ def enhanced_main():
         
         # Step 7: Second stage - Train binary melanoma classifier
         # Remove some confident nevi but keep hard negatives
-        filtered_train_df = train_df.drop(confident_nevi_indices[:len(confident_nevi_indices)//2])
+        indices_to_remove = confident_nevi_indices[:len(confident_nevi_indices)//2]
+        filtered_train_df = train_df[~train_df.index.isin(indices_to_remove)].copy()
         second_stage_model = train_second_stage(config, filtered_train_df, val_df, label_encoder, hard_negatives_indices)
         
         # Step 8: Evaluate the complete cascade
