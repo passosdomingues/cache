@@ -597,14 +597,27 @@ def train_first_stage(config, train_df, val_df, label_encoder):
         # Calculate metrics
         val_loss /= len(val_loader)
         melanoma_idx = label_encoder.transform(['mel'])[0]
-        melanoma_mask = np.array(all_labels) == melanoma_idx
-        if any(melanoma_mask):
-            melanoma_recall = recall_score(np.array(all_labels)[melanoma_mask],
-                                          np.array(all_preds)[melanoma_mask],
-                                          average='binary', pos_label=melanoma_idx)
-        else:
-            melanoma_recall = 0
+
+        # To correctly calculate recall for a specific class in a multiclass problem,
+        # you should pass the complete arrays of labels and predictions.
+        # Set `average=None` to get the recall score for each class.
         
+        # Get the unique classes present in the validation set
+        unique_classes = np.unique(all_labels)
+        
+        if unique_classes.size > 1: # Ensure there is more than one class to compare
+            class_recalls = recall_score(all_labels, all_preds, average=None, labels=unique_classes)
+            
+            # Find the index corresponding to the 'melanoma' class in the unique_classes array
+            melanoma_class_index = np.where(unique_classes == melanoma_idx)[0]
+            
+            if melanoma_class_index.size > 0:
+                melanoma_recall = class_recalls[melanoma_class_index[0]]
+            else:
+                melanoma_recall = 0.0 # Melanoma class not present in this validation batch
+        else:
+            melanoma_recall = 0.0
+
         logger.log_atomic(f"Epoch {epoch+1}: Train Loss: {train_loss/len(train_loader):.4f}, "
                          f"Val Loss: {val_loss:.4f}, Melanoma Recall: {melanoma_recall:.4f}")
         
