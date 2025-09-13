@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist de Aprendizado de Máquina</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --dark-bg: #121826;
+            --card-bg: #1E293B;
+            --card-border: #334155;
+            --primary: #38BDF8;
+            --secondary: #4ADE80;
+            --accent: #FDE047;
+            --text: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --node-size: 70px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #0F172A 100%);
+            color: var(--text);
+            min-height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(18, 24, 38, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--card-border);
+            z-index: 10;
+        }
+        
+        h1 {
+            font-weight: 700;
+            font-size: 2.2rem;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-weight: 300;
+            font-size: 1.1rem;
+        }
+        
+        .container {
+            display: flex;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .graph-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            cursor: grab;
+        }
+        
+        .graph-container:active {
+            cursor: grabbing;
+        }
+        
+        .node {
+            position: absolute;
+            width: var(--node-size);
+            height: var(--node-size);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 2;
+            font-weight: 600;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transform-style: preserve-3d;
+            will-change: transform, box-shadow;
+            border: 2px solid transparent;
+            background: linear-gradient(135deg, var(--card-bg) 0%, #273549 100%);
+            color: var(--text);
+        }
+        
+        .node:hover {
+            transform: scale(1.15) translateZ(20px);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+            z-index: 3;
+        }
+        
+        .node.central {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--primary) 0%, #0EA5E9 100%);
+            color: white;
+            font-size: 1.8rem;
+            box-shadow: 0 10px 40px rgba(56, 189, 248, 0.3);
+            animation: pulse 4s infinite ease-in-out;
+        }
+        
+        .node.step-1 { color: var(--primary); border: 2px solid var(--primary); }
+        .node.step-2 { color: var(--secondary); border: 2px solid var(--secondary); }
+        .node.step-3 { color: var(--accent); border: 2px solid var(--accent); }
+        .node.step-4 { color: var(--primary); border: 2px solid var(--primary); }
+        .node.step-5 { color: var(--secondary); border: 2px solid var(--secondary); }
+        .node.step-6 { color: var(--accent); border: 2px solid var(--accent); }
+        .node.step-7 { color: var(--primary); border: 2px solid var(--primary); }
+        .node.step-8 { color: var(--secondary); border: 2px solid var(--secondary); }
+        
+        .connection {
+            position: absolute;
+            height: 2px;
+            transform-origin: 0 50%;
+            z-index: 1;
+            opacity: 0.5;
+            background: linear-gradient(90deg, var(--primary) 0%, transparent 100%);
+        }
+        
+        .detail-panel {
+            width: 450px;
+            background: var(--card-bg);
+            border-left: 1px solid var(--card-border);
+            padding: 0;
+            overflow-y: auto;
+            transition: transform 0.4s ease;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .detail-header {
+            padding: 1.5rem;
+            background: rgba(30, 41, 59, 0.9);
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .detail-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: color 0.3s ease;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .close-btn:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .detail-content {
+            padding: 1.5rem;
+            line-height: 1.6;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .detail-content p {
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+        
+        .detail-content ul {
+            list-style-type: none;
+            margin-bottom: 1.5rem;
+        }
+        
+        .detail-content li {
+            margin-bottom: 0.8rem;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-secondary);
+        }
+        
+        .detail-content li:before {
+            content: "•";
+            color: var(--accent);
+            position: absolute;
+            left: 0;
+            font-size: 1.2rem;
+        }
+        
+        .note {
+            background: rgba(56, 189, 248, 0.1);
+            border-left: 3px solid var(--primary);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+        }
+        
+        .warning {
+            background: rgba(253, 224, 71, 0.1);
+            border-left: 3px solid var(--accent);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+            font-weight: 500;
+        }
+        
+        .footer {
+            padding: 1rem;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--card-border);
+            background: var(--card-bg);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+        
+        .floating {
+            animation: float 6s infinite ease-in-out;
+        }
+        
+        .delay-1 { animation-delay: 0.5s; }
+        .delay-2 { animation-delay: 1s; }
+        .delay-3 { animation-delay: 1.5s; }
+        .delay-4 { animation-delay: 2s; }
+        .delay-5 { animation-delay: 2.5s; }
+        .delay-6 { animation-delay: 3s; }
+        .delay-7 { animation-delay: 3.5s; }
+        .delay-8 { animation-delay: 4s; }
+        
+        /* Responsividade */
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .detail-panel {
+                width: 100%;
+                height: 40vh;
+                border-left: none;
+                border-top: 1px solid var(--card-border);
+            }
+        }
+        
+        @media (max-width: 600px) {
+            :root {
+                --node-size: 60px;
+            }
+            
+            .node.central {
+                width: 80px;
+                height: 80px;
+                font-size: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Apêndice A. Aprendizado de Máquina</h1>
+        <p class="subtitle">Checklist de Projeto Interativo</p>
+    </div>
+    
+    <div class="container">
+        <div class="graph-container" id="graphContainer">
+            <!-- Nós e conexões serão gerados via JavaScript -->
+        </div>
+        
+        <div class="detail-panel" id="detailPanel">
+            <div class="detail-header">
+                <h2 class="detail-title" id="detailTitle">Selecione um Nó</h2>
+                <button class="close-btn" id="closeBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="detail-content" id="detailContent">
+                <p>Clique em qualquer um dos nós ao lado para visualizar os detalhes da etapa correspondente.</p>
+            </div>
+            <div class="footer">
+                Interaja com o grafo: arraste para mover, clique para explorar
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dados do checklist
+        const checklistData = [
+            {
+                id: 'central',
+                title: 'Checklist de Projeto',
+                label: 'AM',
+                content: `<p>Este checklist pode guiá-lo através dos seus projetos de aprendizado de máquina. Existem oito etapas principais:</p>
+                <ul>
+                    <li>Enquadre o problema e veja o panorama geral.</li>
+                    <li>Obtenha os dados.</li>
+                    <li>Explore os dados para obter insights.</li>
+                    <li>Prepare os dados para expor melhor os padrões subjacentes aos algoritmos de aprendizado de máquina.</li>
+                    <li>Explore muitos modelos diferentes e selecione os melhores.</li>
+                    <li>Ajuste seus modelos e combine-os em uma ótima solução.</li>
+                    <li>Apresente sua solução.</li>
+                    <li>Lance, monitore e mantenha seu sistema.</li>
+                </ul>
+                <p>Obviamente, você deve se sentir livre para adaptar este checklist às suas necessidades.</p>`
+            },
+            {
+                id: 'step1',
+                title: 'Enquadre o Problema e Veja o Panorama Geral',
+                label: '1',
+                content: `<ul>
+                    <li>Defina o objetivo em termos de negócio.</li>
+                    <li>Como sua solução será utilizada?</li>
+                    <li>Quais são as soluções/alternativas atuais (se houver)?</li>
+                    <li>Como você deve enquadrar este problema (supervisionado/não supervisionado, online/offline, etc.)?</li>
+                    <li>Como a performance deve ser medida?</li>
+                    <li>A métrica de performance está alinhada com o objetivo de negócio?</li>
+                    <li>Qual seria a performance mínima necessária para atingir o objetivo de negócio?</li>
+                    <li>Quais são problemas comparáveis? É possível reutilizar experiência ou ferramentas?</li>
+                    <li>A expertise humana está disponível?</li>
+                    <li>Como você resolveria o problema manualmente?</li>
+                    <li>Liste as suposições que você (ou outros) fizeram até agora.</li>
+                    <li>Verifique as suposições, se possível.</li>
+                </ul>`
+            },
+            {
+                id: 'step2',
+                title: 'Obtenha os Dados',
+                label: '2',
+                content: `<p class="note">Nota: automatize o máximo possível para que você possa facilmente obter dados atualizados.</p>
+                <ul>
+                    <li>Liste os dados que você precisa e quanto precisa.</li>
+                    <li>Encontre e documente onde você pode obter esses dados.</li>
+                    <li>Verifique quanto espaço eles ocuparão.</li>
+                    <li>Verifique obrigações legais e obtenha autorização, se necessário.</li>
+                    <li>Obtenha autorizações de acesso.</li>
+                    <li>Crie um espaço de trabalho (com armazenamento suficiente).</li>
+                    <li>Obtenha os dados.</li>
+                    <li>Converta os dados para um formato que você possa facilmente manipular (sem alterar os dados em si).</li>
+                    <li>Garanta que informações sensíveis sejam deletadas ou protegidas (por exemplo, anonimizadas).</li>
+                    <li>Verifique o tamanho e tipo dos dados (série temporal, amostra, geográfica, etc.).</li>
+                    <li>Amostre um conjunto de teste, coloque-o de lado e nunca o observe (não faça "data snooping").</li>
+                </ul>`
+            },
+            {
+                id: 'step3',
+                title: 'Explore os Dados',
+                label: '3',
+                content: `<p class="note">Nota: tente obter insights de um especialista da área para essas etapas.</p>
+                <ul>
+                    <li>Crie uma cópia dos dados para exploração (amostrando-os para um tamanho manejável, se necessário).</li>
+                    <li>Crie um notebook Jupyter para registrar sua exploração de dados.</li>
+                    <li>Estude cada atributo e suas características:
+                        <ul>
+                            <li>Nome</li>
+                            <li>Tipo (categórico, int/float, limitado/ilimitado, texto, estruturado, etc.)</li>
+                            <li>% de valores ausentes</li>
+                            <li>Ruído e tipo de ruído (estocástico, outliers, erros de arredondamento, etc.)</li>
+                            <li>Utilidade para a tarefa</li>
+                            <li>Tipo de distribuição (Gaussiana, uniforme, logarítmica, etc.)</li>
+                        </ul>
+                    </li>
+                    <li>Para tarefas supervisionadas, identifique o(s) atributo(s) alvo.</li>
+                    <li>Visualize os dados.</li>
+                    <li>Estude as correlações entre os atributos.</li>
+                    <li>Estude como você resolveria o problema manualmente.</li>
+                    <li>Identifique as transformações promissoras que você pode querer aplicar.</li>
+                    <li>Identifique dados extras que seriam úteis (volte para "Obtenha os Dados").</li>
+                    <li>Documente o que você aprendeu.</li>
+                </ul>`
+            },
+            {
+                id: 'step4',
+                title: 'Prepare os Dados',
+                label: '4',
+                content: `<p class="note">Notas:</p>
+                <ul>
+                    <li>Trabalhe em cópias dos dados (mantenha o dataset original intacto).</li>
+                    <li>Escreva funções para todas as transformações de dados que você aplicar, por cinco razões:
+                        <ul>
+                            <li>Para que você possa facilmente preparar os dados da próxima vez quando obtiver um dataset novo</li>
+                            <li>Para que você possa aplicar essas transformações em projetos futuros</li>
+                            <li>Para limpar e preparar o conjunto de teste</li>
+                            <li>Para limpar e preparar novas instâncias de dados assim que sua solução estiver ativa</li>
+                            <li>Para tornar fácil tratar suas escolhas de preparação como hiperparâmetros</li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul>
+                    <li>Limpe os dados:
+                        <ul>
+                            <li>Corrija ou remova outliers (opcional).</li>
+                            <li>Preencha valores ausentes (por exemplo, com zero, média, mediana...) ou exclua suas linhas (ou colunas).</li>
+                        </ul>
+                    </li>
+                    <li>Realize seleção de atributos (opcional):
+                        <ul>
+                            <li>Remova os atributos que não fornecem informações úteis para a tarefa.</li>
+                        </ul>
+                    </li>
+                    <li>Realize engenharia de atributos, quando apropriado:
+                        <ul>
+                            <li>Discretize atributos contínuos.</li>
+                            <li>Decomponha atributos (por exemplo, categórico, data/hora, etc.).</li>
+                            <li>Adicione transformações promissoras de atributos (por exemplo, log(x), sqrt(x), x², etc.).</li>
+                            <li>Agregue atributos em novos atributos promissores.</li>
+                        </ul>
+                    </li>
+                    <li>Realize escalonamento de atributos:
+                        <ul>
+                            <li>Padronize ou normalize atributos.</li>
+                        </ul>
+                    </li>
+                </ul>`
+            },
+            {
+                id: 'step5',
+                title: 'Selecione Modelos Promissores',
+                label: '5',
+                content: `<p class="note">Notas:</p>
+                <ul>
+                    <li>Se os dados forem enormes, você pode querer amostrar conjuntos de treino menores para treinar muitos modelos diferentes em tempo razoável (isso penaliza modelos complexos, como redes neurais grandes ou florestas aleatórias).</li>
+                    <li>Novamente, tente automatizar essas etapas ao máximo.</li>
+                </ul>
+                <ul>
+                    <li>Treine muitos modelos rápidos e simples de diferentes categorias (por exemplo, linear, Naive Bayes, SVM, random forest, rede neural, etc.) usando parâmetros padrão.</li>
+                    <li>Meça e compare a performance:
+                        <ul>
+                            <li>Para cada modelo, use validação cruzada N-fold e calcule a média e o desvio padrão da métrica de performance nos N folds.</li>
+                        </ul>
+                    </li>
+                    <li>Analise as variáveis mais significativas para cada algoritmo.</li>
+                    <li>Analise os tipos de erros que os modelos cometem:
+                        <ul>
+                            <li>Quais dados um humano teria usado para evitar esses erros?</li>
+                        </ul>
+                    </li>
+                    <li>Faça uma rodada rápida de seleção e engenharia de atributos.</li>
+                    <li>Realize uma ou duas iterações rápidas das cinco etapas anteriores.</li>
+                    <li>Selecione os três a cinco modelos mais promissores, preferindo modelos que cometem tipos diferentes de erro.</li>
+                </ul>`
+            },
+            {
+                id: 'step6',
+                title: 'Ajuste o Sistema',
+                label: '6',
+                content: `<p class="note">Notas:</p>
+                <ul>
+                    <li>Você vai querer usar o máximo de dados possível nesta etapa, especialmente ao se aproximar do ajuste final.</li>
+                    <li>Como sempre, automatize o que puder.</li>
+                </ul>
+                <ul>
+                    <li>Ajuste os hiperparâmetros usando validação cruzada:
+                        <ul>
+                            <li>Trate suas escolhas de transformação de dados como hiperparâmetros, especialmente quando você não tiver certeza sobre elas (por exemplo, se não souber se deve substituir valores ausentes por zero ou pela mediana, ou apenas remover as linhas).</li>
+                            <li>A menos que existam muito poucos valores de hiperparâmetros para explorar, prefira busca aleatória a grid search. Se o treino for muito longo, você pode preferir otimização bayesiana (por exemplo, usando processos Gaussianos como descrito por Jasper Snoek et al.).</li>
+                        </ul>
+                    </li>
+                    <li>Experimente métodos ensemble. Combinar seus melhores modelos frequentemente produz melhor performance do que executá-los individualmente.</li>
+                    <li>Quando estiver confiante sobre seu modelo final, meça a performance no conjunto de teste para estimar o erro de generalização.</li>
+                </ul>
+                <p class="warning">AVISO</p>
+                <p class="warning">Não ajuste seu modelo depois de medir o erro de generalização: você apenas começaria a overfitá-lo ao conjunto de teste.</p>`
+            },
+            {
+                id: 'step7',
+                title: 'Apresente Sua Solução',
+                label: '7',
+                content: `<ul>
+                    <li>Documente o que você fez.</li>
+                    <li>Crie uma boa apresentação:
+                        <ul>
+                            <li>Certifique-se de destacar o panorama geral primeiro.</li>
+                            <li>Explique por que sua solução atinge o objetivo de negócio.</li>
+                            <li>Não se esqueça de apresentar pontos interessantes observados ao longo do caminho:
+                                <ul>
+                                    <li>Descreva o que funcionou e o que não funcionou.</li>
+                                    <li>Liste suas suposições e as limitações do sistema.</li>
+                                </ul>
+                            </li>
+                            <li>Garanta que suas descobertas principais sejam comunicadas através de visualizações bonitas ou declarações fáceis de lembrar (por exemplo, "a renda mediana é o principal preditor de preços de imóveis").</li>
+                        </ul>
+                    </li>
+                </ul>`
+            },
+            {
+                id: 'step8',
+                title: 'Lance!',
+                label: '8',
+                content: `<ul>
+                    <li>Prepare sua solução para produção (integre entradas de dados de produção, escreva testes unitários etc.).</li>
+                    <li>Escreva código de monitoramento para verificar a performance do sistema em tempo real e acionar alertas quando ela cair:
+                        <ul>
+                            <li>Cuidado com degradação lenta: modelos tendem a "envelhecer" à medida que os dados evoluem.</li>
+                            <li>Medir performance pode exigir pipeline humano (por exemplo, via crowdsourcing).</li>
+                            <li>Também monitore a qualidade das entradas (por exemplo, sensor com defeito enviando valores aleatórios, ou saída de outra equipe ficando desatualizada).</li>
+                            <li>Isso é particularmente importante para sistemas de aprendizado online.</li>
+                        </ul>
+                    </li>
+                    <li>Re-treine seus modelos regularmente com dados novos (automatize ao máximo).</li>
+                </ul>
+                <p>1 Jasper Snoek et al., "Practical Bayesian Optimization of Machine Learning Algorithms", Proceedings of the 25th International Conference on Neural Information Processing Systems 2 (2012): 2951–2959.</p>`
+            }
+        ];
+
+        // Inicialização da aplicação
+        document.addEventListener('DOMContentLoaded', function() {
+            const graphContainer = document.getElementById('graphContainer');
+            const detailPanel = document.getElementById('detailPanel');
+            const detailTitle = document.getElementById('detailTitle');
+            const detailContent = document.getElementById('detailContent');
+            const closeBtn = document.getElementById('closeBtn');
+            
+            let scale = 1;
+            let posX = 0;
+            let posY = 0;
+            let isDragging = false;
+            let startX, startY;
+            
+            // Configuração do layout do grafo
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            const radius = Math.min(window.innerWidth, window.innerHeight) * 0.3;
+            
+            // Criar nós
+            checklistData.forEach((item, index) => {
+                const node = document.createElement('div');
+                node.className = `node ${item.id === 'central' ? 'central' : 'step-' + index + ' floating delay-' + index}`;
+                node.id = item.id;
+                node.innerHTML = `<span>${item.label}</span>`;
+                
+                // Posicionar o nó central
+                if (item.id === 'central') {
+                    node.style.left = `${centerX - 50}px`;
+                    node.style.top = `${centerY - 50}px`;
+                } else {
+                    // Posicionar nós em órbita ao redor do centro
+                    const angle = (index - 1) * (2 * Math.PI / 8);
+                    const x = centerX + radius * Math.cos(angle) - 35;
+                    const y = centerY + radius * Math.sin(angle) - 35;
+                    
+                    node.style.left = `${x}px`;
+                    node.style.top = `${y}px`;
+                }
+                
+                graphContainer.appendChild(node);
+                
+                // Adicionar evento de clique para mostrar detalhes
+                node.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    detailTitle.textContent = item.title;
+                    detailContent.innerHTML = item.content;
+                    detailPanel.classList.add('active');
+                });
+            });
+            
+            // Criar conexões
+            for (let i = 1; i <= 8; i++) {
+                createConnection('central', `step${i}`);
+            }
+            
+            // Função para criar conexões entre nós
+            function createConnection(fromId, toId) {
+                const fromNode = document.getElementById(fromId);
+                const toNode = document.getElementById(toId);
+                
+                if (!fromNode || !toNode) return;
+                
+                const connection = document.createElement('div');
+                connection.className = 'connection';
+                
+                updateConnectionPosition(connection, fromNode, toNode);
+                graphContainer.appendChild(connection);
+            }
+            
+            // Atualizar posição das conexões
+            function updateConnectionPosition(connection, fromNode, toNode) {
+                const fromRect = fromNode.getBoundingClientRect();
+                const toRect = toNode.getBoundingClientRect();
+                
+                const fromX = fromRect.left + fromRect.width / 2;
+                const fromY = fromRect.top + fromRect.height / 2;
+                const toX = toRect.left + toRect.width / 2;
+                const toY = toRect.top + toRect.height / 2;
+                
+                const length = Math.sqrt(Math.pow(toX - fromX, 2) + Math.pow(toY - fromY, 2));
+                const angle = Math.atan2(toY - fromY, toX - fromX) * 180 / Math.PI;
+                
+                connection.style.width = `${length}px`;
+                connection.style.left = `${fromX}px`;
+                connection.style.top = `${fromY}px`;
+                connection.style.transform = `rotate(${angle}deg)`;
+            }
+            
+            // Fechar painel de detalhes
+            closeBtn.addEventListener('click', function() {
+                detailPanel.classList.remove('active');
+            });
+            
+            // Funcionalidade de zoom e arrastar
+            graphContainer.addEventListener('mousedown', function(e) {
+                if (e.button !== 0) return; // Apenas botão esquerdo
+                isDragging = true;
+                startX = e.clientX - posX;
+                startY = e.clientY - posY;
+                graphContainer.style.cursor = 'grabbing';
+            });
+            
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                
+                posX = e.clientX - startX;
+                posY = e.clientY - startY;
+                
+                graphContainer.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+            });
+            
+            document.addEventListener('mouseup', function() {
+                isDragging = false;
+                graphContainer.style.cursor = 'grab';
+            });
+            
+            graphContainer.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                
+                // Ajustar escala com base no scroll do mouse
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                scale = Math.max(0.5, Math.min(2, scale * delta));
+                
+                graphContainer.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+            });
+            
+            // Ajustar o gráfico ao redimensionar a janela
+            window.addEventListener('resize', function() {
+                // Recalcular posições dos nós e conexões
+                // (implementação simplificada - em produção seria mais robusta)
+                document.querySelectorAll('.connection').forEach(conn => conn.remove());
+                
+                for (let i = 1; i <= 8; i++) {
+                    createConnection('central', `step${i}`);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
