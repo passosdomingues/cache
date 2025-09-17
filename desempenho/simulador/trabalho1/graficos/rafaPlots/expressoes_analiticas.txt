@@ -1,0 +1,58 @@
+EXPRESSÕES ANALÍTICAS DAS TENDÊNCIAS
+
+ocupacao_080_EN:
+  Expressão: 1.000000*exp(1.000000*t)
+  R²: -inf
+
+ocupacao_080_EW:
+  Expressão: 1.000000*exp(1.000000*t)
+  R²: -inf
+
+ocupacao_090_EN:
+  Expressão: 1.000000*exp(1.000000*t)
+  R²: -inf
+
+ocupacao_090_EW:
+  Expressão: 1.000000*exp(1.000000*t)
+  R²: -inf
+
+ocupacao_095_EN:
+  Expressão: 1.000000*exp(1.000000*t)
+  R²: -inf
+
+ocupacao_095_EW:
+  Expressão: 1.000000*exp(1.000000*t)
+  R²: -inf
+
+ocupacao_0999_EN:
+  Expressão: 1.000000*exp(1.000000*t)
+  R²: -inf
+
+ocupacao_0999_EW:
+  Expressão: 1.000000*exp(1.000000*t)
+  R²: -inf
+
+ocupacao_080_EN_ajuste:
+  Expressão: 1.007969 * rho / (1 - rho)
+
+ocupacao_080_EW_ajuste:
+  Expressão: 1.010896 / (mu * (1 - rho))
+
+ocupacao_090_EN_ajuste:
+  Expressão: 0.981788 * rho / (1 - rho)
+
+ocupacao_090_EW_ajuste:
+  Expressão: 0.985350 / (mu * (1 - rho))
+
+ocupacao_095_EN_ajuste:
+  Expressão: 0.951650 * rho / (1 - rho)
+
+ocupacao_095_EW_ajuste:
+  Expressão: 0.948231 / (mu * (1 - rho))
+
+ocupacao_0999_EN_ajuste:
+  Expressão: 0.676853 * rho / (1 - rho)
+
+ocupacao_0999_EW_ajuste:
+  Expressão: 0.673489 / (mu * (1 - rho))
+

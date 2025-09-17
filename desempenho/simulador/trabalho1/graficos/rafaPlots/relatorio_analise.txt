@@ -1,0 +1,19 @@
+=== EXPRESSÕES ANALÍTICAS E R² ===
+ocupacao_080:
+  E[N] modelo linear R²=1.0000
+  E[W] modelo RandomForest R²=0.8004
+ocupacao_090:
+  E[N] modelo linear R²=1.0000
+  E[W] modelo RandomForest R²=0.8385
+ocupacao_095:
+  E[N] modelo linear R²=1.0000
+  E[W] modelo RandomForest R²=0.9809
+ocupacao_0999:
+  E[N] modelo linear R²=1.0000
+  E[W] modelo RandomForest R²=0.9998
+
+=== ENTROPIA DA FILA ===
+ocupacao_080: 2.559934
+ocupacao_090: 2.882521
+ocupacao_095: 3.226403
+ocupacao_0999: 3.806038
