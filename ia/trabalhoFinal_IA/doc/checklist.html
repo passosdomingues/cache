@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist Interativo de Machine Learning</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #3a0ca3;
+            --accent: #7209b7;
+            --accent-light: #b5179e;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --light: #f8f9fa;
+            --dark: #121212;
+            --dark-card: #1e1e1e;
+            --dark-border: #333333;
+            --text-light: #f1f1f1;
+            --text-dark: #333333;
+            --text-gray: #a0aec0;
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark) 0%, #0a0a0a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            max-width: 1600px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--dark-border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+            color: var(--primary-light);
+        }
+
+        h1 {
+            font-weight: 800;
+            font-size: 2.2rem;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-weight: 300;
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            width: 50px;
+            height: 26px;
+            border-radius: 13px;
+            padding: 2px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .theme-toggle::before {
+            content: '';
+            display: block;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: white;
+            transition: var(--transition);
+            transform: translateX(0);
+        }
+
+        .theme-toggle.dark::before {
+            transform: translateX(24px);
+            background: var(--primary-light);
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Graph Visualization */
+        .graph-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: rgba(18, 18, 18, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #mlGraph {
+            width: 100%;
+            height: 100%;
+        }
+
+        .graph-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .graph-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--dark-border);
+            color: var(--text-light);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .graph-btn:hover {
+            background: var(--primary);
+            transform: scale(1.1);
+        }
+
+        /* Details Panel */
+        .details-panel {
+            width: 450px;
+            background: var(--dark-card);
+            border-left: 1px solid var(--dark-border);
+            padding: 0;
+            overflow-y: auto;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .detail-header {
+            padding: 1.5rem;
+            background: rgba(30, 30, 30, 0.9);
+            border-bottom: 1px solid var(--dark-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .detail-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .detail-content {
+            padding: 1.5rem;
+            line-height: 1.7;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .detail-content p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .detail-content ul {
+            list-style-type: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-content li {
+            margin-bottom: 0.8rem;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-gray);
+        }
+
+        .detail-content li:before {
+            content: "•";
+            color: var(--primary);
+            position: absolute;
+            left: 0;
+            font-size: 1.2rem;
+        }
+
+        .note {
+            background: rgba(67, 97, 238, 0.1);
+            border-left: 3px solid var(--primary);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+        }
+
+        .warning {
+            background: rgba(247, 37, 133, 0.1);
+            border-left: 3px solid var(--warning);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+            font-weight: 500;
+        }
+
+        .progress-container {
+            padding: 1rem 1.5rem;
+            background: rgba(30, 30, 30, 0.9);
+            border-top: 1px solid var(--dark-border);
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent-light) 100%);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .step-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.7rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .nav-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:disabled {
+            background: var(--dark-border);
+            color: var(--text-gray);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--dark-border);
+            background: var(--dark-card);
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+
+        .pulse {
+            animation: pulse 3s infinite ease-in-out;
+        }
+
+        .float {
+            animation: float 6s infinite ease-in-out;
+        }
+
+        /* Responsividade */
+        @media (max-width: 1200px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .details-panel {
+                width: 100%;
+                height: 40vh;
+                border-left: none;
+                border-top: 1px solid var(--dark-border);
+            }
+            
+            .graph-container {
+                height: 60vh;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .detail-title {
+                font-size: 1.3rem;
+            }
+            
+            .step-navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Node styling for D3 graph */
+        .node {
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .node:hover {
+            filter: brightness(1.2);
+        }
+
+        .node-text {
+            font-weight: 600;
+            font-size: 14px;
+            fill: white;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        .link {
+            stroke: rgba(255, 255, 255, 0.2);
+            stroke-width: 2;
+            fill: none;
+            transition: var(--transition);
+        }
+
+        .link:hover {
+            stroke: var(--primary);
+            stroke-width: 3;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <div>
+                    <h1>Apêndice A. Aprendizado de Máquina</h1>
+                    <p class="subtitle">Checklist Interativo de Projeto</p>
+                </div>
+            </div>
+            <div class="controls">
+                <button class="theme-toggle dark" id="themeToggle">
+                    <span class="toggle-handle"></span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="graph-container">
+                <svg id="mlGraph"></svg>
+                <div class="graph-controls">
+                    <button class="graph-btn" id="zoomIn">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                    <button class="graph-btn" id="zoomOut">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
+                    <button class="graph-btn" id="resetView">
+                        <i class="fas fa-sync"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="details-panel">
+                <div class="detail-header">
+                    <h2 class="detail-title" id="detailTitle">Selecione uma Etapa</h2>
+                </div>
+                <div class="detail-content" id="detailContent">
+                    <p>Clique em qualquer nó do grafo para visualizar os detalhes da etapa correspondente.</p>
+                    <p>Este checklist guiará você através das oito etapas principais de um projeto de Machine Learning:</p>
+                    <ol>
+                        <li>Enquadre o problema e veja o panorama geral</li>
+                        <li>Obtenha os dados</li>
+                        <li>Explore os dados para obter insights</li>
+                        <li>Prepare os dados para os algoritmos</li>
+                        <li>Explore modelos e selecione os melhores</li>
+                        <li>Ajuste seus modelos e combine soluções</li>
+                        <li>Apresente sua solução</li>
+                        <li>Lance, monitore e mantenha seu sistema</li>
+                    </ol>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="step-navigation">
+                        <button class="nav-btn" id="prevBtn" disabled>
+                            <i class="fas fa-chevron-left"></i> Anterior
+                        </button>
+                        <button class="nav-btn" id="nextBtn">
+                            Próximo <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Interaja com o grafo: arraste para navegar, use a roda do mouse para zoom, clique nos nós para detalhes</p>
+        </div>
+    </div>
+
+    <script>
+        // Dados do checklist - estrutura de grafo com nós e conexões
+        const checklistData = {
+            nodes: [
+                { id: "intro", name: "Introdução", label: "ML", description: "Visão geral do checklist de Machine Learning", x: 0, y: 0, radius: 70, connected: ["step1"] },
+                { id: "step1", name: "Enquadre o Problema", label: "1", description: "Defina o objetivo e veja o panorama geral", x: 0, y: -200, radius: 50, connected: ["step2"] },
+                { id: "step2", name: "Obtenha os Dados", label: "2", description: "Coleta e preparação inicial dos dados", x: 200, y: -150, radius: 50, connected: ["step3", "step1"] },
+                { id: "step3", name: "Explore os Dados", label: "3", description: "Análise exploratória e insights", x: 200, y: 0, radius: 50, connected: ["step4", "step2"] },
+                { id: "step4", name: "Prepare os Dados", label: "4", description: "Pré-processamento e limpeza", x: 200, y: 150, radius: 50, connected: ["step5", "step3", "step2"] },
+                { id: "step5", name: "Selecione Modelos", label: "5", description: "Treinamento e seleção de algoritmos", x: 0, y: 200, radius: 50, connected: ["step6", "step4"] },
+                { id: "step6", name: "Ajuste o Sistema", label: "6", description: "Otimização e combinação de modelos", x: -200, y: 150, radius: 50, connected: ["step7", "step5", "step4"] },
+                { id: "step7", name: "Apresente Solução", label: "7", description: "Comunicação dos resultados", x: -200, y: 0, radius: 50, connected: ["step8", "step6"] },
+                { id: "step8", name: "Lance o Sistema", label: "8", description: "Implementação e monitoramento", x: -200, y: -150, radius: 50, connected: ["step1", "step2", "step7"] }
+            ],
+            details: {
+                intro: {
+                    title: "Checklist de Projeto de Machine Learning",
+                    content: `<p>Este checklist pode guiá-lo através dos seus projetos de aprendizado de máquina. Existem oito etapas principais:</p>
+                    <ul>
+                        <li>Enquadre o problema e veja o panorama geral.</li>
+                        <li>Obtenha os dados.</li>
+                        <li>Explore os dados para obter insights.</li>
+                        <li>Prepare os dados para expor melhor os padrões subjacentes aos algoritmos de aprendizado de máquina.</li>
+                        <li>Explore muitos modelos diferentes e selecione os melhores.</li>
+                        <li>Ajuste seus modelos e combine-os em uma ótima solução.</li>
+                        <li>Apresente sua solução.</li>
+                        <li>Lance, monitore e mantenha seu sistema.</li>
+                    </ul>
+                    <p>Obviamente, você deve se sentir livre para adaptar este checklist às suas necessidades.</p>
+                    <div class="note">Interaja com o grafo para explorar cada etapa em detalhes.</div>`
+                },
+                step1: {
+                    title: "Enquadre o Problema e Veja o Panorama Geral",
+                    content: `<ul>
+                        <li>Defina o objetivo em termos de negócio.</li>
+                        <li>Como sua solução será utilizada?</li>
+                        <li>Quais são as soluções/alternativas atuais (se houver)?</li>
+                        <li>Como você deve enquadrar este problema (supervisionado/não supervisionado, online/offline, etc.)?</li>
+                        <li>Como a performance deve ser medida?</li>
+                        <li>A métrica de performance está alinhada com o objetivo de negócio?</li>
+                        <li>Qual seria a performance mínima necessária para atingir o objetivo de negócio?</li>
+                        <li>Quais são problemas comparáveis? É possível reutilizar experiência ou ferramentas?</li>
+                        <li>A expertise humana está disponível?</li>
+                        <li>Como você resolveria o problema manualmente?</li>
+                        <li>Liste as suposições que você (ou outros) fizeram até agora.</li>
+                        <li>Verifique as suposições, se possível.</li>
+                    </ul>`
+                },
+                step2: {
+                    title: "Obtenha os Dados",
+                    content: `<div class="note">Nota: automatize o máximo possível para que você possa facilmente obter dados atualizados.</div>
+                    <ul>
+                        <li>Liste os dados que você precisa e quanto precisa.</li>
+                        <li>Encontre e documente onde você pode obter esses dados.</li>
+                        <li>Verifique quanto espaço eles ocuparão.</li>
+                        <li>Verifique obrigações legais e obtenha autorização, se necessário.</li>
+                        <li>Obtenha autorizações de acesso.</li>
+                        <li>Crie um espaço de trabalho (com armazenamento suficiente).</li>
+                        <li>Obtenha os dados.</li>
+                        <li>Converta os dados para um formato que você possa facilmente manipular (sem alterar os dados em si).</li>
+                        <li>Garanta que informações sensíveis sejam deletadas ou protegidas (por exemplo, anonimizadas).</li>
+                        <li>Verifique o tamanho e tipo dos dados (série temporal, amostra, geográfica, etc.).</li>
+                        <li>Amostre um conjunto de teste, coloque-o de lado e nunca o observe (não faça "data snooping").</li>
+                    </ul>`
+                },
+                step3: {
+                    title: "Explore os Dados",
+                    content: `<div class="note">Nota: tente obter insights de um especialista da área para essas etapas.</div>
+                    <ul>
+                        <li>Crie uma cópia dos dados para exploração (amostrando-os para um tamanho manejável, se necessário).</li>
+                        <li>Crie um notebook Jupyter para registrar sua exploração de dados.</li>
+                        <li>Estude cada atributo e suas características:
+                            <ul>
+                                <li>Nome</li>
+                                <li>Tipo (categórico, int/float, limitado/ilimitado, texto, estruturado, etc.)</li>
+                                <li>% de valores ausentes</li>
+                                <li>Ruído e tipo de ruído (estocástico, outliers, erros de arredondamento, etc.)</li>
+                                <li>Utilidade para a tarefa</li>
+                                <li>Tipo de distribuição (Gaussiana, uniforme, logarítmica, etc.)</li>
+                            </ul>
+                        </li>
+                        <li>Para tarefas supervisionadas, identifique o(s) atributo(s) alvo.</li>
+                        <li>Visualize os dados.</li>
+                        <li>Estude as correlações entre os atributos.</li>
+                        <li>Estude como você resolveria o problema manualmente.</li>
+                        <li>Identifique as transformações promissoras que você pode querer aplicar.</li>
+                        <li>Identifique dados extras que seriam úteis (volte para "Obtenha os Dados").</li>
+                        <li>Documente o que você aprendeu.</li>
+                    </ul>`
+                },
+                step4: {
+                    title: "Prepare os Dados",
+                    content: `<div class="note">Notas:</div>
+                    <ul>
+                        <li>Trabalhe em cópias dos dados (mantenha o dataset original intacto).</li>
+                        <li>Escreva funções para todas as transformações de dados que você aplicar, por cinco razões:
+                            <ul>
+                                <li>Para que você possa facilmente preparar os dados da próxima vez quando obtiver um dataset novo</li>
+                                <li>Para que você possa aplicar essas transformações em projetos futuros</li>
+                                <li>Para limpar e preparar o conjunto de teste</li>
+                                <li>Para limpar e preparar novas instâncias de dados assim que sua solução estiver ativa</li>
+                                <li>Para tornar fácil tratar suas escolhas de preparação como hiperparâmetros</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <ul>
+                        <li>Limpe os dados:
+                            <ul>
+                                <li>Corrija ou remova outliers (opcional).</li>
+                                <li>Preencha valores ausentes (por exemplo, com zero, média, mediana...) ou exclua suas linhas (ou colunas).</li>
+                            </ul>
+                        </li>
+                        <li>Realize seleção de atributos (opcional):
+                            <ul>
+                                <li>Remova os atributos que não fornecem informações úteis para a tarefa.</li>
+                            </ul>
+                        </li>
+                        <li>Realize engenharia de atributos, quando apropriado:
+                            <ul>
+                                <li>Discretize atributos contínuos.</li>
+                                <li>Decomponha atributos (por exemplo, categórico, date/hora, etc.).</li>
+                                <li>Adicione transformações promissoras de atributos (por exemplo, log(x), sqrt(x), x², etc.).</li>
+                                <li>Agregue atributos em novos atributos promissores.</li>
+                            </ul>
+                        </li>
+                        <li>Realize escalonamento de atributos:
+                            <ul>
+                                <li>Padronize ou normalize atributos.</li>
+                            </ul>
+                        </li>
+                    </ul>`
+                },
+                step5: {
+                    title: "Selecione Modelos Promissores",
+                    content: `<div class="note">Notas:</div>
+                    <ul>
+                        <li>Se os dados forem enormes, você pode querer amostrar conjuntos de treino menores para treinar muitos modelos diferentes em tempo razoável (isso penaliza modelos complexos, como redes neurais grandes ou florestas aleatórias).</li>
+                        <li>Novamente, tente automatizar essas etapas ao máximo.</li>
+                    </ul>
+                    <ul>
+                        <li>Treine muitos modelos rápidos e simples de diferentes categorias (por exemplo, linear, Naive Bayes, SVM, random forest, rede neural, etc.) usando parâmetros padrão.</li>
+                        <li>Meça e compare a performance:
+                            <ul>
+                                <li>Para cada modelo, use validação cruzada N-fold e calcule a média e o desvio padrão da métrica de performance nos N folds.</li>
+                            </ul>
+                        </li>
+                        <li>Analise as variáveis mais significativas para cada algoritmo.</li>
+                        <li>Analise os tipos de erros que os modelos cometem:
+                            <ul>
+                                <li>Quais dados um humano teria usado para evitar esses erros?</li>
+                            </ul>
+                        </li>
+                        <li>Faça uma rodada rápida de seleção e engenharia de atributos.</li>
+                        <li>Realize uma ou duas iterações rápidas das cinco etapas anteriores.</li>
+                        <li>Selecione os três a cinco modelos mais promissores, preferindo modelos que cometem tipos diferentes de erro.</li>
+                    </ul>`
+                },
+                step6: {
+                    title: "Ajuste o Sistema",
+                    content: `<div class="note">Notas:</div>
+                    <ul>
+                        <li>Você vai querer usar o máximo de dados possível nesta etapa, especialmente ao se aproximar do ajuste final.</li>
+                        <li>Como sempre, automatize o que puder.</li>
+                    </ul>
+                    <ul>
+                        <li>Ajuste os hiperparâmetros usando validação cruzada:
+                            <ul>
+                                <li>Trate suas escolhas de transformação de dados como hiperparâmetros, especialmente quando você não tiver certeza sobre elas (por exemplo, se não souber se deve substituir valores ausentes por zero ou pela mediana, ou apenas remover as linhas).</li>
+                                <li>A menos que existam muito poucos valores de hiperparâmetros para explorar, prefira busca aleatória a grid search. Se o treino for muito longo, você pode preferir otimização bayesiana (por exemplo, usando processos Gaussianos como descrito por Jasper Snoek et al.).</li>
+                            </ul>
+                        </li>
+                        <li>Experimente métodos ensemble. Combinar seus melhores modelos frequentemente produz melhor performance do que executá-los individualmente.</li>
+                        <li>Quando estiver confiante sobre seu modelo final, meça a performance no conjunto de teste para estimar o erro de generalização.</li>
+                    </ul>
+                    <div class="warning">AVISO: Não ajuste seu modelo depois de medir o erro de generalização: você apenas começaria a overfitá-lo ao conjunto de teste.</div>`
+                },
+                step7: {
+                    title: "Apresente Sua Solução",
+                    content: `<ul>
+                        <li>Documente o que você fez.</li>
+                        <li>Crie uma boa apresentação:
+                            <ul>
+                                <li>Certifique-se de destacar o panorama geral primeiro.</li>
+                                <li>Explique por que sua solução atinge o objetivo de negócio.</li>
+                                <li>Não se esqueça de apresentar pontos interessantes observados ao longo do caminho:
+                                    <ul>
+                                        <li>Descreva o que funcionou e o que não funcionou.</li>
+                                        <li>Liste suas suposições e as limitações do sistema.</li>
+                                    </ul>
+                                </li>
+                                <li>Garanta que suas descobertas principais sejam comunicadas através de visualizações bonitas ou declarações fáceis de lembrar (por exemplo, "a renda mediana é o principal preditor de preços de imóveis").</li>
+                            </ul>
+                        </li>
+                    </ul>`
+                },
+                step8: {
+                    title: "Lance!",
+                    content: `<ul>
+                        <li>Prepare sua solução para produção (integre entradas de dados de produção, escreva testes unitários etc.).</li>
+                        <li>Escreva código de monitoramento para verificar a performance do sistema em tempo real e acionar alertas quando ela cair:
+                            <ul>
+                                <li>Cuidado com degradação lenta: modelos tendem a "envelhecer" à medida que os dados evoluem.</li>
+                                <li>Medir performance pode exigir pipeline humano (por exemplo, via crowdsourcing).</li>
+                                <li>Também monitore a qualidade das entradas (por exemplo, sensor com defeito enviando valores aleatórios, ou saída de outra equipe ficando desatualizada).</li>
+                                <li>Isso é particularmente importante para sistemas de aprendizado online.</li>
+                            </ul>
+                        </li>
+                        <li>Re-treine seus modelos regularmente com dados novos (automatize ao máximo).</li>
+                    </ul>
+                    <p>1 Jasper Snoek et al., "Practical Bayesian Optimization of Machine Learning Algorithms", Proceedings of the 25th International Conference on Neural Information Processing Systems 2 (2012): 2951–2959.</p>`
+                }
+            }
+        };
+
+        // Inicialização da aplicação
+        document.addEventListener('DOMContentLoaded', function() {
+            const detailTitle = document.getElementById('detailTitle');
+            const detailContent = document.getElementById('detailContent');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const progressFill = document.getElementById('progressFill');
+            const themeToggle = document.getElementById('themeToggle');
+            const zoomInBtn = document.getElementById('zoomIn');
+            const zoomOutBtn = document.getElementById('zoomOut');
+            const resetViewBtn = document.getElementById('resetView');
+            
+            let currentStep = 'intro';
+            let stepsOrder = ['intro', 'step1', 'step2', 'step3', 'step4', 'step5', 'step6', 'step7', 'step8'];
+            let currentStepIndex = 0;
+            
+            // Configuração do SVG e D3
+            const svg = d3.select('#mlGraph');
+            const width = document.querySelector('.graph-container').clientWidth;
+            const height = document.querySelector('.graph-container').clientHeight;
+            
+            svg.attr('width', width)
+               .attr('height', height);
+            
+            // Configuração do zoom
+            const zoom = d3.zoom()
+                .scaleExtent([0.5, 3])
+                .on('zoom', (event) => {
+                    g.attr('transform', event.transform);
+                });
+            
+            svg.call(zoom);
+            
+            // Grupo para todos os elementos do grafo
+            const g = svg.append('g');
+            
+            // Desenhar o grafo
+            function renderGraph() {
+                // Limpar o grafo anterior
+                g.selectAll('*').remove();
+                
+                // Desenhar conexões
+                checklistData.nodes.forEach(node => {
+                    if (node.connected) {
+                        node.connected.forEach(targetId => {
+                            const targetNode = checklistData.nodes.find(n => n.id === targetId);
+                            if (targetNode) {
+                                g.append('line')
+                                    .attr('class', 'link')
+                                    .attr('x1', node.x + width/2)
+                                    .attr('y1', node.y + height/2)
+                                    .attr('x2', targetNode.x + width/2)
+                                    .attr('y2', targetNode.y + height/2)
+                                    .attr('data-source', node.id)
+                                    .attr('data-target', targetNode.id);
+                            }
+                        });
+                    }
+                });
+                
+                // Desenhar nós
+                const nodes = g.selectAll('.node')
+                    .data(checklistData.nodes)
+                    .enter()
+                    .append('g')
+                    .attr('class', 'node')
+                    .attr('transform', d => `translate(${d.x + width/2}, ${d.y + height/2})`)
+                    .on('click', (event, d) => {
+                        selectNode(d.id);
+                    });
+                
+                // Adicionar círculos aos nós
+                nodes.append('circle')
+                    .attr('r', d => d.radius)
+                    .attr('fill', d => {
+                        if (d.id === 'intro') return 'url(#gradientIntro)';
+                        if (d.id === currentStep) return 'url(#gradientActive)';
+                        return 'url(#gradientDefault)';
+                    })
+                    .attr('stroke', d => d.id === currentStep ? 'white' : 'rgba(255,255,255,0.3)')
+                    .attr('stroke-width', d => d.id === currentStep ? 3 : 2);
+                
+                // Adicionar texto aos nós
+                nodes.append('text')
+                    .attr('class', 'node-text')
+                    .attr('dy', 5)
+                    .text(d => d.label);
+                
+                // Adicionar gradientes
+                const defs = svg.append('defs');
+                
+                // Gradiente para nó introdutório
+                const gradientIntro = defs.append('linearGradient')
+                    .attr('id', 'gradientIntro')
+                    .attr('x1', '0%')
+                    .attr('y1', '0%')
+                    .attr('x2', '100%')
+                    .attr('y2', '100%');
+                
+                gradientIntro.append('stop')
+                    .attr('offset', '0%')
+                    .attr('stop-color', '#4361ee');
+                
+                gradientIntro.append('stop')
+                    .attr('offset', '100%')
+                    .attr('stop-color', '#7209b7');
+                
+                // Gradiente para nó ativo
+                const gradientActive = defs.append('linearGradient')
+                    .attr('id', 'gradientActive')
+                    .attr('x1', '0%')
+                    .attr('y1', '0%')
+                    .attr('x2', '100%')
+                    .attr('y2', '100%');
+                
+                gradientActive.append('stop')
+                    .attr('offset', '0%')
+                    .attr('stop-color', '#4895ef');
+                
+                gradientActive.append('stop')
+                    .attr('offset', '100%')
+                    .attr('stop-color', '#4cc9f0');
+                
+                // Gradiente padrão
+                const gradientDefault = defs.append('linearGradient')
+                    .attr('id', 'gradientDefault')
+                    .attr('x1', '0%')
+                    .attr('y1', '0%')
+                    .attr('x2', '100%')
+                    .attr('y2', '100%');
+                
+                gradientDefault.append('stop')
+                    .attr('offset', '0%')
+                    .attr('stop-color', '#3a0ca3');
+                
+                gradientDefault.append('stop')
+                    .attr('offset', '100%')
+                    .attr('stop-color', '#7209b7');
+            }
+            
+            // Selecionar um nó
+            function selectNode(nodeId) {
+                currentStep = nodeId;
+                currentStepIndex = stepsOrder.indexOf(nodeId);
+                
+                // Atualizar detalhes
+                detailTitle.textContent = checklistData.details[nodeId].title;
+                detailContent.innerHTML = checklistData.details[nodeId].content;
+                
+                // Atualizar progresso
+                progressFill.style.width = `${(currentStepIndex / (stepsOrder.length - 1)) * 100}%`;
+                
+                // Atualizar botões de navegação
+                prevBtn.disabled = currentStepIndex === 0;
+                nextBtn.disabled = currentStepIndex === stepsOrder.length - 1;
+                
+                // Atualizar grafo
+                renderGraph();
+            }
+            
+            // Navegação
+            prevBtn.addEventListener('click', () => {
+                if (currentStepIndex > 0) {
+                    selectNode(stepsOrder[currentStepIndex - 1]);
+                }
+            });
+            
+            nextBtn.addEventListener('click', () => {
+                if (currentStepIndex < stepsOrder.length - 1) {
+                    selectNode(stepsOrder[currentStepIndex + 1]);
+                }
+            });
+            
+            // Controles de zoom
+            zoomInBtn.addEventListener('click', () => {
+                svg.transition().call(zoom.scaleBy, 1.5);
+            });
+            
+            zoomOutBtn.addEventListener('click', () => {
+                svg.transition().call(zoom.scaleBy, 0.75);
+            });
+            
+            resetViewBtn.addEventListener('click', () => {
+                svg.transition().call(zoom.transform, d3.zoomIdentity);
+            });
+            
+            // Toggle de tema
+            themeToggle.addEventListener('click', () => {
+                themeToggle.classList.toggle('dark');
+                // Aqui seria implementada a lógica de troca de tema
+            });
+            
+            // Inicializar o gráfico
+            renderGraph();
+            
+            // Selecionar o nó inicial
+            selectNode('intro');
+            
+            // Ajustar o gráfico ao redimensionar a janela
+            window.addEventListener('resize', () => {
+                const newWidth = document.querySelector('.graph-container').clientWidth;
+                const newHeight = document.querySelector('.graph-container').clientHeight;
+                
+                svg.attr('width', newWidth)
+                   .attr('height', newHeight);
+                
+                renderGraph();
+            });
+        });
+    </script>
+</body>
+</html>

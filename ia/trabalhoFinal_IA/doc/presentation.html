@@ -12,6 +12,8 @@
             --primary: #2c3e50;
             --secondary: #e74c3c;
             --accent: #3498db;
+            --accent2: #2ecc71;
+            --accent3: #f39c12;
             --dark: #2c3e50;
             --light: #ecf0f1;
             --text: #333333;
@@ -20,6 +22,7 @@
             --warning: #f39c12;
             --border-radius: 12px;
             --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --box-shadow: 0 10px 30px rgba(0,0,0,0.08);
         }
 
         * {
@@ -53,6 +56,7 @@
             flex-direction: column;
             transition: var(--transition);
             overflow-y: auto;
+            position: relative;
         }
 
         .nav-header {
@@ -92,11 +96,29 @@
             gap: 15px;
             background: rgba(255,255,255,0.1);
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-item:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: var(--accent);
+            transform: scaleY(0);
+            transition: var(--transition);
         }
 
         .nav-item:hover {
             background: rgba(255,255,255,0.2);
             transform: translateX(5px);
+        }
+
+        .nav-item:hover:before {
+            transform: scaleY(1);
         }
 
         .nav-item.active {
@@ -105,6 +127,10 @@
             font-weight: 700;
             transform: translateX(10px);
             box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-item.active:before {
+            transform: scaleY(1);
         }
 
         .slides-container {
@@ -142,6 +168,7 @@
             margin-bottom: 30px;
             padding-bottom: 20px;
             border-bottom: 3px solid var(--primary);
+            position: relative;
         }
 
         .slide-title {
@@ -172,10 +199,15 @@
             background: white;
             border-radius: var(--border-radius);
             padding: 30px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+            box-shadow: var(--box-shadow);
             margin-top: 25px;
             border-left: 5px solid var(--secondary);
             transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
         }
 
         .card-title {
@@ -277,12 +309,15 @@
             font-size: 4.5rem;
             margin-bottom: 20px;
             text-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            animation: fadeInUp 1s ease;
         }
         
         .cover-slide .slide-subtitle {
             color: var(--accent);
             font-size: 2.5rem;
             margin-bottom: 40px;
+            animation: fadeInUp 1s ease 0.2s forwards;
+            opacity: 0;
         }
         
         .cover-slide .author {
@@ -293,6 +328,8 @@
             margin-left: auto;
             margin-right: auto;
             line-height: 1.8;
+            animation: fadeInUp 1s ease 0.4s forwards;
+            opacity: 0;
         }
 
         .grid-container {
@@ -306,11 +343,16 @@
             background: white;
             padding: 30px;
             border-radius: var(--border-radius);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--box-shadow);
             border-top: 5px solid var(--secondary);
             transition: var(--transition);
             display: flex;
             flex-direction: column;
+        }
+        
+        .grid-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
         }
         
         .grid-item h3 {
@@ -335,7 +377,7 @@
             background: white;
             border-radius: var(--border-radius);
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            box-shadow: var(--box-shadow);
         }
         
         .comparison-table th, .comparison-table td {
@@ -367,7 +409,7 @@
             background: white;
             border-radius: var(--border-radius);
             padding: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            box-shadow: var(--box-shadow);
             position: relative;
         }
 
@@ -388,6 +430,11 @@
             box-shadow: 0 8px 25px rgba(0,0,0,0.05);
             position: relative;
             border-left: 4px solid var(--secondary);
+            transition: var(--transition);
+        }
+
+        .roadmap-step:hover {
+            transform: translateX(5px);
         }
 
         .step-number {
@@ -470,7 +517,7 @@
             height: 300px;
             background: white;
             border-radius: var(--border-radius);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            box-shadow: var(--box-shadow);
             margin: 20px 0;
             position: relative;
             overflow: hidden;
@@ -546,7 +593,7 @@
             height: 300px;
             background: white;
             border-radius: var(--border-radius);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            box-shadow: var(--box-shadow);
             position: relative;
             overflow: hidden;
             display: flex;
@@ -559,7 +606,7 @@
             height: 400px;
             background: white;
             border-radius: var(--border-radius);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            box-shadow: var(--box-shadow);
             margin: 30px 0;
             position: relative;
             overflow: hidden;
@@ -622,6 +669,12 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
             text-align: center;
             border-top: 5px solid var(--accent);
+            transition: var(--transition);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
         }
         
         .metric-card .value {
@@ -648,6 +701,13 @@
             padding: 15px;
             border-radius: 8px;
             border-left: 4px solid var(--accent);
+            transition: var(--transition);
+        }
+
+        .feature-item:hover {
+            transform: translateX(5px);
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
         
         .feature-name {
@@ -691,6 +751,11 @@
             background: white;
             border-radius: var(--border-radius);
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: var(--transition);
+        }
+
+        .pipeline-step:hover {
+            transform: translateX(5px);
         }
         
         .pipeline-number {
@@ -710,7 +775,103 @@
         .pipeline-content {
             flex-grow: 1;
         }
-        
+
+        .interpretation-box {
+            background: #f8f9fa;
+            border-left: 4px solid var(--accent);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .interpretation-title {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0 30px;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 3px;
+        }
+
+        .slide-indicator {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            z-index: 10;
+        }
+
+        .graphic-explanation {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .explanation-content {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .explanation-visual {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .explanation-bullet {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .bullet-icon {
+            color: var(--accent);
+            font-size: 1.2rem;
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+
+        /* Animações */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
         /* Responsividade */
         @media (max-width: 1200px) {
             .presentation-container {
@@ -804,6 +965,9 @@
                 height: 50px;
                 font-size: 1.1rem;
             }
+            .graphic-explanation {
+                flex-direction: column;
+            }
         }
 
         @media (max-width: 480px) {
@@ -828,6 +992,12 @@
             .param-control {
                 min-width: 100%;
             }
+            .cover-slide .slide-title {
+                font-size: 2.5rem;
+            }
+            .cover-slide .slide-subtitle {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
@@ -841,16 +1011,17 @@
             </div>
             <ul class="nav-index">
                 <li class="nav-item active" data-slide="0"><i class="fas fa-star"></i> Capa</li>
-                <li class="nav-item" data-slide="1"><i class="fas fa-bullseye"></i> Objetivo</li>
+                <li class="nav-item" data-slide="1"><i class="fas fa-bullseye"></i> Definição do Problema</li>
                 <li class="nav-item" data-slide="2"><i class="fas fa-database"></i> Obtenção de Dados</li>
                 <li class="nav-item" data-slide="3"><i class="fas fa-search"></i> Exploração de Dados</li>
                 <li class="nav-item" data-slide="4"><i class="fas fa-wrench"></i> Preparação de Dados</li>
-                <li class="nav-item" data-slide="5"><i class="fas fa-rocket"></i> Modelos Iniciais</li>
+                <li class="nav-item" data-slide="5"><i class="fas fa-rocket"></i> Modelagem</li>
                 <li class="nav-item" data-slide="6"><i class="fas fa-tachometer-alt"></i> Fine-Tuning</li>
                 <li class="nav-item" data-slide="7"><i class="fas fa-chart-line"></i> Resultados Finais</li>
                 <li class="nav-item" data-slide="8"><i class="fas fa-project-diagram"></i> Implantação</li>
                 <li class="nav-item" data-slide="9"><i class="fas fa-lightbulb"></i> Conclusões</li>
             </ul>
+            <div class="slide-indicator">Slide 1 de 10</div>
         </nav>
 
         <!-- Slides -->
@@ -860,6 +1031,10 @@
                 <h1 class="slide-title">Análise de Dados de Câncer de Mama</h1>
                 <h2 class="slide-subtitle">Dataset Wisconsin - Classificação de Tumores</h2>
                 <p class="author">Uma análise completa seguindo o pipeline de Machine Learning para classificação de tumores malignos e benignos</p>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 10%"></div>
+                </div>
                 
                 <div class="roadmap" style="max-width: 800px; margin-top: 40px;">
                     <div class="roadmap-step">
@@ -886,11 +1061,11 @@
                 </div>
             </section>
 
-            <!-- Slide 1: Objetivo -->
+            <!-- Slide 1: Definição do Problema -->
             <section class="slide">
                 <header class="slide-header">
-                    <h1 class="slide-title">Objetivo do Projeto</h1>
-                    <h2 class="slide-subtitle">Definindo o problema em termos de negócio</h2>
+                    <h1 class="slide-title">Definição do Problema</h1>
+                    <h2 class="slide-subtitle">Enquadramento do problema segundo o checklist</h2>
                 </header>
                 <div class="slide-content">
                     <div class="key-concept">
@@ -916,9 +1091,15 @@
                                 </div>
                             </div>
                             
-                            <div class="quantum-insight">
-                                <h3><i class="fas fa-lightbulb"></i> Impacto Esperado</h3>
-                                <p>"Um modelo preciso de classificação de tumores pode reduzir significativamente o tempo entre a detecção e o início do tratamento, aumentando as chances de sucesso e reduzindo a ansiedade dos pacientes."</p>
+                            <div class="interpretation-box">
+                                <h4 class="interpretation-title"><i class="fas fa-search"></i> Checklist - Frame the Problem</h4>
+                                <ul>
+                                    <li><strong>Objetivo de negócio:</strong> Prever diagnóstico de câncer com alta acurácia</li>
+                                    <li><strong>Uso da solução:</strong> Sistema de apoio ao diagnóstico médico</li>
+                                    <li><strong>Soluções atuais:</strong> Análise manual de imagens por especialistas</li>
+                                    <li><strong>Enquadramento:</strong> Classificação supervisionada, offline</li>
+                                    <li><strong>Métrica principal:</strong> ROC AUC com foco em recall</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -929,7 +1110,7 @@
             <section class="slide">
                 <header class="slide-header">
                     <h1 class="slide-title">Obtenção de Dados</h1>
-                    <h2 class="slide-subtitle">Coleta e preparação do dataset</h2>
+                    <h2 class="slide-subtitle">Checklist - Get the Data</h2>
                 </header>
                 <div class="slide-content">
                     <div class="card">
@@ -973,48 +1154,15 @@
                                 </div>
                             </div>
                             
-                            <h3 style="margin-top: 30px;">Características do Dataset</h3>
-                            <div class="feature-list">
-                                <div class="feature-item">
-                                    <div class="feature-name">radius (raio)</div>
-                                    <div class="feature-desc">Média das distâncias do centro para pontos no perímetro</div>
-                                </div>
-                                <div class="feature-item">
-                                    <div class="feature-name">texture (textura)</div>
-                                    <div class="feature-desc">Desvio padrão dos valores de escala de cinza</div>
-                                </div>
-                                <div class="feature-item">
-                                    <div class="feature-name">perimeter (perímetro)</div>
-                                    <div class="feature-desc">Comprimento do contorno do núcleo</div>
-                                </div>
-                                <div class="feature-item">
-                                    <div class="feature-name">area (área)</div>
-                                    <div class="feature-desc">Área do núcleo celular</div>
-                                </div>
-                                <div class="feature-item">
-                                    <div class="feature-name">smoothness (suavidade)</div>
-                                    <div class="feature-desc">Variação local nos comprimentos dos raios</div>
-                                </div>
-                                <div class="feature-item">
-                                    <div class="feature-name">compactness (compactação)</div>
-                                    <div class="feature-desc">Perímetro² / área - 1.0</div>
-                                </div>
-                                <div class="feature-item">
-                                    <div class="feature-name">concavity (concavidade)</div>
-                                    <div class="feature-desc">Severidade das porções côncavas do contorno</div>
-                                </div>
-                                <div class="feature-item">
-                                    <div class="feature-name">concave points (pontos côncavos)</div>
-                                    <div class="feature-desc">Número de porções côncavas do contorno</div>
-                                </div>
-                                <div class="feature-item">
-                                    <div class="feature-name">symmetry (simetria)</div>
-                                    <div class="feature-desc">Simetria do núcleo celular</div>
-                                </div>
-                                <div class="feature-item">
-                                    <div class="feature-name">fractal dimension (dimensão fractal)</div>
-                                    <div class="feature-desc">Aproximação de "linha costeira" - 1</div>
-                                </div>
+                            <div class="interpretation-box">
+                                <h4 class="interpretation-title"><i class="fas fa-check-circle"></i> Checklist Atendido</h4>
+                                <ul>
+                                    <li>Dados identificados e obtidos de fonte confiável</li>
+                                    <li>Espaço de armazenamento verificado (dataset pequeno)</li>
+                                    <li>Obrigações legais verificadas (dados anonimizados)</li>
+                                    <li>Workspace criado no Google Colab</li>
+                                    <li>Conjunto de teste separado e isolado</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -1025,7 +1173,7 @@
             <section class="slide">
                 <header class="slide-header">
                     <h1 class="slide-title">Exploração de Dados</h1>
-                    <h2 class="slide-subtitle">Análise detalhada do dataset</h2>
+                    <h2 class="slide-subtitle">Checklist - Explore the Data</h2>
                 </header>
                 <div class="slide-content">
                     <div class="key-concept">
@@ -1038,6 +1186,11 @@
                         <div class="card-content">
                             <div class="chart-container">
                                 <canvas id="classDistributionChart"></canvas>
+                            </div>
+                            
+                            <div class="interpretation-box">
+                                <h4 class="interpretation-title"><i class="fas fa-analytics"></i> Interpretação do Gráfico</h4>
+                                <p>O gráfico de distribuição mostra um desbalanceamento moderado entre as classes (62.7% benignos vs 37.3% malignos). Isso é importante pois modelos de machine learning podem tender a favorecer a classe majoritária. No entanto, o desbalanceamento não é extremo, permitindo o uso de métricas como Acurácia, F1-Score e ROC AUC para avaliação.</p>
                             </div>
                             
                             <div class="grid-container">
@@ -1092,6 +1245,11 @@
                             <div class="chart-container">
                                 <canvas id="correlationChart"></canvas>
                             </div>
+                            
+                            <div class="interpretation-box">
+                                <h4 class="interpretation-title"><i class="fas fa-analytics"></i> Interpretação da Correlação</h4>
+                                <p>As características com maior correlação estão relacionadas a medidas de tamanho e forma dos núcleos celulares. A forte correlação (próxima de 0.8) explica por que os modelos de machine learning conseguem alta precisão. As piores medições (prefixo "worst") são as mais preditivas, o que faz sentido clinicamente, já que células cancerígenas tendem a ter formas mais irregulares.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1101,7 +1259,7 @@
             <section class="slide">
                 <header class="slide-header">
                     <h1 class="slide-title">Preparação de Dados</h1>
-                    <h2 class="slide-subtitle">Pré-processamento e feature engineering</h2>
+                    <h2 class="slide-subtitle">Checklist - Prepare the Data</h2>
                 </header>
                 <div class="slide-content">
                     <div class="card">
@@ -1149,6 +1307,11 @@
                                 <canvas id="pcaVarianceChart"></canvas>
                             </div>
                             
+                            <div class="interpretation-box">
+                                <h4 class="interpretation-title"><i class="fas fa-analytics"></i> Interpretação do PCA</h4>
+                                <p>O gráfico de variância do PCA mostra que os primeiros 10 componentes principais explicam mais de 95% da variância dos dados. Isso significa que podemos reduzir a dimensionalidade de 30 para 10 features sem perda significativa de informação, o que melhora a eficiência computacional e pode até melhorar o desempenho do modelo ao eliminar ruído.</p>
+                            </div>
+                            
                             <div class="key-concept">
                                 <h3><i class="fas fa-cogs"></i> Estratégias de Validação</h3>
                                 <p>Divisão estratificada dos dados (70% treino, 30% teste) para manter a proporção das classes. Utilização de validação cruzada com 10 folds para avaliação robusta dos modelos.</p>
@@ -1158,11 +1321,11 @@
                 </div>
             </section>
 
-            <!-- Slide 5: Modelos Iniciais -->
+            <!-- Slide 5: Modelagem -->
             <section class="slide">
                 <header class="slide-header">
-                    <h1 class="slide-title">Modelos Iniciais</h1>
-                    <h2 class="slide-subtitle">Comparação de algoritmos de classificação</h2>
+                    <h1 class="slide-title">Modelagem</h1>
+                    <h2 class="slide-subtitle">Checklist - Shortlist Promising Models</h2>
                 </header>
                 <div class="slide-content">
                     <div class="card">
@@ -1170,6 +1333,11 @@
                         <div class="card-content">
                             <div class="chart-container">
                                 <canvas id="modelComparisonChart"></canvas>
+                            </div>
+                            
+                            <div class="interpretation-box">
+                                <h4 class="interpretation-title"><i class="fas fa-analytics"></i> Interpretação da Comparação</h4>
+                                <p>Logistic Regression e SVC apresentam as melhores performances em quase todas as métricas, especialmente na métrica principal ROC AUC (ambos com ~0.994). KNeighbors também tem bom desempenho. Estes modelos foram selecionados para fine-tuning por terem as pontuações mais altas e baixa variabilidade (indicando desempenho estável). Decision Tree tem o pior desempenho, provavelmente por sofrer de overfitting.</p>
                             </div>
                             
                             <table class="comparison-table">
@@ -1256,7 +1424,7 @@
             <section class="slide">
                 <header class="slide-header">
                     <h1 class="slide-title">Fine-Tuning</h1>
-                    <h2 class="slide-subtitle">Otimização de hiperparâmetros</h2>
+                    <h2 class="slide-subtitle">Checklist - Fine-Tune the System</h2>
                 </header>
                 <div class="slide-content">
                     <div class="card">
@@ -1284,6 +1452,11 @@
                                 <canvas id="fineTuningChart"></canvas>
                             </div>
                             
+                            <div class="interpretation-box">
+                                <h4 class="interpretation-title"><i class="fas fa-analytics"></i> Interpretação do Radar</h4>
+                                <p>O gráfico de radar mostra o desempenho multidimensional dos modelos após o fine-tuning. O ensemble (combinação de modelos) apresenta a maior área, indicando melhor desempenho geral em todas as métricas. Logistic Regression tem bom equilíbrio entre todas as dimensões, enquanto SVM tem desempenho ligeiramente inferior em velocidade. O ensemble supera os modelos individuais em poder preditivo, mas com trade-off em velocidade e interpretabilidade.</p>
+                            </div>
+                            
                             <div class="key-concept">
                                 <h3><i class="fas fa-project-diagram"></i> Ensemble Method</h3>
                                 <p>A combinação dos melhores modelos em um ensemble (voting classifier) resultou em uma acurácia de 0.9912, superando todos os modelos individuais.</p>
@@ -1302,7 +1475,7 @@
             <section class="slide">
                 <header class="slide-header">
                     <h1 class="slide-title">Resultados Finais</h1>
-                    <h2 class="slide-subtitle">Avaliação do modelo final</h2>
+                    <h2 class="slide-subtitle">Checklist - Present Your Solution</h2>
                 </header>
                 <div class="slide-content">
                     <div class="card">
@@ -1335,6 +1508,11 @@
                                 <canvas id="finalResultsChart"></canvas>
                             </div>
                             
+                            <div class="interpretation-box">
+                                <h4 class="interpretation-title"><i class="fas fa-analytics"></i> Interpretação das Métricas</h4>
+                                <p>O modelo final apresenta excelente desempenho em todas as métricas, com valores próximos de 1. A ROC AUC de 0.9957 indica uma capacidade quase perfeita de distinguir entre classes. O recall de 0.9861 é particularmente importante no contexto médico, pois minimiza falsos negativos (casos em que um tumor maligno seria classificado erroneamente como benigno).</p>
+                            </div>
+                            
                             <div class="key-concept">
                                 <h3><i class="fas fa-check-circle"></i> Atendimento aos Requisitos</h3>
                                 <p>O modelo final supera os requisitos mínimos de performance estabelecidos (Acurácia > 90%, Recall > 95%), demonstrando alta confiabilidade para uso clínico.</p>
@@ -1344,8 +1522,18 @@
                                 <canvas id="confusionMatrixChart"></canvas>
                             </div>
                             
+                            <div class="interpretation-box">
+                                <h4 class="interpretation-title"><i class="fas fa-analytics"></i> Interpretação da Matriz de Confusão</h4>
+                                <p>A matriz de confusão mostra que o modelo cometeu apenas 2 erros em 114 previsões no conjunto de teste: 1 falso positivo (benigno classificado como maligno) e 1 falso negativo (maligno classificado como benigno). Em um contexto médico, o falso negativo é o erro mais crítico, e sua ocorrência mínima (apenas 1 caso) indica um modelo muito confiável.</p>
+                            </div>
+                            
                             <div class="chart-container">
                                 <canvas id="rocCurveChart"></canvas>
+                            </div>
+                            
+                            <div class="interpretation-box">
+                                <h4 class="interpretation-title"><i class="fas fa-analytics"></i> Interpretação da Curva ROC</h4>
+                                <p>A curva ROC está muito próxima do canto superior esquerdo do gráfico, que representa o classificador perfeito. A área sob a curva (AUC) de 0.9957 confirma a excelente capacidade do modelo em distinguir entre as classes. A curva se distancia significativamente da linha de referência (classificador aleatório), indicando alto valor preditivo.</p>
                             </div>
                         </div>
                     </div>
@@ -1356,7 +1544,7 @@
             <section class="slide">
                 <header class="slide-header">
                     <h1 class="slide-title">Implantação</h1>
-                    <h2 class="slide-subtitle">Preparação para produção</h2>
+                    <h2 class="slide-subtitle">Checklist - Launch, Monitor, and Maintain</h2>
                 </header>
                 <div class="slide-content">
                     <div class="card">
@@ -1391,6 +1579,17 @@
                                         <p>Pipeline automatizado para retreinamento regular com novos dados.</p>
                                     </div>
                                 </div>
+                            </div>
+                            
+                            <div class="interpretation-box">
+                                <h4 class="interpretation-title"><i class="fas fa-check-circle"></i> Checklist de Implantação</h4>
+                                <ul>
+                                    <li><strong>Preparação para produção:</strong> Modelo serializado usando pickle</li>
+                                    <li><strong>Monitoramento:</strong> Sistema para verificar performance em produção</li>
+                                    <li><strong>Alertas:</strong> Configuração para detectar degradação de performance</li>
+                                    <li><strong>Retreinamento:</strong> Pipeline automatizado para atualização periódica</li>
+                                    <li><strong>Validação contínua:</strong> Processo para garantir qualidade dos dados de entrada</li>
+                                </ul>
                             </div>
                             
                             <div class="quantum-insight">
@@ -1463,6 +1662,17 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            <div class="interpretation-box">
+                                <h4 class="interpretation-title"><i class="fas fa-lightbulb"></i> Lições Aprendidas</h4>
+                                <ul>
+                                    <li>O dataset Wisconsin é bem comportado e permite excelentes resultados com algoritmos clássicos</li>
+                                    <li>O ensemble de modelos supera consistentemente os modelos individuais</li>
+                                    <li>Características relacionadas a tamanho e forma são altamente preditivas para câncer de mama</li>
+                                    <li>O pré-processamento adequado (padronização e PCA) é crucial para o desempenho</li>
+                                    <li>Em problemas médicos, recall é mais importante que acurácia para minimizar falsos negativos</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1483,6 +1693,8 @@
             const navItems = document.querySelectorAll('.nav-item');
             const prevBtn = document.getElementById('prev-btn');
             const nextBtn = document.getElementById('next-btn');
+            const progressFill = document.querySelector('.progress-fill');
+            const slideIndicator = document.querySelector('.slide-indicator');
             let currentSlide = 0;
 
             // Funções de navegação
@@ -1497,6 +1709,11 @@
                 navItems[index].classList.add('active');
                 
                 currentSlide = index;
+                
+                // Atualizar indicador de progresso
+                const progressPercentage = ((currentSlide + 1) / slides.length) * 100;
+                progressFill.style.width = `${progressPercentage}%`;
+                slideIndicator.textContent = `Slide ${currentSlide + 1} de ${slides.length}`;
                 
                 // Atualizar gráficos específicos
                 if (index === 2) updateDataCharts();
@@ -1514,6 +1731,7 @@
             document.addEventListener('keydown', e => {
                 if (e.key === 'ArrowRight') nextBtn.click();
                 else if (e.key === 'ArrowLeft') prevBtn.click();
+                else if (e.key === ' ') nextBtn.click();
             });
 
             // Funções de inicialização de gráficos
@@ -1535,7 +1753,10 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Fontes de Dados Utilizadas'
+                                text: 'Fontes de Dados Utilizadas',
+                                font: {
+                                    size: 16
+                                }
                             },
                             legend: {
                                 position: 'bottom'
@@ -1564,7 +1785,10 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Distribuição das Classes'
+                                text: 'Distribuição das Classes',
+                                font: {
+                                    size: 16
+                                }
                             },
                             datalabels: {
                                 color: '#fff',
@@ -1609,7 +1833,10 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Top 5 Features com Maior Correlação com o Target'
+                                text: 'Top 5 Features com Maior Correlação com o Target',
+                                font: {
+                                    size: 16
+                                }
                             }
                         },
                         scales: {
@@ -1654,7 +1881,10 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Variância Explicada pelos Componentes Principais'
+                                text: 'Variância Explicada pelos Componentes Principais',
+                                font: {
+                                    size: 16
+                                }
                             }
                         },
                         scales: {
@@ -1695,7 +1925,10 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Comparação de Performance dos Modelos (Validação Cruzada)'
+                                text: 'Comparação de Performance dos Modelos (Validação Cruzada)',
+                                font: {
+                                    size: 16
+                                }
                             }
                         },
                         scales: {
@@ -1747,7 +1980,10 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Comparação de Modelos após Fine-Tuning'
+                                text: 'Comparação de Modelos após Fine-Tuning',
+                                font: {
+                                    size: 16
+                                }
                             }
                         },
                         scales: {
@@ -1781,7 +2017,10 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Métricas de Performance do Modelo Final (Teste)'
+                                text: 'Métricas de Performance do Modelo Final (Teste)',
+                                font: {
+                                    size: 16
+                                }
                             }
                         },
                         scales: {
@@ -1815,7 +2054,10 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Matriz de Confusão'
+                                text: 'Matriz de Confusão',
+                                font: {
+                                    size: 16
+                                }
                             }
                         },
                         scales: {
@@ -1857,7 +2099,10 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Curva ROC - Modelo Final'
+                                text: 'Curva ROC - Modelo Final',
+                                font: {
+                                    size: 16
+                                }
                             }
                         },
                         scales: {
