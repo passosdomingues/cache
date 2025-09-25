@@ -1,0 +1,45 @@
+You are Manus. Produce two deliverables, a low level event driven C simulator and a Python analysis package that together implement the exact experiment described below.
+
+Project header requirement
+Include a large header block at the top of each generated source file that explains the objective of the C simulator and the Python analysis tool. The header must state author Rafael Passos Domingues and Last Update 2025 Sep 25 14h36 and a short paragraph describing purpose and expected outputs.
+
+Key constraints to respect
+Preserve the original event driven structure and the RNG semantics of the provided main.c while improving readability and modularity. Keep the same statistical behavior of the functions aleatorio and exponencial or reproduce their numerical properties exactly. Avoid adding unnecessary conditional branching beyond what is strictly required to support new features. Keep the implementation low level, efficient and compatible with the original pipeline.
+
+C simulator requirements
+Simulate three independent logical queues served by a single server that decides which queue to serve next according to a configurable decision policy. Represent each queue as a typedef struct that contains queue length timestamps per customer and aggregated statistics. Provide structured encapsulation into modular functions with long descriptive camelCase identifiers. Implement a configurable decision mechanism that supports function pointer style policies. Provide three built in policies as follows
+policy one selects the queue with the largest number of waiting customers
+policy two selects the queue with the largest average waiting time
+policy three selects the queue that currently contains the customer who has waited the longest
+Allow adding additional policies with minimal code changes.
+
+Occupancy scenarios and sampling
+Provide a batch mode that runs the simulation for expected occupancy values rho equal to 0.80 0.90 0.95 and 0.999. For each scenario derive arrival rate lambda from lambda equals rho times mu where mu is the per queue service rate provided as input. Allow mu to be supplied per queue via command line arguments or a config file. Run each simulation for 24 hours of simulated time which equals 86400 seconds. Sample and record metrics every 10 seconds. At each sample record E N and E W using the same area under curve approach already in main.c together with per queue sizes measured lambda and measured occupancy.
+
+Batch runs seeds and output files
+Support multiple independent seeds passed as a seed list. For each seed and each scenario write a CSV file with a filename that encodes scenario and seed. CSV columns must include timestamp sampleIndex EN EW queueSizes per queue measuredLambda measuredOccupancy littleError and any other relevant diagnostics. Also produce an aggregated summary CSV per scenario combining seeds.
+
+Measurement and validation
+Compute measured lambda as arrivals over simulated time compute EN as area over time compute EW from arrival and departure area differences and compute littleError as EN minus lambda times EW. Provide a test harness that runs each scenario across all seeds computes mean median standard deviation min and max of littleError and writes a proof file for each scenario. The harness must allow configuring a tolerance default 1e-3 and assert that the mean absolute littleError is below this tolerance.
+
+Code style and comments
+Use camelCase for all identifiers and long descriptive variable names. Provide a detailed block comment for every function and for each typedef struct field using @param and @return tags in English and explaining units and semantics. Keep the code modular and atomized into small functions while avoiding unnecessary extra if else constructs.
+
+Build artifacts and examples
+Provide a Makefile that builds the simulator and test harness. Provide a sample config file and concrete usage examples showing how to run a single scenario how to run the full batch and how to reproduce runs with explicit seeds. Place all outputs into a results directory and document paths in the README.
+
+Python analysis tool requirements
+Provide a Python package that reads the CSV outputs aggregates seeds and scenarios and performs complete statistical analysis and visualization. Implement automatic stabilization detection using sliding windows and a nonparametric test such as Mann Whitney U or Kolmogorov Smirnov with an adjustable alpha corresponding to a default 5 sigma acceptance. If the data fails normality apply Yeo Johnson or Box Cox transform and show diagnostics before and after transform.
+
+Statistical and ML pipeline
+Implement bootstrap based error propagation for EN and EW using resampling across seeds to produce nonparametric confidence intervals. Offer both nonparametric estimation and transformed parametric estimation after successful normalizing transform. Implement a machine learning workflow that uses PCA for dimensionality reduction kmeans for unsupervised clustering with automatic k selection heuristics and Random Forest for supervised modeling of policy or scenario labels. Use an 80 percent training 20 percent validation split for model evaluation. Save models and metadata.
+
+Plots and reports
+Produce boxplots pairplots overlays and time series plots including EN and EW over time EN versus EW overlaid regression and error bands EN and EW as a function of queue sizes and occupancy and queue sizes over time. Save high resolution PNGs and also a combined report in HTML or PDF containing key plots statistics and conclusions.
+
+Packaging documentation and tests
+Deliver all C sources with detailed block comments all Python scripts with docstrings requirements.txt README usage examples and the Makefile. Include unit test style checks or small reproducible runs that prove littleError close to zero and store the numerical proof files in results.
+
+Start from the provided main.c and do not remove the basic random generator and exponential generator semantics. Make only the minimal structural changes needed to support the features above while preserving pipeline compatibility.
+Author Rafael Passos Domingues
+Last Update 2025 Sep 25 14h36

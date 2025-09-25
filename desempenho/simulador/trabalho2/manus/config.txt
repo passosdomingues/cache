@@ -1,0 +1,10 @@
+# Sample Configuration File for C Simulator
+# Each line represents the service rate (mu) for a queue.
+# The number of lines should match NUM_FILAS defined in main.h (currently 3).
+# Example: mu for Queue 0, mu for Queue 1, mu for Queue 2
+
+1.0
+1.0
+1.0
+
+
