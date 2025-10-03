@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligent Tech Career Navigator - 2025 Deep Dive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <style>
+        /* Custom styles for a more polished UX */
+        .modal-overlay { background-color: rgba(0, 0, 0, 0.8); }
+        .selection-card {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .selection-card.active {
+            border-color: #14B8A6; /* primary-teal */
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(20, 184, 166, 0.2), 0 4px 6px -2px rgba(20, 184, 166, 0.1);
+        }
+        .result-card-highlight {
+            border: 2px solid #8B5CF6; /* highlight-violet */
+            transform: scale(1.03);
+            box-shadow: 0 20px 25px -5px rgba(139, 92, 246, 0.2), 0 10px 10px -5px rgba(139, 92, 246, 0.1);
+        }
+        .result-card-dimmed { opacity: 0.6; transform: scale(0.97); }
+        .fade-in { animation: fadeIn 0.5s ease-in-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-teal': '#14B8A6',
+                        'secondary-sky': '#06B6D4',
+                        'dark-bg': '#111827', /* gray-900 for deeper dark */
+                        'dark-card': '#1F2937', /* gray-800 */
+                        'light-bg': '#F9FAFB', /* gray-50 */
+                        'light-card': '#FFFFFF',
+                        'highlight-violet': '#8B5CF6',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-light-bg dark:bg-dark-bg text-slate-800 dark:text-slate-200 antialiased transition-colors duration-300">
+
+    <div id="consentModal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+         <div class="bg-light-card dark:bg-dark-card rounded-lg shadow-xl p-8 max-w-2xl w-full m-4 fade-in">
+            <h2 class="text-2xl font-bold mb-4 text-slate-900 dark:text-white">Welcome to the Intelligent Career Navigator</h2>
+            <div class="text-sm space-y-3 text-slate-600 dark:text-slate-300 max-h-[60vh] overflow-y-auto pr-4">
+                <p>This tool provides a personalized recommendation to guide your tech career choices, analyzing your profile against data from the Stack Overflow Developer Survey 2025 and insights from the World Economic Forum.</p>
+                <p><strong>Before you proceed, please acknowledge the following:</strong></p>
+                <ul class="list-disc list-inside space-y-2 pl-4">
+                    <li><strong>Recommendation, Not Prescription:</strong> This is a guidance tool, not a definitive career plan. The data serves as a directional guide and reflects trends up to 2025.</li>
+                    <li><strong>How It Works:</strong> The recommendation is calculated by a weighted algorithm that analyzes the compatibility between your profile choices and various career paths.</li>
+                    <li><strong>Privacy First:</strong> Your data is not saved, stored, or sent to any external server. All calculations happen entirely within your browser and are gone when you close the tab.</li>
+                    <li><strong>Data Source:</strong> Stack Overflow Developer Survey 2025. You can find more details at <a href="https://survey.stackoverflow.co/2025/" target="_blank" rel="noopener noreferrer" class="text-primary-teal hover:underline">survey.stackoverflow.co/2025</a>.</li>
+                    <li><strong>Licensing:</strong> Data is licensed under the <a href="https://opendatacommons.org/licenses/odbl/" target="_blank" rel="noopener noreferrer" class="text-primary-teal hover:underline">Open Database License (ODbL)</a>. User contributions on Stack Overflow are licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer" class="text-primary-teal hover:underline">CC BY-SA</a>. © 2025 Stack Exchange Inc.</li>
+                </ul>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button id="agreeButton" class="bg-primary-teal text-white font-bold py-2 px-6 rounded-lg hover:bg-secondary-sky transition-colors">I Agree and Proceed</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainContent" class="container mx-auto p-4 md:p-8 hidden">
+        <header class="flex justify-between items-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white">Intelligent Career <span class="text-primary-teal">Navigator</span></h1>
+            <button id="themeToggle" class="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700">
+                <i class="fas fa-sun" id="themeIconLight"></i>
+                <i class="fas fa-moon hidden" id="themeIconDark"></i>
+            </button>
+        </header>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            <div class="xl:col-span-1 space-y-8">
+                </div>
+
+            <div class="xl:col-span-2 space-y-8">
+                <div class="text-center">
+                    <button id="calculateBtn" class="w-full md:w-auto bg-highlight-violet text-white font-bold py-4 px-10 rounded-lg text-xl hover:opacity-90 transition-opacity shadow-lg">
+                        <i class="fas fa-magic-wand-sparkles mr-2"></i>Analyze My Profile
+                    </button>
+                </div>
+                <div id="dashboard" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    /**
+     * @brief Main application class to initialize and coordinate all components.
+     */
+    class App {
+        constructor() {
+            this.careerData = new CareerData();
+            this.recommender = new Recommender(this.careerData);
+            this.uiController = new UIController(this.careerData, this.recommender);
+        }
+    }
+
+    /**
+     * @brief Manages all static data for the application.
+     */
+    class CareerData {
+        constructor() {
+            this.userProfileSections = {
+                interests: {
+                    title: "Core Interests",
+                    type: 'single',
+                    options: {
+                        visuals: { text: "Visual Creation", icon: "fa-palette" },
+                        logic: { text: "Logic & Algorithms", icon: "fa-gears" },
+                        data: { text: "Data & Insights", icon: "fa-chart-pie" },
+                        systems: { text: "Systems & Infrastructure", icon: "fa-server" },
+                    }
+                },
+                workStyle: {
+                    title: "Preferred Work Style",
+                    type: 'single',
+                    options: {
+                        collaborative: { text: "Highly Collaborative", icon: "fa-users" },
+                        independent: { text: "Mainly Independent", icon: "fa-user-astronaut" },
+                        userCentric: { text: "User-Centric", icon: "fa-comments" },
+                        dataDriven: { text: "Data-Driven", icon: "fa-database" },
+                    }
+                },
+                workEnv: {
+                    title: "Ideal Work Environment",
+                    type: 'single',
+                    options: {
+                        startup: { text: "Fast-Paced Startup", icon: "fa-rocket" },
+                        corporate: { text: "Established Corp.", icon: "fa-building-shield" },
+                        agency: { text: "Creative Agency", icon: "fa-lightbulb" },
+                        remote: { text: "Fully Remote", icon: "fa-house-laptop" },
+                    }
+                },
+                codingPhilosophy: {
+                    title: "Coding Philosophy",
+                    type: 'single',
+                    options: {
+                        cleanCode: { text: "Clean & Maintainable", icon: "fa-leaf" },
+                        performance: { text: "Performance First", icon: "fa-gauge-high" },
+                        prototyping: { text: "Rapid Prototyping", icon: "fa-bolt" },
+                        security: { text: "Security Focused", icon: "fa-shield-halved" },
+                    }
+                },
+                strengths: {
+                    title: "Your Strengths (Choose 2-3)",
+                    type: 'multiple',
+                    options: {
+                        problemSolving: { text: "Problem Solving", icon: "fa-puzzle-piece" },
+                        creativity: { text: "Creativity", icon: "fa-paint-brush" },
+                        leadership: { text: "Leadership", icon: "fa-crown" },
+                        attentionToDetail: { text: "Attention to Detail", icon: "fa-magnifying-glass" },
+                        communication: { text: "Communication", icon: "fa-bullhorn" },
+                        adaptability: { text: "Adaptability", icon: "fa-water" },
+                    }
+                },
+                techSkills: {
+                    title: "Technical Skills (Select any you know or want to learn)",
+                    type: 'multiple',
+                    options: { /* Dynamically populated */ }
+                }
+            };
+
+            const allTechSkills = ["JavaScript", "TypeScript", "Python", "Java", "C#", "Go", "Rust", "PHP", "Kotlin", "Swift", "React", "Vue", "Angular", "Svelte", "Node.js", "Express", "Django", "Flask", "Spring Boot", "ASP.NET", "HTML5", "CSS3", "Sass", "SQL", "NoSQL", "PostgreSQL", "MongoDB", "Docker", "Kubernetes", "AWS", "Azure", "GCP", "Terraform", "CI/CD", "Git", "TensorFlow", "PyTorch", "Pandas", "Scikit-learn", "Unity", "Unreal Engine", "Figma"];
+            allTechSkills.sort().forEach(skill => {
+                this.userProfileSections.techSkills.options[skill.toLowerCase().replace(/[^a-z0-9]/g, '')] = { text: skill, icon: 'fa-code' };
+            });
+
+            this.careerProfiles = {
+                frontend: {
+                    name: "Frontend Developer",
+                    explanation: "Crafts the user-facing part of websites and apps. A blend of art and science, perfect for those who love visual feedback and tangible results.",
+                    icon: "fa-object-group",
+                    affinities: { interests: { visuals: 10, logic: 6, data: 3, systems: 2 }, workStyle: { collaborative: 8, independent: 6, userCentric: 10, dataDriven: 5 }, workEnv: { startup: 8, corporate: 6, agency: 10, remote: 9 }, codingPhilosophy: { cleanCode: 9, performance: 7, prototyping: 8, security: 5 }, strengths: { creativity: 10, attentionToDetail: 9, communication: 7, problemSolving: 8, adaptability: 8 }, techSkills: ["javascript", "typescript", "react", "vue", "angular", "svelte", "html5", "css3", "sass", "figma"] }
+                },
+                backend: {
+                    name: "Backend Developer",
+                    explanation: "The architect of a system's core logic, databases, and APIs. Ideal for abstract thinkers who enjoy building robust, scalable systems.",
+                    icon: "fa-cogs",
+                    affinities: { interests: { visuals: 2, logic: 10, data: 8, systems: 9 }, workStyle: { collaborative: 7, independent: 9, userCentric: 4, dataDriven: 8 }, workEnv: { startup: 8, corporate: 10, agency: 5, remote: 9 }, codingPhilosophy: { cleanCode: 8, performance: 10, prototyping: 5, security: 9 }, strengths: { problemSolving: 10, adaptability: 8, attentionToDetail: 7, leadership: 6 }, techSkills: ["python", "java", "c#", "go", "rust", "php", "nodejs", "express", "django", "springboot", "sql", "nosql", "postgresql", "mongodb", "docker", "kubernetes", "aws", "azure", "gcp"] }
+                },
+                fullstack: {
+                    name: "Full-Stack Developer",
+                    explanation: "The versatile generalist who understands the entire tech stack, from the user's screen to the database. For problem-solvers who love seeing the big picture.",
+                    icon: "fa-layer-group",
+                    affinities: { interests: { visuals: 7, logic: 9, data: 6, systems: 8 }, workStyle: { collaborative: 9, independent: 8, userCentric: 7, dataDriven: 7 }, workEnv: { startup: 10, corporate: 8, agency: 7, remote: 10 }, codingPhilosophy: { cleanCode: 8, performance: 8, prototyping: 9, security: 7 }, strengths: { problemSolving: 10, adaptability: 10, communication: 8, leadership: 7 }, techSkills: ["javascript", "typescript", "python", "react", "nodejs", "sql", "docker", "aws", "vue"] }
+                },
+                dataScientist: {
+                    name: "Data Scientist",
+                    explanation: "Uncovers hidden truths by analyzing vast datasets. A role for the intellectually curious who are part statistician, part coder, and part storyteller.",
+                    icon: "fa-flask",
+                    affinities: { interests: { visuals: 5, logic: 8, data: 10, systems: 4 }, workStyle: { collaborative: 6, independent: 10, userCentric: 5, dataDriven: 10 }, workEnv: { startup: 8, corporate: 9, agency: 4, remote: 8 }, codingPhilosophy: { cleanCode: 7, performance: 8, prototyping: 6, security: 6 }, strengths: { problemSolving: 10, attentionToDetail: 9, creativity: 7, communication: 8 }, techSkills: ["python", "r", "sql", "pandas", "scikitlearn", "tensorflow", "pytorch"] }
+                },
+                devops: {
+                    name: "DevOps/SRE",
+                    explanation: "Automates and streamlines the software lifecycle, ensuring systems are reliable, scalable, and secure. For those who love efficiency and unbreakable infrastructure.",
+                    icon: "fa-infinity",
+                    affinities: { interests: { visuals: 1, logic: 8, data: 5, systems: 10 }, workStyle: { collaborative: 9, independent: 8, userCentric: 3, dataDriven: 6 }, workEnv: { startup: 7, corporate: 10, agency: 3, remote: 9 }, codingPhilosophy: { cleanCode: 6, performance: 9, prototyping: 4, security: 10 }, strengths: { problemSolving: 9, adaptability: 9, attentionToDetail: 8, leadership: 7 }, techSkills: ["docker", "kubernetes", "aws", "azure", "gcp", "terraform", "cicd", "git", "go", "python"] }
+                },
+                aiMlEngineer: {
+                    name: "AI/ML Engineer",
+                    explanation: "Builds and deploys production-grade machine learning models. A cutting-edge field for those who want to turn algorithmic theory into real-world intelligent applications.",
+                    icon: "fa-robot",
+                    affinities: { interests: { visuals: 3, logic: 10, data: 9, systems: 8 }, workStyle: { collaborative: 7, independent: 9, userCentric: 5, dataDriven: 9 }, workEnv: { startup: 10, corporate: 9, agency: 3, remote: 8 }, codingPhilosophy: { cleanCode: 7, performance: 10, prototyping: 7, security: 7 }, strengths: { problemSolving: 10, creativity: 8, adaptability: 8, attentionToDetail: 8 }, techSkills: ["python", "tensorflow", "pytorch", "scikitlearn", "pandas", "docker", "kubernetes", "aws", "gcp"] }
+                }
+            };
+        }
+    }
+
+    /**
+     * @brief Handles all DOM manipulations and user event listening.
+     */
+    class UIController {
+        constructor(dataService, recommender) {
+            this.dataService = dataService;
+            this.recommender = recommender;
+            this.charts = {};
+
+            this.init();
+        }
+
+        init() {
+            this.checkInitialTheme();
+            this.bindCoreEventListeners();
+        }
+        
+        startApp() {
+            this.renderProfileSections();
+            this.renderDashboard();
+            this.bindAppEventListeners();
+            document.getElementById('mainContent').classList.remove('hidden');
+            document.getElementById('mainContent').classList.add('fade-in');
+        }
+
+        bindCoreEventListeners() {
+            document.getElementById('agreeButton').addEventListener('click', () => {
+                document.getElementById('consentModal').classList.add('hidden');
+                this.startApp();
+            });
+            document.getElementById('themeToggle').addEventListener('click', () => this.toggleTheme());
+        }
+
+        bindAppEventListeners() {
+            document.querySelectorAll('.selection-card').forEach(card => {
+                card.addEventListener('click', (e) => this.handleCardSelection(e.currentTarget));
+            });
+            document.getElementById('calculateBtn').addEventListener('click', () => this.runAnalysis());
+        }
+
+        renderProfileSections() {
+            const container = document.querySelector('.xl\\:col-span-1.space-y-8');
+            const sections = this.dataService.userProfileSections;
+            let html = '';
+
+            for (const key in sections) {
+                const section = sections[key];
+                html += `<div class="bg-light-card dark:bg-dark-card p-6 rounded-xl shadow-md">
+                            <h2 class="text-xl font-bold mb-4 text-slate-900 dark:text-white">${section.title}</h2>
+                            <div id="${key}" class="grid ${key === 'techSkills' ? 'grid-cols-3' : 'grid-cols-2'} gap-4" data-type="${section.type}">`;
+                for (const optionKey in section.options) {
+                    const option = section.options[optionKey];
+                    const iconClass = key === 'techSkills' ? 'fa-code text-blue-400' : `${option.icon} text-primary-teal`;
+                    html += `<div class="selection-card bg-slate-100 dark:bg-gray-700 p-3 rounded-lg flex flex-col items-center justify-center text-center" data-value="${optionKey}">
+                                <i class="fas ${iconClass} text-2xl mb-2"></i>
+                                <span class="font-semibold text-xs md:text-sm">${option.text}</span>
+                             </div>`;
+                }
+                html += `</div></div>`;
+            }
+            container.innerHTML = html;
+        }
+        
+        renderDashboard() {
+            const dashboard = document.getElementById('dashboard');
+            const profiles = this.dataService.careerProfiles;
+            let html = '';
+            for (const key in profiles) {
+                const profile = profiles[key];
+                html += `<div id="profile-${key}" class="result-card bg-light-card dark:bg-dark-card p-6 rounded-xl shadow-md transition-all duration-300">
+                            <div class="flex items-center mb-4">
+                                <i class="fas ${profile.icon} text-3xl text-highlight-violet mr-4"></i>
+                                <h3 class="text-xl font-bold text-slate-900 dark:text-white">${profile.name}</h3>
+                            </div>
+                            <p class="text-slate-600 dark:text-slate-400 text-sm mb-4">${profile.explanation}</p>
+                            <canvas id="chart-${key}"></canvas>
+                         </div>`;
+            }
+            dashboard.innerHTML = html;
+            this.initializeCharts();
+        }
+
+        initializeCharts() {
+            const profiles = this.dataService.careerProfiles;
+            const isDark = document.documentElement.classList.contains('dark');
+            const gridColor = isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)';
+            const labelColor = isDark ? '#e2e8f0' : '#475569';
+            
+            for (const key in profiles) {
+                const ctx = document.getElementById(`chart-${key}`).getContext('2d');
+                this.charts[key] = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Interest', 'Work Style', 'Environment', 'Strengths', 'Tech Fit'],
+                        datasets: [{
+                            label: 'Profile Match', data: [0, 0, 0, 0, 0],
+                            backgroundColor: 'rgba(139, 92, 246, 0.2)', borderColor: '#8B5CF6', borderWidth: 2, pointBackgroundColor: '#8B5CF6'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            r: {
+                                beginAtZero: true, max: 100,
+                                angleLines: { color: gridColor }, grid: { color: gridColor },
+                                pointLabels: { color: labelColor, font: { size: 11 } },
+                                ticks: { display: false }
+                            }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+        }
+        
+        handleCardSelection(card) {
+            const container = card.parentElement;
+            if (container.dataset.type === 'single') {
+                container.querySelectorAll('.selection-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+            } else {
+                card.classList.toggle('active');
+            }
+        }
+        
+        getUserInputs() {
+            const inputs = {};
+            const sections = this.dataService.userProfileSections;
+            for (const key in sections) {
+                const container = document.getElementById(key);
+                if (container.dataset.type === 'single') {
+                    const activeCard = container.querySelector('.selection-card.active');
+                    inputs[key] = activeCard ? activeCard.dataset.value : null;
+                } else {
+                    inputs[key] = Array.from(container.querySelectorAll('.selection-card.active')).map(card => card.dataset.value);
+                }
+            }
+            return inputs;
+        }
+        
+        runAnalysis() {
+            const userInputs = this.getUserInputs();
+            const results = this.recommender.getRecommendations(userInputs);
+            this.updateUIWithResults(results);
+        }
+
+        updateUIWithResults(results) {
+            const topProfileKey = results.length > 0 ? results[0].key : null;
+
+            results.forEach(result => {
+                const card = document.getElementById(`profile-${result.key}`);
+                card.classList.remove('result-card-highlight', 'result-card-dimmed');
+                if (result.key === topProfileKey) {
+                    card.classList.add('result-card-highlight');
+                } else {
+                    card.classList.add('result-card-dimmed');
+                }
+                const chart = this.charts[result.key];
+                chart.data.datasets[0].data = Object.values(result.breakdown);
+                chart.update();
+            });
+
+            document.getElementById('dashboard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            this.updateThemeIcons();
+            // Re-initialize charts to update colors
+            this.initializeCharts();
+            // Re-run analysis to apply new chart colors if results are already displayed
+            if (document.querySelector('.result-card-highlight')) {
+                this.runAnalysis();
+            }
+        }
+
+        updateThemeIcons() {
+            const isDark = document.documentElement.classList.contains('dark');
+            document.getElementById('themeIconLight').classList.toggle('hidden', isDark);
+            document.getElementById('themeIconDark').classList.toggle('hidden', !isDark);
+        }
+        
+        checkInitialTheme() {
+             if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            this.updateThemeIcons();
+        }
+    }
+
+    /**
+     * @brief The intelligent recommendation engine.
+     */
+    class Recommender {
+        constructor(dataService) {
+            this.dataService = dataService;
+            this.weights = { interests: 0.20, workStyle: 0.15, workEnv: 0.15, codingPhilosophy: 0.10, strengths: 0.15, techSkills: 0.25 };
+        }
+
+        getRecommendations(userInputs) {
+            const profiles = this.dataService.careerProfiles;
+            const results = [];
+
+            for (const key in profiles) {
+                const profile = profiles[key];
+                const breakdown = {};
+                
+                breakdown.interestScore = (profile.affinities.interests[userInputs.interests] || 0) * 10;
+                breakdown.workStyleScore = (profile.affinities.workStyle[userInputs.workStyle] || 0) * 10;
+                breakdown.workEnvScore = (profile.affinities.workEnv[userInputs.workEnv] || 0) * 10;
+
+                let strengthScore = 0;
+                if (userInputs.strengths.length > 0) {
+                    userInputs.strengths.forEach(s => { strengthScore += profile.affinities.strengths[s] || 0; });
+                    strengthScore = (strengthScore / (userInputs.strengths.length * 10)) * 100;
+                }
+                breakdown.strengthScore = strengthScore;
+
+                let techScore = 0;
+                if (userInputs.techSkills.length > 0) {
+                    const profileSkills = new Set(profile.affinities.techSkills);
+                    const matches = userInputs.techSkills.filter(skill => profileSkills.has(skill)).length;
+                    techScore = (matches / profileSkills.size) * 100; // Match against profile's ideal skills
+                }
+                breakdown.techFitScore = techScore;
+
+                let totalScore = (breakdown.interestScore * this.weights.interests) +
+                             (breakdown.workStyleScore * this.weights.workStyle) +
+                             (breakdown.workEnvScore * this.weights.workEnv) +
+                             (breakdown.strengthScore * this.weights.strengths) +
+                             (breakdown.techFitScore * this.weights.techSkills);
+
+                results.push({ key, name: profile.name, score: totalScore, breakdown });
+            }
+
+            return results.sort((a, b) => b.score - a.score);
+        }
+    }
+
+    // Initialize the application when the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', () => { new App(); });
+
+    </script>
+</body>
+</html>
