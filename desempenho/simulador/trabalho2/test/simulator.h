@@ -1,7 +1,7 @@
 /**
  * @file simulator.h
  * @author Rafael Passos Domingues
- * @last_update 2025 Sep 25 14h36
+ * @last_update 2025 Oct 7 20h14
  * 
  * @brief Low-level event-driven queueing system simulator for three queues with configurable scheduling policies.
  *        Simulates M/M/1 queue systems with different occupancy scenarios and produces detailed metrics

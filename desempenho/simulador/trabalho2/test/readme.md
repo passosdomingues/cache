@@ -1,7 +1,7 @@
 # Queueing System Simulator and Analysis Package
 
 **Author:** Rafael Passos Domingues 
-**Last Update:** 2025 Sep 25 14h36
+**Last Update:** 2025 Oct 7 20h19
 
 ## Project Overview
 
@@ -16,7 +16,7 @@ This project provides a comprehensive pipeline for simulating and analyzing queu
 - Three independent M/M/1 queues with single server
 - Configurable scheduling policies:
   - Largest queue (number of customers)
-  - Largest average waiting time  
+  - Largest average waiting time 
   - Longest waiting customer
 - Four occupancy scenarios: ρ = 0.80, 0.90, 0.95, 0.999
 - 24-hour simulation time with 10-second sampling

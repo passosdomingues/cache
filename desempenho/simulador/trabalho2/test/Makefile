@@ -1,6 +1,6 @@
 # Makefile for Queueing System Simulator
 # Author: Rafael Passos Domingues
-# Last Update: 2025 Sep 25 14h36
+# Last Update: 2025 Oct 7 20h19
 #
 # Builds low-level event-driven queueing system simulator for three queues
 # with configurable scheduling policies. Produces CSV outputs for Python analysis.

@@ -2,7 +2,7 @@
 """
 Python Analysis Package for Queueing System Simulator
 Author: Rafael Passos Domingues
-Last Update: 2025 Sep 25 14h36
+Last Update: 2025 Oct 7 20h22
 
 Comprehensive statistical analysis and machine learning pipeline for queueing system simulation data.
 Reads CSV outputs from C simulator, performs stabilization detection, bootstrap error propagation,
