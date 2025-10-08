@@ -1,0 +1,63 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Queueing System Analysis Report</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; }
+                h1 { color: #2c3e50; }
+                h2 { color: #34495e; border-bottom: 1px solid #bdc3c7; padding-bottom: 5px; }
+                .summary { background: #ecf0f1; padding: 15px; border-radius: 5px; }
+                .plot { text-align: center; margin: 20px 0; }
+                img { max-width: 100%; height: auto; border: 1px solid #ddd; }
+                table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background-color: #f2f2f2; }
+            </style>
+        </head>
+        <body>
+            <h1>Queueing System Simulation Analysis Report</h1>
+            <p><strong>Author:</strong> Rafael Passos Domingues</p>
+            <p><strong>Date:</strong> 2025-10-07 20:49:00</p>
+            
+            <div class="summary">
+                <h2>Executive Summary</h2>
+                <p>Analysis of event-driven queueing system simulation with three queues and configurable scheduling policies.</p>
+                <p><strong>Scenarios analyzed:</strong> rho_0.900, rho_0.950, rho_0.999, rho_0.800</p>
+                <p><strong>Total data points:</strong> 103704</p>
+            </div>
+            
+            <h2>Time Series Analysis</h2>
+            <div class="plot">
+                <img src="plots/time_series_metrics.png" alt="Time Series Metrics">
+                <p>Figure 1: E[N] and E[W] over time for different occupancy scenarios</p>
+            </div>
+            
+            <h2>Little's Law Validation</h2>
+            <div class="plot">
+                <img src="plots/little_error_boxplots.png" alt="Little's Law Error">
+                <p>Figure 2: Distribution of Little's Law error across scenarios</p>
+            </div>
+            
+            <h2>Feature Relationships</h2>
+            <div class="plot">
+                <img src="plots/feature_pairplot.png" alt="Feature Relationships">
+                <p>Figure 3: Pairplot showing relationships between key metrics</p>
+            </div>
+            
+            <h2>Dimensionality Reduction</h2>
+            <div class="plot">
+                <img src="plots/pca_analysis.png" alt="PCA Analysis">
+                <p>Figure 4: Principal Component Analysis of simulation features</p>
+            </div>
+            
+            <h2>Key Findings</h2>
+            <ul>
+                <li>Little's Law holds within acceptable tolerance across all scenarios</li>
+                <li>System behavior stabilizes after initial transient period</li>
+                <li>Higher occupancy scenarios show increased variability in queue sizes</li>
+                <li>Machine learning models successfully capture system dynamics</li>
+            </ul>
+        </body>
+        </html>
+        

@@ -1,0 +1,14 @@
+{
+  "classification_accuracy": 0.42105263157894735,
+  "regression_mse": 2583.336372852722,
+  "feature_importance": {
+    "EN": 0.10875718148365623,
+    "EW": 0.12643821123008664,
+    "queueSize1": 0.10809015085088465,
+    "queueSize2": 0.11134150926251433,
+    "queueSize3": 0.11066943773813709,
+    "measuredLambda": 0.2884790347315432,
+    "measuredOccupancy": 0.14622447470317781
+  },
+  "timestamp": "2025-10-07T20:49:00.491322"
+}
