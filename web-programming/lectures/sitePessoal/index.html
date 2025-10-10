@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rafael Passos Domingues - Físico & Cientista da Computação</title>
+    <meta name="description" content="Físico, Cientista da Computação, Educador Maker e Pesquisador em Astrofísica, Dados e Inovação">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header será injetado via JavaScript -->
+        <header id="header" data-view="navigation"></header>
+
+        <!-- Hero Section -->
+        <section id="hero" class="hero" data-view="hero"></section>
+
+        <!-- Main Content Sections -->
+        <main id="main-content">
+            <!-- Seções serão injetadas via JavaScript -->
+        </main>
+
+        <!-- Footer -->
+        <footer id="footer" data-view="footer"></footer>
+    </div>
+
+    <!-- Scripts Modulares -->
+    <script type="module" src="js/models/UserModel.js"></script>
+    <script type="module" src="js/models/ContentModel.js"></script>
+    <script type="module" src="js/views/BaseView.js"></script>
+    <script type="module" src="js/views/HeroView.js"></script>
+    <script type="module" src="js/views/NavigationView.js"></script>
+    <script type="module" src="js/views/SectionView.js"></script>
+    <script type="module" src="js/views/FooterView.js"></script>
+    <script type="module" src="js/controllers/MainController.js"></script>
+    <script type="module" src="js/controllers/NavigationController.js"></script>
+    <script type="module" src="js/controllers/SectionController.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
