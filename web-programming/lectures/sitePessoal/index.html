@@ -1,18 +1,9 @@
 <!DOCTYPE html>
 <html lang="en-US" class="no-js" data-theme="light">
-<!--
-    @file index.html
-    @brief Enhanced portfolio website for Rafael Passos Domingues
-    @description Modern, accessible HTML structure with optimized performance,
-                 SEO enhancements, and progressive enhancement patterns
--->
-
 <head>
-    <!-- Character encoding and viewport for responsive design -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- Primary page title with strategic keyword placement -->
     <title>Rafael Passos Domingues | Physicist & Computer Science Researcher | Astrophysics & Data Science</title>
 
     <!-- SEO Meta Tags -->
@@ -37,15 +28,6 @@
     <meta property="og:image:alt" content="Rafael Passos Domingues - Professional Portfolio">
     <meta property="og:site_name" content="Rafael Passos Domingues Portfolio">
 
-    <!-- Twitter Card Meta Tags -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@rafaeldomingues">
-    <meta name="twitter:creator" content="@rafaeldomingues">
-    <meta name="twitter:title" content="Rafael Passos Domingues | Physicist & Computer Science Researcher">
-    <meta name="twitter:description" content="Physicist and Computer Scientist specializing in Astrophysics research and Data Science innovation.">
-    <meta name="twitter:image" content="https://rafaeldomingues.dev/assets/images/twitter-preview-1200x600.jpg">
-    <meta name="twitter:image:alt" content="Rafael Passos Domingues Professional Portfolio">
-
     <!-- Resource Preloading and Preconnecting for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -56,12 +38,6 @@
 
     <!-- Critical CSS Inline for Above-the-Fold Content -->
     <style>
-        /**
-         * @file critical.css
-         * @brief Critical above-the-fold CSS for initial render
-         * @description Minimal styles required for immediate page display and core functionality
-         */
-        
         /* CSS Reset and Base Styles */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         
@@ -148,10 +124,6 @@
 </head>
 
 <body class="no-js">
-    <!-- 
-        @brief NoScript fallback implementation
-        @description Enhanced graceful degradation with improved messaging and styling
-    -->
     <noscript>
         <div class="noscript-warning" role="alert" aria-live="polite">
             <div class="noscript-container">
@@ -162,10 +134,6 @@
         </div>
     </noscript>
 
-    <!-- 
-        @brief Main application container with enhanced accessibility attributes
-        @description Primary container for dynamic content with comprehensive ARIA support
-    -->
     <div id="app" class="app-container" 
          aria-live="polite" 
          aria-atomic="true" 
@@ -173,36 +141,19 @@
          data-app-version="3.0.0"
          data-app-initialized="false">
         
-        <!-- 
-            @brief Skip navigation link with enhanced accessibility
-            @description Prominently visible when focused for keyboard navigation users
-        -->
         <a href="#main-content" class="skip-link" id="skip-link">
             Skip to Main Content
         </a>
 
-        <!-- 
-            @brief Global header with semantic markup
-            @description Contains primary navigation and site identification
-        -->
         <header id="global-header" class="global-header" role="banner" aria-label="Site header">
             <div class="container">
-                <!-- 
-                    @brief Main navigation component
-                    @description Responsive navigation with accessibility enhancements
-                -->
                 <nav id="primary-navigation" 
                      class="primary-navigation" 
                      data-view="navigation" 
                      data-navigation-state="collapsed"
                      aria-label="Primary navigation">
-                    <!-- Navigation content loaded dynamically -->
                 </nav>
 
-                <!-- 
-                    @brief Theme and accessibility controls
-                    @description User preference toggles for theme and accessibility features
-                -->
                 <div class="user-preference-controls" aria-label="User preference controls">
                     <button type="button" 
                             class="theme-toggle btn btn--secondary btn--sm" 
@@ -230,10 +181,6 @@
             </div>
         </header>
 
-        <!-- 
-            @brief Hero section with enhanced semantic structure
-            @description Primary introduction section with professional highlights
-        -->
         <section id="hero" 
                  class="hero-section" 
                  data-view="hero" 
@@ -242,15 +189,10 @@
             <div class="hero-background" aria-hidden="true"></div>
             <div class="container">
                 <div class="hero-content-container">
-                    <!-- Hero content loaded dynamically -->
                 </div>
             </div>
         </section>
 
-        <!-- 
-            @brief Main content area with enhanced accessibility
-            @description Primary content container with comprehensive ARIA attributes
-        -->
         <main id="main-content" 
               class="main-content" 
               role="main" 
@@ -258,10 +200,6 @@
               aria-label="Main content"
               data-main-initialized="false">
               
-            <!-- 
-                @brief Loading indicator for dynamic content
-                @description Accessible loading state for content transitions
-            -->
             <div class="content-loading-indicator" 
                  role="status" 
                  aria-live="polite" 
@@ -271,17 +209,9 @@
                 <span class="loading-text">Loading content...</span>
             </div>
 
-            <!-- 
-                @brief Dynamic content sections container
-                @description Container for dynamically loaded portfolio sections
-            -->
             <div id="dynamic-content" class="dynamic-content-container"></div>
         </main>
 
-        <!-- 
-            @brief Accessibility menu modal
-            @description Enhanced accessibility options with comprehensive controls
-        -->
         <aside id="accessibility-menu" 
                class="accessibility-menu" 
                role="dialog" 
@@ -357,24 +287,15 @@
             </div>
         </aside>
 
-        <!-- 
-            @brief Global footer with enhanced semantic structure
-            @description Comprehensive footer with contact information and supplementary navigation
-        -->
         <footer id="global-footer" 
                 class="global-footer" 
                 data-view="footer" 
                 role="contentinfo"
                 aria-label="Site footer">
             <div class="container">
-                <!-- Footer content loaded dynamically -->
             </div>
         </footer>
 
-        <!-- 
-            @brief Notification area for user feedback
-            @description Accessible notification system for application feedback
-        -->
         <div id="notification-area" 
              class="notification-area" 
              role="status" 
@@ -384,10 +305,6 @@
              hidden></div>
     </div>
 
-    <!-- 
-        @brief Progressive enhancement script
-        @description Non-blocking script for modern JavaScript features and core functionality
-    -->
     <script>
         /**
          * @file core.js
@@ -862,10 +779,6 @@
         }
     </script>
 
-    <!-- 
-        @brief Modern JavaScript module loader
-        @description Enhanced module loading with error handling and performance monitoring
-    -->
     <script type="module">
         /**
          * @file app.js
@@ -942,10 +855,6 @@
         initializeApplicationModules();
     </script>
 
-    <!-- 
-        @brief Legacy browser support with graceful degradation
-        @description Nomodule script for older browsers without module support
-    -->
     <script nomodule>
         /**
          * @file legacy.js
