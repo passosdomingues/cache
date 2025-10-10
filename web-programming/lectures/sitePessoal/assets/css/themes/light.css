@@ -1,0 +1,15 @@
+/**
+ * @file light.css
+ * @brief Light theme variables
+ * @description CSS custom properties for the light color scheme
+ */
+
+:root {
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f8fafc;
+  --color-text-primary: #1e293b;
+  --color-text-secondary: #475569;
+  --color-primary-500: #3b82f6;
+  --color-border-primary: #e2e8f0;
+  /* ... other light theme variables ... */
+}

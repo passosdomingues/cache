@@ -1,0 +1,48 @@
+/**
+ * @file critical.css
+ * @brief Critical above-the-fold CSS
+ * @description Minimal styles required for initial page render
+ */
+
+/* Critical layout and typography only */
+.app-container { 
+  opacity: 0;
+  min-height: 100vh;
+}
+
+.js-enabled .app-container { 
+  opacity: 1; 
+  transition: opacity 0.3s ease-in; 
+}
+
+.skip-link { 
+  position: absolute; 
+  top: -40px; 
+  left: 6px; 
+  background: #264B93; 
+  color: white; 
+  padding: 8px 12px; 
+  text-decoration: none; 
+  border-radius: 4px; 
+  z-index: 10000;
+  font-weight: 600;
+}
+
+.skip-link:focus { 
+  top: 6px; 
+}
+
+.noscript-warning { 
+  background: #ffeb3b; 
+  color: #333; 
+  padding: 1rem; 
+  text-align: center; 
+  border-bottom: 2px solid #ffc107;
+}
+
+/* Hide dynamic content until JS loads */
+[data-app-initialized="false"] .dynamic-content-container,
+[data-hero-initialized="false"] .hero-content-container,
+[data-main-initialized="false"] .main-content > *:not(.content-loading-indicator) {
+  display: none;
+}

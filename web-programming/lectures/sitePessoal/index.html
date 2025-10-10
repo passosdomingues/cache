@@ -1,113 +1,422 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<html lang="en-US" class="no-js">
+<!--
+    @file index.html
+    @brief Enhanced portfolio website for Rafael Passos Domingues
+    @description Modern, accessible HTML structure with optimized performance,
+                 SEO enhancements, and progressive enhancement patterns
+-->
+
 <head>
-    <!-- 
-        @brief Global metadata and resources for Rafael Passos Domingues' portfolio
-        @details Includes SEO optimization, fonts, icons, and core CSS
-    -->
+    <!-- Character encoding and viewport for responsive design -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rafael Passos Domingues - Physicist & Computer Scientist</title>
+    
+    <!-- Primary page title with strategic keyword placement -->
+    <title>Rafael Passos Domingues | Physicist & Computer Science Researcher | Astrophysics & Data Science</title>
 
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Portfolio of Rafael Passos Domingues: Physicist, Computer Scientist, Maker Educator and Researcher in Astrophysics, Data Science, and Innovation.">
-    <meta name="keywords" content="Physics, Computer Science, Astrophysics, Data Analysis, Maker Education, Portfolio, Innovation, Data Science">
+    <meta name="description" content="Rafael Passos Domingues - Physicist and Computer Scientist specializing in Astrophysics research, Data Science innovation, and Maker Education. Bridging scientific research with computational methodologies.">
+    <meta name="keywords" content="Rafael Passos Domingues, Physics, Computer Science, Astrophysics, Data Science, Research, Maker Education, Data Analysis, Computational Physics, Scientific Innovation">
     <meta name="author" content="Rafael Passos Domingues">
-    <meta name="robots" content="index, follow">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="theme-color" content="#264B93">
+    
+    <!-- Canonical URL for SEO -->
+    <link rel="canonical" href="https://rafaeldomingues.dev">
 
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="Rafael Passos Domingues - Physicist & Computer Scientist">
-    <meta property="og:description" content="Physicist, Computer Scientist and Researcher in Astrophysics and Data Science.">
+    <!-- Open Graph Meta Tags for social sharing -->
+    <meta property="og:title" content="Rafael Passos Domingues | Physicist & Computer Science Researcher">
+    <meta property="og:description" content="Physicist and Computer Scientist specializing in Astrophysics research, Data Science innovation, and Maker Education.">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="en_US">
-    <meta property="og:url" content="https://www.yourdomain.com">
-    <meta property="og:image" content="https://www.yourdomain.com/assets/images/social-preview.jpg">
-    <meta property="og:site_name" content="Rafael Passos Domingues">
+    <meta property="og:url" content="https://rafaeldomingues.dev">
+    <meta property="og:image" content="https://rafaeldomingues.dev/assets/images/social-preview-1200x630.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Rafael Passos Domingues - Professional Portfolio">
+    <meta property="og:site_name" content="Rafael Passos Domingues Portfolio">
 
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Rafael Passos Domingues - Portfolio">
-    <meta name="twitter:description" content="Physicist, Computer Scientist and Researcher in Astrophysics and Data Science.">
-    <meta name="twitter:image" content="https://www.yourdomain.com/assets/images/twitter-preview.jpg">
+    <meta name="twitter:site" content="@rafaeldomingues">
+    <meta name="twitter:creator" content="@rafaeldomingues">
+    <meta name="twitter:title" content="Rafael Passos Domingues | Physicist & Computer Science Researcher">
+    <meta name="twitter:description" content="Physicist and Computer Scientist specializing in Astrophysics research and Data Science innovation.">
+    <meta name="twitter:image" content="https://rafaeldomingues.dev/assets/images/twitter-preview-1200x600.jpg">
+    <meta name="twitter:image:alt" content="Rafael Passos Domingues Professional Portfolio">
 
-    <!-- Resource Preloading and Preconnecting -->
+    <!-- Resource Preloading and Preconnecting for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    
-    <!-- Favicon and App Icons -->
-    <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+
+    <!-- Critical CSS Preload -->
+    <link rel="preload" href="./assets/css/critical.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="./assets/css/critical.css"></noscript>
+
+    <!-- Favicon and App Icons with Multiple Formats -->
+    <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-16x16.png">
+    <link rel="shortcut icon" href="/assets/images/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png">
+    <link rel="manifest" href="/assets/manifest.webmanifest">
+
+    <!-- Web App Capabilities -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Rafael Domingues">
+
+    <!-- Fonts with Performance Optimization -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
     
-    <!-- Fonts and Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons with Fallback -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
           integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" 
-          crossorigin="anonymous" referrerpolicy="no-referrer">
+          crossorigin="anonymous" referrerpolicy="no-referrer"
+          onerror="this.remove();">
 
-    <!-- Core Stylesheets -->
-    <link rel="stylesheet" href="./assets/css/variables.css">
-    <link rel="stylesheet" href="./assets/css/base.css">
-    <link rel="stylesheet" href="./assets/css/style.css">
+    <!-- Progressive Enhancement: Non-Critical CSS Loaded After Render -->
+    <link rel="stylesheet" href="./assets/css/variables.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="./assets/css/base.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="./assets/css/components.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="./assets/css/layout.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="./assets/css/utilities.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="./assets/css/themes/light.css">
+    <link rel="stylesheet" href="./assets/css/themes/dark.css">
+
+    <!-- Inline Critical CSS for Above-the-Fold Content -->
+    <style>
+        /* Critical CSS for initial render */
+        .app-container { opacity: 0; }
+        .js-enabled .app-container { opacity: 1; transition: opacity 0.3s ease-in; }
+        .skip-link { 
+            position: absolute; 
+            top: -40px; 
+            left: 6px; 
+            background: #264B93; 
+            color: white; 
+            padding: 8px 12px; 
+            text-decoration: none; 
+            border-radius: 4px; 
+            z-index: 10000;
+            font-weight: 600;
+        }
+        .skip-link:focus { top: 6px; }
+        .noscript-warning { 
+            background: #ffeb3b; 
+            color: #333; 
+            padding: 1rem; 
+            text-align: center; 
+            border-bottom: 2px solid #ffc107;
+        }
+    </style>
 </head>
 
-<body>
+<body class="no-js">
     <!-- 
-        @brief NoScript fallback for JavaScript-disabled environments
-        @details Provides graceful degradation when JavaScript is unavailable
+        @brief NoScript fallback implementation
+        @description Enhanced graceful degradation with improved messaging and styling
     -->
     <noscript>
-        <div class="noscript-warning">
+        <div class="noscript-warning" role="alert" aria-live="polite">
             <div class="noscript-container">
-                <h1>JavaScript Required</h1>
-                <p>For the optimal experience, please enable JavaScript in your browser.</p>
-                <p>Alternatively, you can view a static version of my portfolio <a href="/static">here</a>.</p>
+                <h1>JavaScript Enhancement Required</h1>
+                <p>This portfolio utilizes modern web technologies for an optimal experience.</p>
+                <p>Please enable JavaScript in your browser settings or explore the <a href="/static" class="noscript-link">static portfolio version</a>.</p>
             </div>
         </div>
     </noscript>
 
     <!-- 
-        @brief Main application container
-        @param id="app" Root container where views are dynamically rendered via JavaScript
+        @brief Main application container with enhanced accessibility attributes
+        @description Primary container for dynamic content with comprehensive ARIA support
     -->
-    <div id="app" class="app-container" aria-live="polite" aria-atomic="true">
+    <div id="app" class="app-container" 
+         aria-live="polite" 
+         aria-atomic="true" 
+         aria-label="Rafael Passos Domingues Portfolio Application"
+         data-app-version="2.1.0"
+         data-app-initialized="false">
+        
         <!-- 
-            @brief Skip navigation link for accessibility
-            @details Allows screen reader users to skip directly to main content
+            @brief Skip navigation link with enhanced accessibility
+            @description Prominently visible when focused for keyboard navigation users
         -->
-        <a href="#main-content" class="skip-link">Skip to main content</a>
+        <a href="#main-content" class="skip-link" id="skip-link">
+            Skip to Main Content
+        </a>
 
         <!-- 
-            @brief Header and main navigation component
-            @param id="header" Top-level header element containing navigation
+            @brief Global header with semantic markup
+            @description Contains primary navigation and site identification
         -->
-        <header id="header" class="header" role="banner">
-            <nav id="navigation" class="navigation" data-view="navigation" aria-label="Main navigation"></nav>
+        <header id="global-header" class="global-header" role="banner" aria-label="Site header">
+            <!-- 
+                @brief Main navigation component
+                @description Responsive navigation with accessibility enhancements
+            -->
+            <nav id="primary-navigation" 
+                 class="primary-navigation" 
+                 data-view="navigation" 
+                 data-navigation-state="collapsed"
+                 aria-label="Primary navigation">
+                <!-- Navigation content loaded dynamically -->
+            </nav>
+
+            <!-- 
+                @brief Theme and accessibility controls
+                @description User preference toggles for theme and accessibility features
+            -->
+            <div class="user-preference-controls" aria-label="User preference controls">
+                <button type="button" 
+                        class="theme-toggle" 
+                        id="theme-toggle"
+                        aria-pressed="false"
+                        aria-label="Toggle dark mode">
+                    <span class="theme-toggle-icon" aria-hidden="true">🌙</span>
+                </button>
+                
+                <button type="button" 
+                        class="accessibility-menu-toggle" 
+                        id="accessibility-menu-toggle"
+                        aria-expanded="false"
+                        aria-label="Open accessibility options">
+                    <span class="accessibility-icon" aria-hidden="true">♿</span>
+                </button>
+            </div>
         </header>
 
         <!-- 
-            @brief Hero section (primary presentation area)
-            @param id="hero" Initial highlight section of the website
+            @brief Hero section with enhanced semantic structure
+            @description Primary introduction section with professional highlights
         -->
-        <section id="hero" class="hero-section" data-view="hero" aria-label="Personal introduction and highlights"></section>
+        <section id="hero" 
+                 class="hero-section" 
+                 data-view="hero" 
+                 aria-labelledby="hero-heading"
+                 data-hero-initialized="false">
+            <div class="hero-background" aria-hidden="true"></div>
+            <div class="hero-content-container">
+                <!-- Hero content loaded dynamically -->
+            </div>
+        </section>
 
         <!-- 
-            @brief Main page content area
-            @param id="main-content" Dynamic area for loading internal sections and content
+            @brief Main content area with enhanced accessibility
+            @description Primary content container with comprehensive ARIA attributes
         -->
-        <main id="main-content" class="main-content" role="main" tabindex="-1"></main>
+        <main id="main-content" 
+              class="main-content" 
+              role="main" 
+              tabindex="-1"
+              aria-label="Main content"
+              data-main-initialized="false">
+              
+            <!-- 
+                @brief Loading indicator for dynamic content
+                @description Accessible loading state for content transitions
+            -->
+            <div class="content-loading-indicator" 
+                 role="status" 
+                 aria-live="polite" 
+                 aria-label="Loading content"
+                 hidden>
+                <div class="loading-spinner" aria-hidden="true"></div>
+                <span class="loading-text">Loading content...</span>
+            </div>
+
+            <!-- 
+                @brief Dynamic content sections container
+                @description Container for dynamically loaded portfolio sections
+            -->
+            <div id="dynamic-content" class="dynamic-content-container"></div>
+        </main>
 
         <!-- 
-            @brief Website footer component
-            @param id="footer" Contains navigation links, contact information, and credits
+            @brief Accessibility menu modal
+            @description Enhanced accessibility options with comprehensive controls
         -->
-        <footer id="footer" class="footer" data-view="footer" role="contentinfo"></footer>
+        <aside id="accessibility-menu" 
+               class="accessibility-menu" 
+               role="dialog" 
+               aria-modal="true"
+               aria-labelledby="accessibility-menu-heading"
+               aria-hidden="true"
+               hidden>
+            <div class="accessibility-menu-content">
+                <h2 id="accessibility-menu-heading">Accessibility Options</h2>
+                
+                <div class="accessibility-control-group">
+                    <label for="font-size-control">Font Size</label>
+                    <input type="range" 
+                           id="font-size-control" 
+                           min="0.8" 
+                           max="1.5" 
+                           step="0.1" 
+                           value="1.0"
+                           aria-valuetext="Normal font size">
+                </div>
+
+                <div class="accessibility-control-group">
+                    <label for="contrast-toggle">High Contrast</label>
+                    <input type="checkbox" 
+                           id="contrast-toggle" 
+                           aria-checked="false">
+                </div>
+
+                <div class="accessibility-control-group">
+                    <label for="reduced-motion-toggle">Reduced Motion</label>
+                    <input type="checkbox" 
+                           id="reduced-motion-toggle" 
+                           aria-checked="false">
+                </div>
+
+                <button type="button" 
+                        class="accessibility-menu-close" 
+                        id="accessibility-menu-close"
+                        aria-label="Close accessibility menu">
+                    Close
+                </button>
+            </div>
+        </aside>
+
+        <!-- 
+            @brief Global footer with enhanced semantic structure
+            @description Comprehensive footer with contact information and supplementary navigation
+        -->
+        <footer id="global-footer" 
+                class="global-footer" 
+                data-view="footer" 
+                role="contentinfo"
+                aria-label="Site footer">
+            <!-- Footer content loaded dynamically -->
+        </footer>
+
+        <!-- 
+            @brief Notification area for user feedback
+            @description Accessible notification system for application feedback
+        -->
+        <div id="notification-area" 
+             class="notification-area" 
+             role="status" 
+             aria-live="polite"
+             aria-atomic="true"
+             aria-relevant="additions"
+             hidden></div>
     </div>
 
     <!-- 
-        @brief Main application script
-        @details ES6 module responsible for assembling views and managing dynamic interactions
+        @brief Progressive enhancement script
+        @description Non-blocking script for modern JavaScript features
     -->
-    <script type="module" src="./assets/js/app.js"></script>
+    <script>
+        // Progressive enhancement: Add JS-enabled class
+        document.documentElement.classList.remove('no-js');
+        document.documentElement.classList.add('js-enabled');
+
+        // Initialize app state
+        window.addEventListener('DOMContentLoaded', () => {
+            const appContainer = document.getElementById('app');
+            if (appContainer) {
+                appContainer.setAttribute('data-app-initialized', 'true');
+            }
+
+            // Enhanced skip link behavior
+            const skipLink = document.getElementById('skip-link');
+            const mainContent = document.getElementById('main-content');
+            
+            if (skipLink && mainContent) {
+                skipLink.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    mainContent.setAttribute('tabindex', '-1');
+                    mainContent.focus({ preventScroll: true });
+                    
+                    // Remove tabindex after focus to maintain natural tab order
+                    setTimeout(() => {
+                        mainContent.removeAttribute('tabindex');
+                    }, 1000);
+                });
+            }
+
+            // Basic theme toggle functionality as fallback
+            const themeToggle = document.getElementById('theme-toggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    const currentTheme = document.documentElement.getAttribute('data-theme');
+                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                    
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    themeToggle.setAttribute('aria-pressed', newTheme === 'dark');
+                    
+                    // Store preference
+                    try {
+                        localStorage.setItem('user-theme', newTheme);
+                    } catch (error) {
+                        console.warn('Could not save theme preference:', error);
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- 
+        @brief Modern JavaScript module loader
+        @description Enhanced module loading with error handling and performance monitoring
+    -->
+    <script type="module">
+        // Enhanced module loader with error handling
+        try {
+            // Load main application module
+            const appModule = await import('./assets/js/app.js');
+            
+            // Initialize performance monitoring
+            if (appModule.performanceMonitor) {
+                await appModule.performanceMonitor.startMonitoring();
+            }
+            
+            console.info('Application modules loaded successfully');
+        } catch (error) {
+            console.error('Failed to load application modules:', error);
+            
+            // Fallback: Show error message to user
+            const notificationArea = document.getElementById('notification-area');
+            if (notificationArea) {
+                notificationArea.textContent = 'Some features may not be available due to loading issues.';
+                notificationArea.hidden = false;
+                notificationArea.setAttribute('role', 'alert');
+                
+                // Auto-hide notification after 5 seconds
+                setTimeout(() => {
+                    notificationArea.hidden = true;
+                }, 5000);
+            }
+        }
+    </script>
+
+    <!-- 
+        @brief Legacy browser support with graceful degradation
+        @description Nomodule script for older browsers without module support
+    -->
+    <script nomodule>
+        // Legacy browser support
+        document.getElementById('app').innerHTML = `
+            <div class="browser-support-message">
+                <h2>Browser Update Recommended</h2>
+                <p>Your browser doesn't support modern JavaScript features required for this application.</p>
+                <p>Please consider updating to a modern browser like Chrome, Firefox, Safari, or Edge.</p>
+                <div class="browser-links">
+                    <a href="https://www.google.com/chrome/" target="_blank">Chrome</a>
+                    <a href="https://www.mozilla.org/firefox/" target="_blank">Firefox</a>
+                    <a href="https://www.apple.com/safari/" target="_blank">Safari</a>
+                    <a href="https://www.microsoft.com/edge" target="_blank">Edge</a>
+                </div>
+            </div>
+        `;
+    </script>
 </body>
 </html>
