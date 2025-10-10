@@ -1,42 +1,113 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en-US">
 <head>
+    <!-- 
+        @brief Global metadata and resources for Rafael Passos Domingues' portfolio
+        @details Includes SEO optimization, fonts, icons, and core CSS
+    -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rafael Passos Domingues - Físico & Cientista da Computação</title>
-    <meta name="description" content="Físico, Cientista da Computação, Educador Maker e Pesquisador em Astrofísica, Dados e Inovação">
-    <link rel="stylesheet" href="css/style.css">
+    <title>Rafael Passos Domingues - Physicist & Computer Scientist</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Portfolio of Rafael Passos Domingues: Physicist, Computer Scientist, Maker Educator and Researcher in Astrophysics, Data Science, and Innovation.">
+    <meta name="keywords" content="Physics, Computer Science, Astrophysics, Data Analysis, Maker Education, Portfolio, Innovation, Data Science">
+    <meta name="author" content="Rafael Passos Domingues">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Rafael Passos Domingues - Physicist & Computer Scientist">
+    <meta property="og:description" content="Physicist, Computer Scientist and Researcher in Astrophysics and Data Science.">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:url" content="https://www.yourdomain.com">
+    <meta property="og:image" content="https://www.yourdomain.com/assets/images/social-preview.jpg">
+    <meta property="og:site_name" content="Rafael Passos Domingues">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Rafael Passos Domingues - Portfolio">
+    <meta name="twitter:description" content="Physicist, Computer Scientist and Researcher in Astrophysics and Data Science.">
+    <meta name="twitter:image" content="https://www.yourdomain.com/assets/images/twitter-preview.jpg">
+
+    <!-- Resource Preloading and Preconnecting -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    
+    <!-- Favicon and App Icons -->
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png">
+    
+    <!-- Fonts and Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
+          integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" 
+          crossorigin="anonymous" referrerpolicy="no-referrer">
+
+    <!-- Core Stylesheets -->
+    <link rel="stylesheet" href="./assets/css/variables.css">
+    <link rel="stylesheet" href="./assets/css/base.css">
+    <link rel="stylesheet" href="./assets/css/style.css">
 </head>
+
 <body>
-    <div id="app">
-        <!-- Header será injetado via JavaScript -->
-        <header id="header" data-view="navigation"></header>
+    <!-- 
+        @brief NoScript fallback for JavaScript-disabled environments
+        @details Provides graceful degradation when JavaScript is unavailable
+    -->
+    <noscript>
+        <div class="noscript-warning">
+            <div class="noscript-container">
+                <h1>JavaScript Required</h1>
+                <p>For the optimal experience, please enable JavaScript in your browser.</p>
+                <p>Alternatively, you can view a static version of my portfolio <a href="/static">here</a>.</p>
+            </div>
+        </div>
+    </noscript>
 
-        <!-- Hero Section -->
-        <section id="hero" class="hero" data-view="hero"></section>
+    <!-- 
+        @brief Main application container
+        @param id="app" Root container where views are dynamically rendered via JavaScript
+    -->
+    <div id="app" class="app-container" aria-live="polite" aria-atomic="true">
+        <!-- 
+            @brief Skip navigation link for accessibility
+            @details Allows screen reader users to skip directly to main content
+        -->
+        <a href="#main-content" class="skip-link">Skip to main content</a>
 
-        <!-- Main Content Sections -->
-        <main id="main-content">
-            <!-- Seções serão injetadas via JavaScript -->
-        </main>
+        <!-- 
+            @brief Header and main navigation component
+            @param id="header" Top-level header element containing navigation
+        -->
+        <header id="header" class="header" role="banner">
+            <nav id="navigation" class="navigation" data-view="navigation" aria-label="Main navigation"></nav>
+        </header>
 
-        <!-- Footer -->
-        <footer id="footer" data-view="footer"></footer>
+        <!-- 
+            @brief Hero section (primary presentation area)
+            @param id="hero" Initial highlight section of the website
+        -->
+        <section id="hero" class="hero-section" data-view="hero" aria-label="Personal introduction and highlights"></section>
+
+        <!-- 
+            @brief Main page content area
+            @param id="main-content" Dynamic area for loading internal sections and content
+        -->
+        <main id="main-content" class="main-content" role="main" tabindex="-1"></main>
+
+        <!-- 
+            @brief Website footer component
+            @param id="footer" Contains navigation links, contact information, and credits
+        -->
+        <footer id="footer" class="footer" data-view="footer" role="contentinfo"></footer>
     </div>
 
-    <!-- Scripts Modulares -->
-    <script type="module" src="js/models/UserModel.js"></script>
-    <script type="module" src="js/models/ContentModel.js"></script>
-    <script type="module" src="js/views/BaseView.js"></script>
-    <script type="module" src="js/views/HeroView.js"></script>
-    <script type="module" src="js/views/NavigationView.js"></script>
-    <script type="module" src="js/views/SectionView.js"></script>
-    <script type="module" src="js/views/FooterView.js"></script>
-    <script type="module" src="js/controllers/MainController.js"></script>
-    <script type="module" src="js/controllers/NavigationController.js"></script>
-    <script type="module" src="js/controllers/SectionController.js"></script>
-    <script type="module" src="js/app.js"></script>
+    <!-- 
+        @brief Main application script
+        @details ES6 module responsible for assembling views and managing dynamic interactions
+    -->
+    <script type="module" src="./assets/js/app.js"></script>
 </body>
 </html>
