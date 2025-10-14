@@ -1,113 +1,33 @@
-/**
- * @file critical.css
- * @brief Critical above-the-fold CSS
- * @description Minimal styles required for initial page render
- */
+/* Critical CSS: Styles for immediate rendering of above-the-fold content */
 
-/* Critical layout and typography only */
-.app-container { 
-  opacity: 0;
-  min-height: 100vh;
+/* Skip Link */
+.skip-link {
+    position: absolute; top: -40px; left: 0; background: var(--primary-color);
+    color: white; padding: 8px; z-index: 100; text-decoration: none;
 }
+.skip-link:focus { top: 0; }
 
-.js-enabled .app-container { 
-  opacity: 1; 
-  transition: opacity 0.3s ease-in; 
+/* Loading Overlay (often critical to show first) */
+.main-loading-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--dark-bg); display: flex; justify-content: center;
+    align-items: center; z-index: 9999; color: white;
 }
+.loading-content { text-align: center; }
 
-.skip-link { 
-  position: absolute; 
-  top: -40px; 
-  left: 6px; 
-  background: var(--color-primary-700); 
-  color: white; 
-  padding: 8px 12px; 
-  text-decoration: none; 
-  border-radius: 4px; 
-  z-index: 10000;
-  font-weight: 600;
+/* Navigation (essential for page structure) */
+.main-navigation-container {
+    position: fixed; top: 0; width: 100%; background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px); z-index: 1000; padding: 1rem 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
+.nav-container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+.nav-list { list-style: none; display: flex; justify-content: center; gap: 2rem; }
 
-.skip-link:focus { 
-  top: 6px; 
+/* Hero Section (main above-the-fold content) */
+.hero-section {
+    padding: 4rem 2rem; text-align: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white; margin-bottom: 2rem; border-radius: 0 0 20px 20px;
 }
-
-.noscript-warning { 
-  background: var(--color-warning-light); 
-  color: var(--color-text-primary); 
-  padding: 1rem; 
-  text-align: center; 
-  border-bottom: 2px solid var(--color-warning-dark);
-}
-
-/* Loading overlay styles */
-.app-loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--color-background, #ffffff);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  transition: opacity 0.5s ease;
-}
-
-.app-loading-placeholder {
-  text-align: center;
-  color: var(--color-text-primary, #333333);
-}
-
-.app-loading-placeholder h1 {
-  margin-bottom: 1rem;
-  font-size: 1.5rem;
-}
-
-.app-loading-placeholder p {
-  font-size: 1rem;
-  opacity: 0.8;
-}
-
-/* Main content structure */
-.main-content {
-  min-height: 100vh;
-  opacity: 0;
-  transition: opacity 0.3s ease-in;
-}
-
-[data-app-initialized="true"] .main-content {
-  opacity: 1;
-}
-
-/* Hide dynamic content until JS loads */
-[data-app-initialized="false"] .dynamic-content-container,
-[data-hero-initialized="false"] .hero-content-container,
-[data-main-initialized="false"] .main-content > *:not(.content-loading-indicator) {
-  display: none;
-}
-
-/* Basic section container styles */
-.sections-container {
-  position: relative;
-}
-
-.content-loading-indicator {
-  text-align: center;
-  padding: 2rem;
-  color: var(--color-text-secondary, #666666);
-}
-
-/* Ensure main nav and footer are initially hidden until rendered */
-.main-navigation-container,
-.hero-section,
-.main-footer {
-  display: none;
-}
-
-[data-app-initialized="true"] .main-navigation-container,
-[data-app-initialized="true"] .hero-section,
-[data-app-initialized="true"] .main-footer {
-  display: block;
-}
+.hero-title { font-size: 3rem; margin-bottom: 1rem; }

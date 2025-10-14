@@ -1,15 +1,18 @@
-/**
- * @file light.css
- * @brief Light theme variables
- * @description CSS custom properties for the light color scheme
- */
+/* src/css/light.css */
 
 :root {
-  --color-background-primary: #ffffff;
-  --color-background-secondary: #f8fafc;
-  --color-text-primary: #1e293b;
-  --color-text-secondary: #475569;
-  --color-primary-500: #3b82f6;
-  --color-border-primary: #e2e8f0;
-  /* ... other light theme variables ... */
+    --primary-color: #2c3e50; /* Azul escuro/Chumbo */
+    --secondary-color: #3498db; /* Azul brilhante */
+    --accent-color: #e74c3c; /* Vermelho/Laranja */
+    --text-color: #333; /* Cinza bem escuro para texto */
+    --light-bg: #f8f9fa; /* Fundo principal quase branco */
+    --dark-bg: #2c3e50; /* Fundo escuro para contraste (ex: footer) */
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra suave */
+
+    /* Estilos de componentes que precisam ser ajustados entre temas */
+    --component-bg: white; /* Fundo de cards, seções, etc. */
+    --component-text-color: var(--text-color);
+    --nav-bg: rgba(255, 255, 255, 0.95);
+    --tag-highlight-bg: var(--light-bg);
+    --skill-bar-bg: #e0e0e0;
 }

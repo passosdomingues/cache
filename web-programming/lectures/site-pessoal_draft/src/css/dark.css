@@ -1,15 +1,40 @@
-/**
- * @file dark.css
- * @brief Dark theme variables
- * @description CSS custom properties for the dark color scheme
- */
+/* src/css/dark.css */
 
-[data-theme="dark"] {
-  --color-background-primary: #0f172a;
-  --color-background-secondary: #1e293b;
-  --color-text-primary: #f1f5f9;
-  --color-text-secondary: #cbd5e1;
-  --color-primary-500: #60a5fa;
-  --color-border-primary: #334155;
-  /* ... other dark theme variables ... */
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* Cores invertidas e ajustadas para o modo escuro */
+        --primary-color: #5dade2; /* Azul claro para substituir o escuro */
+        --secondary-color: #3498db; /* Azul brilhante mantido para destaque */
+        --accent-color: #e74c3c; /* Cor de destaque mantida */
+        --text-color: #ecf0f1; /* Texto quase branco para legibilidade */
+        --light-bg: #2c3e50; /* Fundo principal escuro */
+        --dark-bg: #212f3d; /* Fundo ainda mais escuro para o footer */
+        --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Sombra mais sutil no escuro */
+
+        /* Ajustes de componentes para o modo escuro */
+        --component-bg: #34495e; /* Fundo de cards e seções em tom de azul-cinza */
+        --component-text-color: var(--text-color);
+        --nav-bg: rgba(44, 62, 80, 0.9); /* Navegação escura com blur */
+        --tag-highlight-bg: #4e647a; /* Fundo das tags de destaque */
+        --skill-bar-bg: #566573; /* Fundo da barra de skills */
+    }
+
+    /* Ajustes específicos que variáveis não cobrem */
+    .section:nth-child(even) {
+        background: var(--component-bg);
+    }
+
+    .card,
+    .timeline-content,
+    .skill-category {
+        background: var(--component-bg);
+    }
+
+    .gallery-caption {
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+    .nav-link {
+        color: var(--text-color);
+    }
 }

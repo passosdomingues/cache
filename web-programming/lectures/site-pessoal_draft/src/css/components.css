@@ -1,46 +1,44 @@
-/* ===== Navigation (Migrado do styles.css) ===== */
+/* Navigation Component */
 .main-navigation-container {
     position: fixed;
     top: 0;
     width: 100%;
-    /* Efeito de vidro fosco usando suas variáveis */
-    background: color-mix(in srgb, var(--color-background-primary) 85%, transparent);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
     z-index: 1000;
-    padding: var(--space-4) 0;
-    border-bottom: 1px solid var(--color-border-primary);
+    padding: 1rem 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .nav-container {
-    max-width: var(--container-max-width);
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 0 var(--space-8);
+    padding: 0 2rem;
 }
 
 .nav-list {
     list-style: none;
     display: flex;
     justify-content: center;
-    gap: var(--space-8);
+    gap: 2rem;
 }
 
 .nav-link {
     text-decoration: none;
-    color: var(--color-text-secondary);
-    font-weight: var(--font-weight-medium);
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--border-radius-md);
-    transition: all var(--transition-duration-base) var(--transition-timing-function);
+    color: var(--text-color);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: var(--transition);
 }
 
 .nav-link:hover,
 .nav-link.active {
-    background: var(--color-primary-500);
-    color: var(--color-text-inverse);
+    background: var(--secondary-color);
+    color: white;
 }
 
-/* ===== Timeline (Migrado do styles.css) ===== */
+/* Timeline Component */
 .timeline {
     position: relative;
     max-width: 800px;
@@ -54,13 +52,13 @@
     top: 0;
     bottom: 0;
     width: 2px;
-    background: var(--color-primary-500);
+    background: var(--secondary-color);
     transform: translateX(-50%);
 }
 
 .timeline-item {
     display: flex;
-    margin-bottom: var(--space-12);
+    margin-bottom: 3rem;
     position: relative;
 }
 
@@ -71,152 +69,192 @@
 .timeline-period {
     flex: 0 0 150px;
     text-align: center;
-    font-weight: var(--font-weight-bold);
-    color: var(--color-primary-500);
-    padding: var(--space-2);
+    font-weight: bold;
+    color: var(--secondary-color);
+    padding: 0.5rem;
 }
 
 .timeline-content {
     flex: 1;
-    padding: var(--space-6);
-    background: var(--color-background-primary);
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-md);
-    margin: 0 var(--space-8);
+    padding: 1.5rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: var(--card-shadow);
+    margin: 0 2rem;
 }
 
 .timeline-title {
-    color: var(--color-text-primary);
-    margin-bottom: var(--space-2);
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
 }
 
 .highlights-list {
-    margin-top: var(--space-4);
+    margin-top: 1rem;
+}
+
+/* Cards Component */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+    transition: var(--transition);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.card-description {
+    margin-bottom: 1rem;
+}
+
+.card-links {
+    margin-bottom: 1rem;
+}
+
+.card-links a {
+    display: inline-block;
+    margin-right: 1rem;
+    color: var(--secondary-color);
+    text-decoration: none;
+}
+
+.card-links a:hover {
+    text-decoration: underline;
+}
+
+.card-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Tags Component */
+.tags-container {
+    margin-top: 1rem;
+}
+
+.tag {
+    display: inline-block;
+    background: var(--secondary-color);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    margin: 0.2rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
 }
 
 .highlight-tag {
     display: inline-block;
-    background: var(--color-background-secondary);
-    color: var(--color-text-secondary);
-    padding: var(--space-1) var(--space-3);
-    margin: var(--space-1);
-    border-radius: var(--border-radius-full);
-    font-size: var(--font-size-sm);
+    background: var(--light-bg);
+    padding: 0.3rem 0.8rem;
+    margin: 0.2rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
 }
 
-/* ===== Cards (Migrado do styles.css) ===== */
-.cards-grid {
+/* Skills Component */
+.skills-categories {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: var(--space-8);
-    margin-top: var(--space-8);
+    gap: 2rem;
 }
 
-/* A classe .card base já deve existir, estas são as regras internas */
-.card-title {
-    color: var(--color-text-primary);
-    margin-bottom: var(--space-4);
-}
-.card-description { margin-bottom: var(--space-4); }
-.card-links { margin-bottom: var(--space-4); }
-.card-links a {
-    display: inline-block;
-    margin-right: var(--space-4);
-    color: var(--color-primary-500);
-    text-decoration: none;
-}
-.card-links a:hover { text-decoration: underline; }
-.card-meta {
-    display: flex;
-    justify-content: space-between;
-    margin-top: var(--space-4);
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
-}
-.tags-container { margin-top: var(--space-4); }
-.tag {
-    display: inline-block;
-    background: var(--color-primary-500);
-    color: var(--color-text-inverse);
-    padding: var(--space-1) var(--space-3);
-    margin: var(--space-1);
-    border-radius: var(--border-radius-md);
-    font-size: var(--font-size-xs);
-}
-
-/* ===== Skills (Migrado do styles.css) ===== */
-.skills-categories { display: grid; gap: var(--space-8); }
 .skill-category {
-    background: var(--color-background-primary);
-    padding: var(--space-6);
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-md);
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: var(--card-shadow);
 }
+
 .category-title {
-    color: var(--color-text-primary);
-    margin-bottom: var(--space-4);
-    border-bottom: 2px solid var(--color-primary-500);
-    padding-bottom: var(--space-2);
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: 0.5rem;
 }
-.skill-item { margin-bottom: var(--space-6); }
+
+.skill-item {
+    margin-bottom: 1.5rem;
+}
+
 .skill-header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: var(--space-2);
+    margin-bottom: 0.5rem;
 }
+
 .skill-bar {
     height: 8px;
-    background: var(--color-background-secondary);
-    border-radius: var(--border-radius-full);
+    background: #e0e0e0;
+    border-radius: 4px;
     overflow: hidden;
-    margin-bottom: var(--space-2);
+    margin-bottom: 0.5rem;
 }
+
 .skill-progress {
     height: 100%;
-    background: var(--color-primary-500);
+    background: var(--secondary-color);
     transition: width 1s ease-in-out;
 }
 
-/* ===== Gallery (Migrado do styles.css) ===== */
+/* Gallery Component */
 .gallery-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: var(--space-4);
-    margin-top: var(--space-8);
+    gap: 1rem;
+    margin-top: 2rem;
 }
+
 .gallery-item {
     position: relative;
-    border-radius: var(--border-radius-lg);
+    border-radius: 8px;
     overflow: hidden;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--card-shadow);
 }
+
 .gallery-image {
     width: 100%;
     height: 200px;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    transition: var(--transition);
 }
-.gallery-item:hover .gallery-image { transform: scale(1.05); }
+
+.gallery-item:hover .gallery-image {
+    transform: scale(1.05);
+}
+
 .gallery-caption {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
     background: rgba(0, 0, 0, 0.7);
-    color: var(--color-text-inverse);
-    padding: var(--space-2);
-    font-size: var(--font-size-sm);
+    color: white;
+    padding: 0.5rem;
+    font-size: 0.9rem;
 }
 
-/* ===== Responsive (Migrado do styles.css) ===== */
+/* Responsive Components */
 @media (max-width: 768px) {
-    .hero-title {
-        font-size: var(--font-size-2xl);
-    }
-
     .nav-list {
         flex-direction: column;
-        gap: var(--space-2);
+        gap: 0.5rem;
     }
 
     .timeline::before {
@@ -233,7 +271,11 @@
     }
 
     .timeline-content {
-        margin-left: var(--space-4);
+        margin-left: 1rem;
         margin-right: 0;
+    }
+
+    .cards-grid {
+        grid-template-columns: 1fr;
     }
 }
