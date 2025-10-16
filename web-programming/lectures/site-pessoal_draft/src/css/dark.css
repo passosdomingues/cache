@@ -1,40 +1,35 @@
 /* src/css/dark.css */
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        /* Cores invertidas e ajustadas para o modo escuro */
-        --primary-color: #5dade2; /* Azul claro para substituir o escuro */
-        --secondary-color: #3498db; /* Azul brilhante mantido para destaque */
-        --accent-color: #e74c3c; /* Cor de destaque mantida */
-        --text-color: #ecf0f1; /* Texto quase branco para legibilidade */
-        --light-bg: #2c3e50; /* Fundo principal escuro */
-        --dark-bg: #212f3d; /* Fundo ainda mais escuro para o footer */
-        --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Sombra mais sutil no escuro */
+html.dark {
+    /* Cores invertidas e ajustadas para o modo escuro */
+    --primary-color: #5dade2;
+    --secondary-color: #3498db;
+    --accent-color: #e74c3c;
+    --text-color: #ecf0f1;
+    --light-bg: #2c3e50;
+    --dark-bg: #212f3d;
+    --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    --component-bg: #34495e;
+    --component-text-color: var(--text-color);
+    --nav-bg: rgba(44, 62, 80, 0.9);
+    --tag-highlight-bg: #4e647a;
+    --skill-bar-bg: #566573;
+}
 
-        /* Ajustes de componentes para o modo escuro */
-        --component-bg: #34495e; /* Fundo de cards e seções em tom de azul-cinza */
-        --component-text-color: var(--text-color);
-        --nav-bg: rgba(44, 62, 80, 0.9); /* Navegação escura com blur */
-        --tag-highlight-bg: #4e647a; /* Fundo das tags de destaque */
-        --skill-bar-bg: #566573; /* Fundo da barra de skills */
-    }
+html.dark .section:nth-child(even) {
+    background: var(--component-bg);
+}
 
-    /* Ajustes específicos que variáveis não cobrem */
-    .section:nth-child(even) {
-        background: var(--component-bg);
-    }
+html.dark .card,
+html.dark .timeline-content,
+html.dark .skill-category {
+    background: var(--component-bg);
+}
 
-    .card,
-    .timeline-content,
-    .skill-category {
-        background: var(--component-bg);
-    }
+html.dark .gallery-caption {
+    background: rgba(0, 0, 0, 0.8);
+}
 
-    .gallery-caption {
-        background: rgba(0, 0, 0, 0.8);
-    }
-
-    .nav-link {
-        color: var(--text-color);
-    }
+html.dark .nav-link {
+    color: var(--text-color);
 }

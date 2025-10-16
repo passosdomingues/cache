@@ -1,16 +1,14 @@
 /* src/css/light.css */
 
-:root {
-    --primary-color: #2c3e50; /* Azul escuro/Chumbo */
-    --secondary-color: #3498db; /* Azul brilhante */
-    --accent-color: #e74c3c; /* Vermelho/Laranja */
-    --text-color: #333; /* Cinza bem escuro para texto */
-    --light-bg: #f8f9fa; /* Fundo principal quase branco */
-    --dark-bg: #2c3e50; /* Fundo escuro para contraste (ex: footer) */
-    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra suave */
-
-    /* Estilos de componentes que precisam ser ajustados entre temas */
-    --component-bg: white; /* Fundo de cards, seções, etc. */
+html.light {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --accent-color: #e74c3c;
+    --text-color: #333;
+    --light-bg: #f8f9fa;
+    --dark-bg: #2c3e50;
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --component-bg: white;
     --component-text-color: var(--text-color);
     --nav-bg: rgba(255, 255, 255, 0.95);
     --tag-highlight-bg: var(--light-bg);

@@ -9,8 +9,6 @@ export class ThemeManager {
         this.eventBus = dependencies.eventBus || eventBus;
         this.currentTheme = 'light';
         this.isInitialized = false;
-
-        this.onThemeChange = this.onThemeChange.bind(this);
     }
 
     /**
@@ -20,11 +18,11 @@ export class ThemeManager {
     async init() {
         if (this.isInitialized) return;
 
-        // Load saved theme or detect system preference
         const savedTheme = localStorage.getItem('app-theme');
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         
-        this.currentTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+        // Use saved theme, otherwise system preference, otherwise default to dark
+        this.currentTheme = savedTheme || (systemPrefersDark ? 'dark' : 'dark'); // Default to dark
         
         this.applyTheme(this.currentTheme);
         this.setupEventListeners();
@@ -37,9 +35,6 @@ export class ThemeManager {
      * @brief Set up event listeners
      */
     setupEventListeners() {
-        this.eventBus.subscribe('theme:change', this.onThemeChange);
-        
-        // Listen for system theme changes
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
             if (!localStorage.getItem('app-theme')) {
                 this.setTheme(e.matches ? 'dark' : 'light');
@@ -48,32 +43,24 @@ export class ThemeManager {
     }
 
     /**
-     * @brief Handle theme change events
-     * @param {Object} data - Event data
-     */
-    onThemeChange(data) {
-        if (data.theme && ['light', 'dark'].includes(data.theme)) {
-            this.setTheme(data.theme);
-        }
-    }
-
-    /**
-     * @brief Set application theme
+     * @brief Set a new theme
      * @param {string} theme - Theme name ('light' or 'dark')
      */
     setTheme(theme) {
         if (theme !== 'light' && theme !== 'dark') {
-            console.warn('ThemeManager: Invalid theme:', theme);
-            return;
+            console.warn(`ThemeManager: Invalid theme '${theme}'. Defaulting to 'light'.`);
+            theme = 'light';
         }
 
         this.currentTheme = theme;
         this.applyTheme(theme);
         
-        // Save preference
         localStorage.setItem('app-theme', theme);
         
+        // Dispara evento para atualizar os componentes
         this.eventBus.publish('theme:changed', { theme });
+        this.eventBus.publish('accessibility:announce', `Theme changed to ${theme} mode.`);
+        
         console.info('ThemeManager: Theme changed to:', theme);
     }
 
@@ -83,8 +70,8 @@ export class ThemeManager {
      */
     applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.className = theme; // Adicione esta linha
         
-        // Update meta theme-color for mobile browsers
         const metaThemeColor = document.querySelector('meta[name="theme-color"]');
         if (metaThemeColor) {
             metaThemeColor.setAttribute('content', theme === 'dark' ? '#1a1a1a' : '#ffffff');
@@ -119,8 +106,6 @@ export class ThemeManager {
      * @brief Destroy theme manager
      */
     destroy() {
-        this.eventBus.unsubscribe('theme:change', this.onThemeChange);
-        this.isInitialized = false;
         console.info('ThemeManager: Destroyed');
     }
 }

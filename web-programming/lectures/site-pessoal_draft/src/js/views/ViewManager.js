@@ -152,34 +152,61 @@ class ViewManager {
 
     /**
      * @brief Render skills content
-     * @param {Object} content - Skills content object
+     * @param {Array} content - Skills content array (array of categories from PortfolioData.js)
      * @returns {string} HTML string
      */
     renderSkills(content) {
-        if (!content.categories || !Array.isArray(content.categories)) return '';
+        // Corrigido: O 'content' é o próprio array de categorias
+        if (!Array.isArray(content)) return '';
 
-        const categories = content.categories.map(category => `
-            <div class="skill-category">
-                <h3 class="category-title">${this.escapeHtml(category.category)}</h3>
-                <div class="skills-list">
-                    ${category.skills.map(skill => `
-                        <div class="skill-item">
-                            <div class="skill-header">
-                                <span class="skill-name">${this.escapeHtml(skill.name)}</span>
-                                <span class="skill-proficiency">${skill.proficiency}%</span>
-                            </div>
-                            <div class="skill-bar">
+        const categories = content.map(category => {
+            const skills = category.skills.map(skill => {
+                
+                // Adicionado: Renderiza links se existirem
+                const linksHtml = (skill.links && Array.isArray(skill.links) && skill.links.length > 0)
+                    ? `<div class="skill-links">
+                        ${skill.links.map(link => 
+                            `<a href="${this.escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer" class="skill-link">
+                                ${this.escapeHtml(link.label)}
+                            </a>`
+                        ).join('')}
+                    </div>`
+                    : '';
+                
+                // Adicionado: Verifica se 'proficiency' existe para renderizar a barra
+                const hasProficiency = typeof skill.proficiency === 'number';
+
+                return `
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span class="skill-name">${this.escapeHtml(skill.name)}</span>
+                            ${hasProficiency ?
+                                `<span class="skill-proficiency">${skill.proficiency}%</span>` : ''
+                            }
+                        </div>
+                        ${hasProficiency ?
+                            `<div class="skill-bar">
                                 <div class="skill-progress" 
                                      style="width: ${skill.proficiency}%;"
                                      data-proficiency="${skill.proficiency}">
                                 </div>
-                            </div>
-                            <p class="skill-description">${this.escapeHtml(skill.description)}</p>
-                        </div>
-                    `).join('')}
+                            </div>` : ''
+                        }
+                        <p class="skill-description">${this.escapeHtml(skill.description)}</p>
+                        ${linksHtml}
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="skill-category">
+                    <h3 class="category-title">${this.escapeHtml(category.category)}</h3>
+                    <div class="skills-list">
+                        ${skills}
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
         
         return `<div class="skills-categories">${categories}</div>`;
     }
