@@ -14,12 +14,13 @@ export const USER_DATA = {
     },
     contact: {
         email: 'rafaelpassosdomingues@gmail.com',
-        phone: '+55 35 98884-5584'
+        phone: '+55 35 98884-5584',
+        whatsapp: 'https://wa.me/5535988845584'
     },
     socialLinks: {
         github: 'https://github.com/passosdomingues',
-        linkedin: 'https://www.linkedin.com/in/rafael-passos-domingues/',
-        instagram: '@rafalpassosdomingues'
+        linkedin: 'https://www.linkedin.com/in/rafaelpassosdomingues/',
+        instagram: 'https://instagram.com/rafaelpassosdomingues/'
     },
     resumeUrl: 'http://lattes.cnpq.br/2726901051757064'
 };

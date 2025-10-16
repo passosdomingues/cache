@@ -36,6 +36,10 @@ export class FooterView extends BaseView {
 
         const footerHTML = this.createFooterHTML();
         this.setHTML(this.container, footerHTML);
+        
+        // Add WhatsApp float button
+        this.createWhatsAppButton();
+        
         console.info('FooterView: Rendered successfully.');
     }
     
@@ -47,16 +51,16 @@ export class FooterView extends BaseView {
         const { socialLinks } = this.footerData;
         if (!socialLinks) return '';
 
-        // Mapeia chaves para ícones da Font Awesome
         const iconMap = {
             github: 'fab fa-github',
             linkedin: 'fab fa-linkedin',
-            instagram: 'fab fa-instagram'
+            instagram: 'fab fa-instagram',
+            whatsapp: 'fab fa-whatsapp'
         };
 
         const links = Object.entries(socialLinks).map(([key, url]) => {
             const iconClass = iconMap[key] || 'fas fa-link';
-            const name = key.charAt(0).toUpperCase() + key.slice(1); // Capitaliza o nome
+            const name = key.charAt(0).toUpperCase() + key.slice(1);
             return `
                 <li class="footer-social-item">
                     <a href="${this.escapeHtml(url)}" 
@@ -91,7 +95,7 @@ export class FooterView extends BaseView {
                            target="_blank" 
                            rel="noopener noreferrer" 
                            class="footer-resume-link">
-                           View CV Lattes
+                           Lattes
                         </a>
                     ` : ''}
                 </div>
@@ -100,5 +104,40 @@ export class FooterView extends BaseView {
                 </div>
             </div>
         `;
+    }
+
+    /**
+     * @brief Creates WhatsApp floating button
+     */
+    createWhatsAppButton() {
+        const { contact } = this.footerData;
+        if (!contact?.whatsapp) return;
+
+        // Remove existing button if any
+        const existingButton = document.querySelector('.whatsapp-float');
+        if (existingButton) {
+            existingButton.remove();
+        }
+
+        const whatsappButton = document.createElement('a');
+        whatsappButton.href = contact.whatsapp;
+        whatsappButton.className = 'whatsapp-float';
+        whatsappButton.target = '_blank';
+        whatsappButton.rel = 'noopener noreferrer';
+        whatsappButton.setAttribute('aria-label', 'Contact on WhatsApp');
+        whatsappButton.innerHTML = '<i class="fab fa-whatsapp"></i>';
+        
+        document.body.appendChild(whatsappButton);
+    }
+
+    /**
+     * @brief Escape HTML to prevent XSS
+     * @param {string} text - Text to escape
+     * @returns {string} Escaped text
+     */
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 }

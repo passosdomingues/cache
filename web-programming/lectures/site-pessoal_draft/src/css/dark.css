@@ -4,7 +4,7 @@ html.dark {
     /* Cores invertidas e ajustadas para o modo escuro */
     --primary-color: #5dade2;
     --secondary-color: #3498db;
-    --accent-color: #e74c3c;
+    --accent-color: #23cf8d;
     --text-color: #ecf0f1;
     --light-bg: #2c3e50;
     --dark-bg: #212f3d;
@@ -32,4 +32,42 @@ html.dark .gallery-caption {
 
 html.dark .nav-link {
     color: var(--text-color);
+}
+
+html.dark .main-footer {
+    background: var(--dark-bg);
+    color: var(--text-color);
+}
+
+html.dark .footer-resume-link {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+html.dark .footer-resume-link:hover {
+    background: var(--accent-color);
+    color: white;
+}
+
+html.dark .footer-social-link {
+    color: var(--text-color);
+}
+
+html.dark .footer-social-link:hover {
+    color: var(--accent-color);
+}
+
+html.dark .accessibility-menu {
+    background: var(--component-bg);
+    color: var(--text-color);
+    border: 1px solid var(--secondary-color);
+}
+
+html.dark .accessibility-menu-item {
+    color: var(--text-color);
+}
+
+html.dark .accessibility-menu-item:hover {
+    background: var(--secondary-color);
+    color: white;
 }
