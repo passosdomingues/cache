@@ -3,29 +3,17 @@
 
 """
 ================================================================================
-Advanced Queueing Simulation Performance Analysis Toolkit (v4.0)
+Spectral Queue Dynamics Analysis Toolkit (v5.0)
 ================================================================================
-Author: Rafael Passos Domingues (Refactored by Gemini)
+Author: Rafael Passos Domingues
 Date: October 24, 2025
 
 Description:
-This script performs a comprehensive, multi-methodological analysis of queueing
-system simulation data. It is designed to load and process data from all 12
-scenarios (3 policies x 4 occupancy levels), enriching the data with
-internal variability and fairness metrics.
-
-The analysis is structured to "go beyond" simple aggregate comparisons by:
-1.  Enriching data with per-timestamp fairness metrics (imbalance, spread).
-2.  Generating cross-matrix comparative plots for all policies and scenarios.
-3.  Analyzing the *distribution* and *dynamics* of queue behavior, not just
-    the averages.
-4.  Applying a suite of advanced machine learning techniques for deep insights:
-    -   PCA (Principal Component Analysis) for dimensionality reduction.
-    -   GMM (Gaussian Mixture Models) for probabilistic clustering.
-    -   Isolation Forest for detecting anomalous/unstable states.
-    -   Random Forest + SHAP for "atomic" and "recursive" feature insights.
-
-All plots are saved in "article-ready" format at 300 DPI.
+Análise espectral e temporal avançada de sistemas de filas, focando em:
+- Dinâmica temporal das filas individuais
+- Comportamento espectral (FFT) das séries temporais
+- Métricas de Little em alta resolução temporal
+- Histórias atômicas de cada política
 """
 
 # --- Standard Library Imports ---
@@ -40,21 +28,20 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import joblib
-import shap
 from glob import glob
+from scipy import fft
+from scipy.signal import spectrogram
 
 # --- Scikit-learn Imports ---
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 from sklearn.mixture import GaussianMixture
-from sklearn.ensemble import RandomForestRegressor, IsolationForest
-from sklearn.metrics import silhouette_score, r2_score
+from sklearn.ensemble import IsolationForest
+from sklearn.metrics import silhouette_score
 
 # --- Global Configuration ---
 warnings.filterwarnings('ignore')
-plt.rcParams['figure.max_open_warning'] = 50
+plt.rcParams['figure.max_open_warning'] = 100
 
 
 # =============================================================================
@@ -62,57 +49,37 @@ plt.rcParams['figure.max_open_warning'] = 50
 # =============================================================================
 
 class AnalysisConfiguration:
-    """
-    Encapsulates all static configuration parameters for the analysis pipeline.
-    """
-
     def __init__(self):
-        """Initializes the configuration parameters."""
-
-        # --- Data I/O Configuration ---
         self.dataDirectory = Path("results")
-        self.outputDirectory = Path("results/analysis_plots")
+        self.outputDirectory = Path("results/spectral_analysis")
 
-        # --- File Naming Convention ---
-        # Matches: queue_data_[PolicyName]_occupancy_[rho].csv
         self.filePattern = "queue_data_*_occupancy_*.csv"
         self.fileNameRegex = re.compile(r"queue_data_(.*?)_occupancy_(.*?).csv")
 
-        # --- Experiment Dimensions ---
         self.policies = ["RoundRobin", "WaitingTimePriority", "UtilityBased"]
         self.rhos = ['0.800', '0.900', '0.950', '0.999']
 
-        # --- CSV Column Names ---
         self.colTimestamp = "timestamp"
-        self.colAggEN = "averageNumberInSystem"  # Global Average N
-        self.colAggEW = "averageWaitingTime"  # Global Average W
+        self.colAggEN = "averageNumberInSystem"
+        self.colAggEW = "averageWaitingTime"
         self.colQueues = ['queueSize1', 'queueSize2', 'queueSize3']
         self.colOccupancy = "measuredOccupancy"
         self.colArrivalRate = "measuredArrivalRate"
 
-        # --- Steady-State Detection Parameters ---
-        self.stabilizationWindow = 100
-        self.stabilizationThreshold = 0.02  # 2% relative change
-        self.stabilizationPatience = 5
-        self.transientFallback = 0.15  # Discard 15% if detection fails
-
 
 class VisualizationConfiguration:
-    """
-    Encapsulates all configuration parameters for plotting.
-    Ensures all outputs are 300 DPI and article-ready.
-    """
-
     def __init__(self):
-        """Initializes the visualization parameters."""
-        self.dpi = 300  # CRUCIAL: Article-quality resolution
+        self.dpi = 300
         self.palette = {
-            "RoundRobin": "#0072B2",  # Colorblind-safe Blue
-            "WaitingTimePriority": "#E69F00",  # Colorblind-safe Orange
-            "UtilityBased": "#009E73"  # Colorblind-safe Green
+            "RoundRobin": "#0072B2",
+            "WaitingTimePriority": "#E69F00",
+            "UtilityBased": "#009E73",
+            "queue1": "#FF6B6B",
+            "queue2": "#4ECDC4",
+            "queue3": "#45B7D1"
         }
-        self.context = "paper"  # Use 'paper' context for legible fonts
-        self.style = "whitegrid"
+        self.context = "paper"
+        self.style = "darkgrid"
         sns.set_theme(context=self.context, style=self.style)
 
 
@@ -120,63 +87,40 @@ class VisualizationConfiguration:
 # MAIN ANALYSIS PIPELINE CLASS
 # =============================================================================
 
-class SimulationAnalysisPipeline:
-    """
-    Orchestrates the entire end-to-end analysis pipeline, from loading
-    and enriching data to generating advanced ML insights and plots.
-    """
-
+class SpectralQueueAnalysis:
     def __init__(self):
-        """Initializes the pipeline and configuration objects."""
         print("=================================================================")
-        print("  Advanced Simulation Analysis Pipeline (v4.0) Initializing")
-        print("  (Focus: Cross-Matrix Analysis, Advanced ML, 300 DPI Output)")
+        print("  Spectral Queue Dynamics Analysis (v5.0) Initializing")
+        print("  (Focus: Temporal Dynamics, Spectral Analysis, Atomic Stories)")
         print("=================================================================")
 
         self.config = AnalysisConfiguration()
         self.visConfig = VisualizationConfiguration()
 
-        # --- Data Attributes ---
         self.masterDataFrame: pd.DataFrame = pd.DataFrame()
-        self.steadyStateFrame: pd.DataFrame = pd.DataFrame()
-        self.summaryFrame: pd.DataFrame = pd.DataFrame()
+        self.spectralData: Dict = {}
 
-        # --- ML Model Attributes ---
-        self.mlModels: Dict[str, Any] = {}
-        self.mlFeatures: List[str] = []
-        self.mlTarget: str = self.config.colAggEW
-        self.X_scaled: np.ndarray = np.array([])
-        self.shapValues: np.ndarray = np.array([])
-
-        # --- Setup ---
         self.config.outputDirectory.mkdir(exist_ok=True)
-        print(f"Data Source:      {self.config.dataDirectory}")
-        print(f"Plot Output:      {self.config.outputDirectory} (at {self.visConfig.dpi} DPI)")
-        print(f"Policies to Find: {self.config.policies}")
-        print(f"Scenarios to Find: {self.config.rhos}")
 
     def runFullPipeline(self):
-        """
-        Executes the entire analysis pipeline from start to finish.
-        """
         try:
-            print("\n--- [PHASE 1/5] Data Loading and Enrichment ---")
-            self._loadAndEnrichData()
+            print("\n--- [PHASE 1/5] Data Loading ---")
+            self._loadAllData()
 
-            print("\n--- [PHASE 2/5] Performance Summary Generation ---")
-            self._generatePerformanceSummary()
+            print("\n--- [PHASE 2/5] Temporal Dynamics Analysis ---")
+            self._analyzeTemporalDynamics()
 
-            print("\n--- [PHASE 3/5] Advanced ML Analytics ---")
-            self._runAdvancedAnalytics()
+            print("\n--- [PHASE 3/5] Spectral Analysis ---")
+            self._performSpectralAnalysis()
 
-            print("\n--- [PHASE 4/5] Visualization Generation ---")
-            self._generateVisualizations()
+            print("\n--- [PHASE 4/5] Atomic Stories Visualization ---")
+            self._createAtomicStories()
 
-            print("\n--- [PHASE 5/5] SHAP Insights Generation ---")
-            self._generateShapInsights()
+            print("\n--- [PHASE 5/5] Advanced ML Insights ---")
+            self._createAdvancedMLInsights()
 
             print("\n=================================================================")
-            print("  Pipeline Execution Completed Successfully.")
+            print("  Spectral Analysis Completed Successfully!")
             print(f"  All plots saved to: {self.config.outputDirectory}")
             print("=================================================================")
 
@@ -186,763 +130,799 @@ class SimulationAnalysisPipeline:
             traceback.print_exc()
             sys.exit(1)
 
-    # -------------------------------------------------------------------------
-    # [PHASE 1] Data Loading and Enrichment
-    # -------------------------------------------------------------------------
-
-    def _loadAndEnrichData(self):
-        """
-        Loads all 12 CSVs, performs steady-state detection, and enriches
-        the data with internal fairness/variability metrics.
-        """
+    def _loadAllData(self):
+        """Carrega todos os dados mantendo a estrutura temporal completa"""
         filePaths = glob(str(self.config.dataDirectory / self.config.filePattern))
         if not filePaths:
-            raise FileNotFoundError(
-                f"No files found matching pattern '{self.config.filePattern}' in '{self.config.dataDirectory}'")
+            raise FileNotFoundError(f"No files found in '{self.config.dataDirectory}'")
 
         print(f"  Found {len(filePaths)} files. Processing...")
         allDataFrames = []
+
         for filePath in filePaths:
             match = self.config.fileNameRegex.search(Path(filePath).name)
             if not match:
-                print(f"  [Warning] Skipping file with non-matching name: {filePath}")
                 continue
 
             policy, rhoStr = match.group(1), match.group(2)
             if policy not in self.config.policies or rhoStr not in self.config.rhos:
-                print(f"  [Warning] Skipping file with unknown policy/rho: {filePath}")
                 continue
 
             try:
-                df = self._loadSingleFile(filePath, policy, rhoStr)
-                allDataFrames.append(df)
-            except Exception as e:
-                print(f"  [Error] Failed to load or process {filePath}: {e}")
+                df = pd.read_csv(filePath)
+                df['policy'] = policy
+                df['rho'] = rhoStr
+                df['scenario'] = f"{policy}_rho{rhoStr}"
 
-        if len(allDataFrames) != 12:
-            print(f"  [Warning] Expected 12 files (3 policies x 4 rhos), but found {len(allDataFrames)}.")
-            if len(allDataFrames) == 0:
-                raise ValueError("No valid data was loaded. Check file names and content.")
+                # Calcular métricas de variabilidade
+                queue_data = df[self.config.colQueues]
+                df['queue_imbalance'] = queue_data.std(axis=1)
+                df['queue_spread'] = queue_data.max(axis=1) - queue_data.min(axis=1)
+                df['total_queues'] = queue_data.sum(axis=1)
+
+                allDataFrames.append(df)
+                print(f"    Loaded {policy} ρ={rhoStr} ({len(df)} samples)")
+
+            except Exception as e:
+                print(f"  [Error] Failed to load {filePath}: {e}")
+
+        if not allDataFrames:
+            raise ValueError("No valid data was loaded.")
 
         self.masterDataFrame = pd.concat(allDataFrames, ignore_index=True)
-        print(f"  Loaded {len(allDataFrames)} files into Master DataFrame ({len(self.masterDataFrame)} total samples).")
+        print(f"  Master DataFrame: {len(self.masterDataFrame)} total samples")
 
-        print("  Applying steady-state detection and data enrichment...")
-        self.steadyStateFrame = (
-            self.masterDataFrame.groupby(['policy', 'rho'])
-            .apply(self._applySteadyStateAndEnrich)
-            .reset_index(drop=True)
-        )
-        print(f"  Created Steady-State DataFrame ({len(self.steadyStateFrame)} samples).")
+    def _analyzeTemporalDynamics(self):
+        """Análise detalhada da dinâmica temporal"""
+        print("  Creating temporal dynamics visualizations...")
 
-    def _loadSingleFile(self, filePath: str, policy: str, rho: str) -> pd.DataFrame:
-        """Loads and tags a single CSV file."""
-        df = pd.read_csv(filePath)
-        df['policy'] = policy
-        df['rho'] = rho
-        return df
+        # Plot 1: Série temporal das filas individuais em alta carga
+        self._plotQueueTimeSeriesHighLoad()
 
-    def _findStabilizationPoint(self, data: pd.Series) -> int:
-        """Finds the steady-state start index using a moving window."""
-        rollingMean = data.rolling(window=self.config.stabilizationWindow, min_periods=1).mean()
-        relativeChange = rollingMean.pct_change()
+        # Plot 2: Comparação side-by-side das políticas
+        self._plotPolicyComparisonTimeSeries()
 
-        patienceCounter = 0
-        for i in range(self.config.stabilizationWindow, len(relativeChange)):
-            change = relativeChange.iloc[i]
-            if pd.notna(change) and not np.isinf(change):
-                if abs(change) < self.config.stabilizationThreshold:
-                    patienceCounter += 1
-                    if patienceCounter >= self.config.stabilizationPatience:
-                        return i - self.config.stabilizationWindow
-                else:
-                    patienceCounter = 0  # Reset on fluctuation
+        # Plot 3: Little's Law em tempo real
+        self._plotRealtimeLittlesLaw()
 
-        # Fallback if no stable point is found
-        print("  [Note] Stabilization point not auto-detected, using fallback.")
-        return int(len(data) * self.config.transientFallback)
+        # Plot 4: Heatmaps de evolução temporal
+        self._plotTemporalHeatmaps()
 
-    def _applySteadyStateAndEnrich(self, group: pd.DataFrame) -> pd.DataFrame:
-        """
-        Applies steady-state detection and calculates new metrics
-        for a single data group (one policy at one rho).
-        """
-        startIndex = self._findStabilizationPoint(group[self.config.colAggEW])
-        steadyData = group.iloc[startIndex:].copy()
+    def _performSpectralAnalysis(self):
+        """Análise espectral das séries temporais"""
+        print("  Performing spectral analysis...")
 
-        # --- Data Enrichment (The "Atomic Insights") ---
-        queueData = steadyData[self.config.colQueues]
+        # Plot 5: Análise espectral (FFT)
+        self._plotSpectralAnalysis()
 
-        # Metric 1: Imbalance (Standard Deviation between queues)
-        steadyData['queueImbalance'] = queueData.std(axis=1)
+        # Plot 6: Espectrogramas
+        self._plotSpectrograms()
 
-        # Metric 2: Spread (Difference between max and min queue)
-        steadyData['queueSpread'] = queueData.max(axis=1) - queueData.min(axis=1)
+        # Plot 7: Análise de componentes principais temporais
+        self._plotTemporalPCA()
 
-        # Metric 3: Mean (Average queue size at that instant)
-        steadyData['queueMean'] = queueData.mean(axis=1)
+    def _createAtomicStories(self):
+        """Cria visualizações que contam 'histórias atômicas'"""
+        print("  Creating atomic stories...")
 
-        return steadyData
+        # Plot 8: Histórias individuais das filas
+        self._plotQueueIndividualStories()
 
-    # -------------------------------------------------------------------------
-    # [PHASE 2] Performance Summary
-    # -------------------------------------------------------------------------
+        # Plot 9: Diagramas de fase
+        self._plotPhaseDiagrams()
 
-    def _generatePerformanceSummary(self):
-        """
-        Creates a summary DataFrame by aggregating the steady-state data.
-        This summary is the source for many plots.
-        """
-        if self.steadyStateFrame.empty:
-            raise ValueError("Steady-state frame is empty. Cannot generate summary.")
+        # Plot 10: Comportamento transiente vs steady-state
+        self._plotTransientBehavior()
 
-        # Define aggregations
-        def quantile_95(x):
-            return x.quantile(0.95)
+    def _createAdvancedMLInsights(self):
+        """Insights avançados de ML mantendo os que você gostou"""
+        print("  Creating advanced ML insights...")
 
-        quantile_95.__name__ = 'p95'
+        # Plot 11: GMM Clustering (que você gostou)
+        self._plotGMMClustering()
 
-        aggFunctions = ['mean', 'median', quantile_95]
+        # Plot 12: Anomaly Detection (que você gostou)
+        self._plotAnomalyDetection()
 
-        metricsToAgg = {
-            self.config.colAggEN: aggFunctions,
-            self.config.colAggEW: aggFunctions,
-            'queueImbalance': aggFunctions,
-            'queueSpread': aggFunctions,
-            'queueMean': aggFunctions
-        }
+        # Plot 13: Análise de trajetórias
+        self._plotTrajectoryAnalysis()
 
-        self.summaryFrame = (
-            self.steadyStateFrame
-            .groupby(['policy', 'rho'])
-            .agg(metricsToAgg)
-            .reset_index()
-        )
+    # =========================================================================
+    # PLOTTING FUNCTIONS - TEMPORAL DYNAMICS
+    # =========================================================================
 
-        # Flatten MultiIndex columns
-        self.summaryFrame.columns = ['_'.join(col).strip('_') for col in self.summaryFrame.columns.values]
-
-        print("  Performance Summary Generated:")
-        print(self.summaryFrame.to_string(float_format="%.3f"))
-
-    # -------------------------------------------------------------------------
-    # [PHASE 3] Advanced ML Analytics
-    # -------------------------------------------------------------------------
-
-    def _runAdvancedAnalytics(self):
-        """
-        Runs the full suite of ML models: PCA, GMM, Isolation Forest, and RF.
-        """
-        if self.steadyStateFrame.empty:
-            raise ValueError("Steady-state frame is empty. Cannot run ML analytics.")
-
-        self.mlFeatures = [
-                              self.config.colAggEN, self.config.colAggEW,
-                              self.config.colArrivalRate, self.config.colOccupancy,
-                              'queueImbalance', 'queueSpread', 'queueMean'
-                          ] + self.config.colQueues
-
-        # Prepare data
-        mlData = self.steadyStateFrame[self.mlFeatures + ['policy']].dropna()
-        X = mlData[self.mlFeatures]
-        y = self.steadyStateFrame.loc[X.index, self.mlTarget]
-
-        scaler = StandardScaler()
-        self.X_scaled = scaler.fit_transform(X)
-        self.mlModels['scaler'] = scaler
-
-        print(f"  Running ML analytics on {len(X)} steady-state samples.")
-
-        # --- 1. PCA ---
-        pca = PCA(n_components=2, random_state=42)
-        X_pca = pca.fit_transform(self.X_scaled)
-        self.mlModels['pca'] = pca
-        self.mlModels['X_pca'] = X_pca
-        print(f"  PCA: 2 components explain {pca.explained_variance_ratio_.sum() * 100:.2f}% of variance.")
-
-        # --- 2. GMM (Gaussian Mixture Models) ---
-        gmm = GaussianMixture(n_components=3, random_state=42, n_init=10)
-        gmm_clusters = gmm.fit_predict(self.X_scaled)
-        self.mlModels['gmm'] = gmm
-        self.mlModels['gmm_clusters'] = gmm_clusters
-        if len(np.unique(gmm_clusters)) > 1:
-            self.mlModels['gmm_silhouette'] = silhouette_score(self.X_scaled, gmm_clusters)
-        else:
-            self.mlModels['gmm_silhouette'] = -1
-        print(f"  GMM: 3 clusters fitted (Silhouette: {self.mlModels['gmm_silhouette']:.3f}).")
-
-        # --- 3. Isolation Forest (Anomaly Detection) ---
-        isoForest = IsolationForest(n_estimators=100, contamination=0.05, random_state=42)
-        anomalies = isoForest.fit_predict(self.X_scaled)
-        self.mlModels['anomalies'] = anomalies  # -1 for anomaly, 1 for inlier
-
-        mlData['anomaly'] = anomalies
-        anomalyRates = mlData.groupby('policy')['anomaly'].apply(lambda x: (x == -1).mean() * 100)
-        self.mlModels['anomaly_rates'] = anomalyRates
-        print("  Isolation Forest: Anomaly rates per policy (%):")
-        print(anomalyRates.to_string())
-
-        # --- 4. Random Forest + SHAP ---
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-        rf = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1, max_depth=10)
-        rf.fit(X_train, y_train)
-
-        self.mlModels['rf_model'] = rf
-        self.mlModels['X_test'] = X_test
-        self.mlModels['feature_names'] = X.columns
-        rf_score = r2_score(y_test, rf.predict(X_test))
-        print(f"  Random Forest: Model trained to predict '{self.mlTarget}' (R²: {rf_score:.4f}).")
-
-        print("  Calculating SHAP values for model explainability...")
-        X_shap_sample = shap.sample(X_test, 1000) if len(X_test) > 1000 else X_test
-        explainer = shap.TreeExplainer(rf)
-        self.shapValues = explainer(X_shap_sample)
-        self.mlModels['X_shap_sample'] = X_shap_sample
-        print("  SHAP values calculated.")
-
-    # -------------------------------------------------------------------------
-    # [PHASE 4 & 5] Visualization (300 DPI Article-Ready Plots)
-    # -------------------------------------------------------------------------
-
-    def _savePlot(self, fig: plt.Figure, filename: str):
-        """
-        Helper function to save plots with consistent 300 DPI and formatting.
-        """
-        path = self.config.outputDirectory / filename
-        fig.savefig(path, dpi=self.visConfig.dpi, bbox_inches='tight')
-        plt.close(fig)
-        print(f"    Saved: {filename}")
-
-    def _generateVisualizations(self):
-        """
-        Orchestrator for all standard (non-SHAP) plots.
-        """
-        if self.steadyStateFrame.empty or self.summaryFrame.empty:
-            raise ValueError("Data frames are empty. Cannot generate plots.")
-
-        print("  Generating Plot 1: Performance Dashboard (Cross-Matrix)...")
-        self._plotPerformanceDashboard()
-
-        print("  Generating Plot 2: The Core Story (Aggregate vs. Fairness)...")
-        self._plotTheStoryLineplot()
-
-        print("  Generating Plot 3: Distribution Analysis (Violin Plots)...")
-        self._plotDistributionViolins()
-
-        print("  Generating Plot 4: Time Series Dynamics...")
-        self._plotFairnessDynamics()
-
-        print("  Generating Plot 5: Correlation Heatmaps...")
-        self._plotCorrelationHeatmaps()
-
-        print("  Generating Plot 6: ML - GMM Clustering...")
-        self._plotClusterAnalysis()
-
-        print("  Generating Plot 7: ML - Anomaly Detection...")
-        self._plotAnomalyAnalysis()
-
-        print("  Generating Plot 8: Methodology (Steady State)...")
-        self._plotSteadyStateExample()
-
-        print("  Generating Plot 9: Cross-Matrix Dynamics (Advanced)...")
-        self._plotCrossMatrixDynamics()
-
-    def _generateShapInsights(self):
-        """Orchestrator for SHAP plots (requires special handling)."""
-        if self.shapValues.shape[0] == 0:
-            print("  [Warning] No SHAP values found. Skipping SHAP plots.")
-            return
-
-        print("  Generating Plot 10: SHAP Summary (Beeswarm)...")
-        self._plotShapSummary()
-
-        print("  Generating Plot 11: SHAP Dependence Plots...")
-        self._plotShapDependence()
-
-    # --- PLOTTING FUNCTIONS ---
-
-    def _plotPerformanceDashboard(self):
-        """
-        PLOT 1: (THE MATRIX)
-        A 2x2 dashboard showing the 4 key metrics vs. rho.
-        This replaces the misleading 1x1 plot.
-        """
+    def _plotQueueTimeSeriesHighLoad(self):
+        """Série temporal detalhada das 3 filas em alta carga"""
         try:
-            fig, axes = plt.subplots(2, 2, figsize=(16, 10))
-            fig.suptitle('Performance Dashboard: Aggregate vs. Internal Fairness',
-                         fontsize=18, fontweight='bold', y=1.03)
+            high_load_data = self.masterDataFrame[self.masterDataFrame['rho'] == '0.999']
 
-            metrics = [
-                ('averageWaitingTime_mean', 'Global E[W] (Mean)', axes[0, 0]),
-                ('averageNumberInSystem_mean', 'Global E[N] (Mean)', axes[0, 1]),
-                ('queueImbalance_mean', 'Queue Imbalance (Mean StdDev)', axes[1, 0]),
-                ('queueSpread_mean', 'Queue Spread (Mean Max-Min)', axes[1, 1])
-            ]
+            fig, axes = plt.subplots(3, 1, figsize=(16, 12), sharex=True)
+            queue_colors = ['#FF6B6B', '#4ECDC4', '#45B7D1']
 
-            for metric, title, ax in metrics:
-                for policy in self.config.policies:
-                    policy_data = self.summaryFrame[self.summaryFrame['policy'] == policy]
-                    if not policy_data.empty:
-                        ax.plot(policy_data['rho'], policy_data[metric],
-                                label=policy, marker='o', linewidth=2.5,
-                                color=self.visConfig.palette[policy])
-
-                ax.set_title(title, fontsize=14, fontweight='bold')
-                ax.set_ylabel('Metric Value')
-                ax.set_xlabel('System Occupancy (ρ)')
-                ax.grid(True, which="both", ls="--", alpha=0.5)
-                ax.tick_params(axis='x', rotation=45)
-
-            handles, labels = axes[0, 0].get_legend_handles_labels()
-            fig.legend(handles, labels, loc='upper center',
-                       bbox_to_anchor=(0.5, 0.98), ncol=3, title="Policy")
-
-            plt.tight_layout(rect=[0, 0, 1, 0.95])
-            self._savePlot(fig, "1_Performance_Dashboard.png")
-
-        except Exception as e:
-            print(f"  [Error] Plot 1 failed: {e}")
-
-    def _plotTheStoryLineplot(self):
-        """
-        PLOT 2: (THE NARRATIVE)
-        A 1x2 plot showing the core story:
-        Left: Global E[W] (they look the same)
-        Right: Queue Imbalance (they are vastly different)
-        """
-        try:
-            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 7))
-            fig.suptitle('The Core Story: Aggregate Performance vs. Internal Fairness',
-                         fontsize=16, fontweight='bold', y=1.02)
-
-            # --- Left Plot: The "Misleading" Aggregate Metric ---
-            for policy in self.config.policies:
-                policy_data = self.summaryFrame[self.summaryFrame['policy'] == policy]
-                if not policy_data.empty:
-                    ax1.plot(policy_data['rho'], policy_data['averageWaitingTime_mean'],
-                             label=policy, marker='o', linewidth=2.5,
-                             color=self.visConfig.palette[policy])
-
-            ax1.set_title('Finding 1: Global Performance is Near-Identical', fontsize=14, fontweight='bold')
-            ax1.set_ylabel('Global E[W] (Mean Wait Time)')
-            ax1.set_xlabel('System Occupancy (ρ)')
-            ax1.legend().set_visible(False)
-            ax1.grid(True, which="both", ls="--", alpha=0.5)
-            ax1.tick_params(axis='x', rotation=45)
-
-            # --- Right Plot: The "True Story" Fairness Metric ---
-            for policy in self.config.policies:
-                policy_data = self.summaryFrame[self.summaryFrame['policy'] == policy]
-                if not policy_data.empty:
-                    ax2.plot(policy_data['rho'], policy_data['queueImbalance_mean'],
-                             label=policy, marker='o', linewidth=2.5,
-                             color=self.visConfig.palette[policy])
-
-            ax2.set_title('Finding 2: Internal Fairness is Radically Different', fontsize=14, fontweight='bold')
-            ax2.set_ylabel('Mean Queue Imbalance (StdDev)')
-            ax2.set_xlabel('System Occupancy (ρ)')
-            ax2.legend().set_visible(False)
-            ax2.grid(True, which="both", ls="--", alpha=0.5)
-            ax2.tick_params(axis='x', rotation=45)
-
-            handles, labels = ax1.get_legend_handles_labels()
-            fig.legend(handles, labels, loc='upper center',
-                       bbox_to_anchor=(0.5, 0.95), ncol=3, title="Policy")
-
-            plt.tight_layout(rect=[0, 0, 1, 0.93])
-            self._savePlot(fig, "2_The_Story_Aggregate_vs_Fairness.png")
-
-        except Exception as e:
-            print(f"  [Error] Plot 2 failed: {e}")
-
-    def _plotDistributionViolins(self):
-        """
-        PLOT 3: (THE VISUAL PROOF)
-        Violin plots showing the distribution of Q1, Q2, Q3 for each policy
-        at the highest load.
-        """
-        try:
-            rhoHigh = '0.999'
-            plotData = self.steadyStateFrame[self.steadyStateFrame['rho'] == rhoHigh]
-
-            if plotData.empty:
-                print("  [Warning] No data for rho=0.999, skipping Plot 3.")
-                return
-
-            # Melt data for seaborn
-            dfMelted = plotData.melt(
-                id_vars=['policy'],
-                value_vars=self.config.colQueues,
-                var_name='queueID',
-                value_name='queueSize'
-            )
-
-            fig, ax = plt.subplots(figsize=(18, 8))
-
-            sns.violinplot(
-                data=dfMelted,
-                x='policy',
-                y='queueSize',
-                hue='queueID',
-                split=True,
-                inner='quartile',
-                palette='pastel',
-                ax=ax
-            )
-
-            ax.set_title(f'Distribution of Individual Queue Sizes at High Load (ρ={rhoHigh})',
-                         fontsize=16, fontweight='bold', y=1.03)
-            ax.set_xlabel('Scheduling Policy')
-            ax.set_ylabel('Queue Size (Distribution)')
-            ax.legend(title='Queue ID', loc='upper left')
-
-            plt.tight_layout()
-            self._savePlot(fig, "3_Distribution_ViolinPlots.png")
-
-        except Exception as e:
-            print(f"  [Error] Plot 3 failed: {e}")
-
-    def _plotFairnessDynamics(self):
-        """
-        PLOT 4: (THE DYNAMICS)
-        Time series of queue imbalance, faceted by rho.
-        Shows *how* UB suppresses imbalance.
-        """
-        try:
-            # Use a random sample to make plotting faster
-            plotData = self.steadyStateFrame.sample(n=min(50000, len(self.steadyStateFrame)),
-                                                    random_state=42)
-
-            g = sns.FacetGrid(
-                plotData,
-                col='rho',
-                hue='policy',
-                palette=self.visConfig.palette,
-                height=5,
-                aspect=1.2,
-                sharey=False  # Imbalance scale changes drastically with rho
-            )
-
-            # Plot a smoothed line (rolling mean)
-            g.map_dataframe(
-                lambda data, color: sns.lineplot(
-                    x=data['timestamp'],
-                    y=data['queueImbalance'].rolling(window=50, min_periods=1).mean(),
-                    color=color,
-                    lw=1.5
-                )
-            )
-
-            g.add_legend(title='Policy')
-            g.set_axis_labels('Simulation Time (s)', 'Queue Imbalance')
-            g.set_titles(col_template="ρ = {col_name}")
-
-            plt.subplots_adjust(top=0.85)
-            g.fig.suptitle('Time Series Dynamics of Queue Imbalance',
-                           fontsize=16, fontweight='bold')
-
-            self._savePlot(g.fig, "4_Fairness_Dynamics_TimeSeries.png")
-
-        except Exception as e:
-            print(f"  [Error] Plot 4 failed: {e}")
-
-    def _plotCorrelationHeatmaps(self):
-        """
-        PLOT 5: (THE MECHANISM)
-        Heatmaps of correlation between Q1, Q2, Q3 for each policy
-        at high load.
-        """
-        try:
-            rhoHigh = '0.999'
-            plotData = self.steadyStateFrame[self.steadyStateFrame['rho'] == rhoHigh]
-
-            if plotData.empty:
-                print("  [Warning] No data for rho=0.999, skipping Plot 5.")
-                return
-
-            fig, axes = plt.subplots(1, 3, figsize=(20, 7), sharey=True)
-            fig.suptitle(f'Inter-Queue Correlation at High Load (ρ={rhoHigh})',
-                         fontsize=16, fontweight='bold', y=1.0)
-
-            cbar_ax = fig.add_axes([.93, .3, .02, .4])  # Global color bar
-
-            for i, policy in enumerate(self.config.policies):
-                ax = axes[i]
-                policyData = plotData[plotData['policy'] == policy]
-                if policyData.empty:
-                    ax.set_title(f'Policy: {policy}\n(No Data)')
+            for policy_idx, policy in enumerate(self.config.policies):
+                policy_data = high_load_data[high_load_data['policy'] == policy]
+                if policy_data.empty:
                     continue
 
-                corrMatrix = policyData[self.config.colQueues].corr()
+                # Amostrar para visualização mais limpa
+                sample_data = policy_data.iloc[::10]  # Cada 10º ponto
 
-                sns.heatmap(
-                    corrMatrix,
-                    annot=True,
-                    fmt='.2f',
-                    cmap='coolwarm',
-                    vmin=0.8, vmax=1.0,  # Force scale to highlight differences
-                    ax=ax,
-                    square=True,
-                    linewidths=.5,
-                    cbar=i == 0,
-                    cbar_ax=None if i != 0 else cbar_ax
-                )
-                ax.set_title(f'Policy: {policy}', fontweight='bold')
+                ax = axes[policy_idx]
+                for i, queue_col in enumerate(self.config.colQueues):
+                    ax.plot(sample_data[self.config.colTimestamp],
+                            sample_data[queue_col],
+                            color=queue_colors[i],
+                            alpha=0.8,
+                            linewidth=1.5,
+                            label=f'Fila {i + 1}')
 
-            plt.tight_layout(rect=[0, 0, 0.9, 0.95])
-            self._savePlot(fig, "5_Correlation_Heatmaps.png")
+                ax.set_title(f'Política: {policy} - Dinâmica Temporal das Filas (ρ=0.999)',
+                             fontsize=14, fontweight='bold', pad=20)
+                ax.set_ylabel('Tamanho da Fila', fontsize=12)
+                ax.legend(loc='upper right')
+                ax.grid(True, alpha=0.3)
 
-        except Exception as e:
-            print(f"  [Error] Plot 5 failed: {e}")
+                # Adicionar estatísticas no gráfico
+                avg_queues = [sample_data[col].mean() for col in self.config.colQueues]
+                ax.text(0.02, 0.98, f'Médias: Q1={avg_queues[0]:.1f}, Q2={avg_queues[1]:.1f}, Q3={avg_queues[2]:.1f}',
+                        transform=ax.transAxes, verticalalignment='top',
+                        bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
 
-    def _plotClusterAnalysis(self):
-        """
-        PLOT 6: (ML - CLUSTERING)
-        PCA plot colored by GMM cluster.
-        """
-        try:
-            if 'X_pca' not in self.mlModels:
-                print("  [Warning] No PCA data found, skipping Plot 6.")
-                return
-
-            pcaData = pd.DataFrame(self.mlModels['X_pca'], columns=['PC1', 'PC2'])
-            pcaData['cluster'] = self.mlModels['gmm_clusters'].astype(str)
-
-            fig, ax = plt.subplots(figsize=(10, 7))
-
-            sns.scatterplot(
-                data=pcaData.sample(n=min(10000, len(pcaData)), random_state=42),
-                x='PC1', y='PC2', hue='cluster',
-                alpha=0.4, s=20, ax=ax, palette='viridis'
-            )
-
-            varExp = self.mlModels['pca'].explained_variance_ratio_
-            title = (f"ML: Probabilistic Clustering of System States (GMM, k=3)\n"
-                     f"Silhouette Score: {self.mlModels['gmm_silhouette']:.3f}")
-            ax.set_title(title, fontsize=16, fontweight='bold', y=1.02)
-            ax.set_xlabel(f'Principal Component 1 ({varExp[0] * 100:.1f}%)')
-            ax.set_ylabel(f'Principal Component 2 ({varExp[1] * 100:.1f}%)')
-            ax.legend(title='Probabilistic Cluster')
-
+            axes[-1].set_xlabel('Tempo de Simulação (s)', fontsize=12)
             plt.tight_layout()
-            self._savePlot(fig, "6_ML_GMM_Clustering.png")
+            self._savePlot(fig, "1_Queue_Time_Series_High_Load.png")
 
         except Exception as e:
-            print(f"  [Error] Plot 6 failed: {e}")
+            print(f"  [Error] Queue time series plot failed: {e}")
 
-    def _plotAnomalyAnalysis(self):
-        """
-        PLOT 7: (ML - ANOMALIES)
-        PCA plot highlighting anomalies, and a bar chart of anomaly rates.
-        """
+    def _plotPolicyComparisonTimeSeries(self):
+        """Comparação side-by-side das políticas para um rho específico"""
         try:
-            if 'anomalies' not in self.mlModels:
-                print("  [Warning] No anomaly data found, skipping Plot 7.")
+            fig, axes = plt.subplots(2, 3, figsize=(20, 12))
+            rho_to_plot = '0.999'
+            plot_data = self.masterDataFrame[self.masterDataFrame['rho'] == rho_to_plot]
+
+            metrics = [
+                ('queueSize1', 'Fila 1'),
+                ('queueSize2', 'Fila 2'),
+                ('queueSize3', 'Fila 3'),
+                ('queue_imbalance', 'Desequilíbrio'),
+                ('total_queues', 'Total nas Filas'),
+                ('averageWaitingTime', 'E[W]')
+            ]
+
+            for i, (metric, title) in enumerate(metrics):
+                row, col = i // 3, i % 3
+                ax = axes[row, col]
+
+                for policy in self.config.policies:
+                    policy_data = plot_data[plot_data['policy'] == policy]
+                    if not policy_data.empty:
+                        sample_data = policy_data.iloc[::20]  # Amostragem
+                        ax.plot(sample_data[self.config.colTimestamp],
+                                sample_data[metric],
+                                label=policy,
+                                color=self.visConfig.palette[policy],
+                                alpha=0.7,
+                                linewidth=1.2)
+
+                ax.set_title(title, fontweight='bold')
+                ax.set_xlabel('Tempo')
+                ax.set_ylabel(title)
+                ax.legend()
+                ax.grid(True, alpha=0.3)
+
+            plt.suptitle(f'Comparação de Políticas - ρ={rho_to_plot}', fontsize=16, fontweight='bold')
+            plt.tight_layout(rect=[0, 0, 1, 0.96])
+            self._savePlot(fig, "2_Policy_Comparison_TimeSeries.png")
+
+        except Exception as e:
+            print(f"  [Error] Policy comparison plot failed: {e}")
+
+    def _plotRealtimeLittlesLaw(self):
+        """Visualização da Lei de Little em tempo real"""
+        try:
+            high_load_data = self.masterDataFrame[self.masterDataFrame['rho'] == '0.999']
+
+            fig, axes = plt.subplots(3, 2, figsize=(18, 12))
+
+            for policy_idx, policy in enumerate(self.config.policies):
+                policy_data = high_load_data[high_load_data['policy'] == policy]
+                if policy_data.empty:
+                    continue
+
+                sample_data = policy_data.iloc[::10]
+
+                # E[N] vs tempo
+                ax1 = axes[policy_idx, 0]
+                ax1.plot(sample_data[self.config.colTimestamp],
+                         sample_data[self.config.colAggEN],
+                         color='purple', alpha=0.8, linewidth=2)
+                ax1.set_title(f'{policy} - Número Médio no Sistema (E[N])')
+                ax1.set_ylabel('E[N]')
+                ax1.grid(True, alpha=0.3)
+
+                # E[W] vs tempo
+                ax2 = axes[policy_idx, 1]
+                ax2.plot(sample_data[self.config.colTimestamp],
+                         sample_data[self.config.colAggEW],
+                         color='orange', alpha=0.8, linewidth=2)
+                ax2.set_title(f'{policy} - Tempo Médio de Espera (E[W])')
+                ax2.set_ylabel('E[W] (s)')
+                ax2.grid(True, alpha=0.3)
+
+                # Calcular e mostrar Little's Law
+                avg_N = sample_data[self.config.colAggEN].mean()
+                avg_W = sample_data[self.config.colAggEW].mean()
+                lambda_ = sample_data[self.config.colArrivalRate].mean()
+                little_check = avg_N / (lambda_ * avg_W) if lambda_ * avg_W > 0 else 0
+
+                ax1.text(0.02, 0.98, f'Little\'s Law: E[N]/(λ·E[W]) = {little_check:.3f}',
+                         transform=ax1.transAxes, verticalalignment='top',
+                         bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+
+            plt.suptitle('Lei de Little em Tempo Real - ρ=0.999', fontsize=16, fontweight='bold')
+            plt.tight_layout(rect=[0, 0, 1, 0.96])
+            self._savePlot(fig, "3_Realtime_Littles_Law.png")
+
+        except Exception as e:
+            print(f"  [Error] Little's Law plot failed: {e}")
+
+    def _plotTemporalHeatmaps(self):
+        """Heatmaps da evolução temporal"""
+        try:
+            high_load_data = self.masterDataFrame[self.masterDataFrame['rho'] == '0.999']
+
+            fig, axes = plt.subplots(1, 3, figsize=(20, 8))
+
+            for i, policy in enumerate(self.config.policies):
+                policy_data = high_load_data[high_load_data['policy'] == policy]
+                if policy_data.empty:
+                    continue
+
+                # Preparar dados para heatmap
+                queue_matrix = policy_data[self.config.colQueues].values.T
+                timestamp_normalized = np.linspace(0, 1, len(policy_data))
+
+                im = axes[i].imshow(queue_matrix, aspect='auto', cmap='viridis',
+                                    extent=[0, 1, 0, 3], interpolation='nearest')
+                axes[i].set_title(f'{policy} - Evolução das Filas', fontweight='bold')
+                axes[i].set_xlabel('Tempo Normalizado')
+                axes[i].set_ylabel('Fila')
+                axes[i].set_yticks([0.5, 1.5, 2.5])
+                axes[i].set_yticklabels(['Fila 1', 'Fila 2', 'Fila 3'])
+
+                plt.colorbar(im, ax=axes[i], label='Tamanho da Fila')
+
+            plt.suptitle('Heatmaps de Evolução Temporal das Filas - ρ=0.999',
+                         fontsize=16, fontweight='bold')
+            plt.tight_layout(rect=[0, 0, 1, 0.96])
+            self._savePlot(fig, "4_Temporal_Heatmaps.png")
+
+        except Exception as e:
+            print(f"  [Error] Temporal heatmaps plot failed: {e}")
+
+    # =========================================================================
+    # PLOTTING FUNCTIONS - SPECTRAL ANALYSIS
+    # =========================================================================
+
+    def _plotSpectralAnalysis(self):
+        """Análise espectral via FFT das séries temporais"""
+        try:
+            high_load_data = self.masterDataFrame[self.masterDataFrame['rho'] == '0.999']
+
+            fig, axes = plt.subplots(3, 1, figsize=(15, 12))
+
+            for policy_idx, policy in enumerate(self.config.policies):
+                policy_data = high_load_data[high_load_data['policy'] == policy]
+                if policy_data.empty:
+                    continue
+
+                ax = axes[policy_idx]
+
+                for queue_idx, queue_col in enumerate(self.config.colQueues):
+                    queue_data = policy_data[queue_col].values
+
+                    # Remover tendência linear
+                    detrended = queue_data - np.mean(queue_data)
+
+                    # FFT
+                    fft_vals = np.abs(fft.fft(detrended))
+                    freqs = fft.fftfreq(len(detrended))
+
+                    # Plotar apenas frequências positivas
+                    positive_freq_idx = freqs > 0
+                    ax.semilogy(freqs[positive_freq_idx], fft_vals[positive_freq_idx],
+                                label=f'Fila {queue_idx + 1}', alpha=0.7, linewidth=2)
+
+                ax.set_title(f'{policy} - Análise Espectral (FFT)', fontweight='bold')
+                ax.set_xlabel('Frequência')
+                ax.set_ylabel('Magnitude (log)')
+                ax.legend()
+                ax.grid(True, alpha=0.3)
+
+            plt.suptitle('Análise Espectral das Séries Temporais das Filas',
+                         fontsize=16, fontweight='bold')
+            plt.tight_layout(rect=[0, 0, 1, 0.96])
+            self._savePlot(fig, "5_Spectral_Analysis_FFT.png")
+
+        except Exception as e:
+            print(f"  [Error] Spectral analysis plot failed: {e}")
+
+    def _plotSpectrograms(self):
+        """Espectrogramas das séries temporais"""
+        try:
+            high_load_data = self.masterDataFrame[self.masterDataFrame['rho'] == '0.999']
+
+            fig, axes = plt.subplots(3, 3, figsize=(18, 12))
+
+            for policy_idx, policy in enumerate(self.config.policies):
+                policy_data = high_load_data[high_load_data['policy'] == policy]
+                if policy_data.empty:
+                    continue
+
+                for queue_idx, queue_col in enumerate(self.config.colQueues):
+                    ax = axes[policy_idx, queue_idx]
+                    queue_data = policy_data[queue_col].values
+
+                    # Calcular espectrograma
+                    f, t, Sxx = spectrogram(queue_data, fs=1.0, nperseg=min(256, len(queue_data) // 4))
+
+                    im = ax.pcolormesh(t, f, 10 * np.log10(Sxx), shading='gouraud', cmap='viridis')
+                    ax.set_title(f'{policy} - Fila {queue_idx + 1}')
+                    ax.set_ylabel('Frequência [Hz]')
+                    ax.set_xlabel('Tempo [s]')
+
+                    plt.colorbar(im, ax=ax, label='Potência (dB)')
+
+            plt.suptitle('Espectrogramas das Séries Temporais das Filas',
+                         fontsize=16, fontweight='bold')
+            plt.tight_layout(rect=[0, 0, 1, 0.96])
+            self._savePlot(fig, "6_Spectrograms.png")
+
+        except Exception as e:
+            print(f"  [Error] Spectrograms plot failed: {e}")
+
+    def _plotTemporalPCA(self):
+        """PCA das séries temporais"""
+        try:
+            high_load_data = self.masterDataFrame[self.masterDataFrame['rho'] == '0.999']
+
+            fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+
+            for i, policy in enumerate(self.config.policies):
+                policy_data = high_load_data[high_load_data['policy'] == policy]
+                if policy_data.empty:
+                    continue
+
+                # Preparar dados para PCA
+                features = policy_data[self.config.colQueues + ['queue_imbalance', 'total_queues']]
+                scaler = StandardScaler()
+                features_scaled = scaler.fit_transform(features)
+
+                # PCA
+                pca = PCA(n_components=2)
+                principal_components = pca.fit_transform(features_scaled)
+
+                # Colorir por tempo
+                time_normalized = np.linspace(0, 1, len(principal_components))
+
+                scatter = axes[i].scatter(principal_components[:, 0], principal_components[:, 1],
+                                          c=time_normalized, cmap='viridis', alpha=0.6, s=10)
+                axes[i].set_title(f'{policy} - PCA Temporal\nVariance: {pca.explained_variance_ratio_.sum():.2%}')
+                axes[i].set_xlabel(f'PC1 ({pca.explained_variance_ratio_[0]:.2%})')
+                axes[i].set_ylabel(f'PC2 ({pca.explained_variance_ratio_[1]:.2%})')
+
+                plt.colorbar(scatter, ax=axes[i], label='Tempo Normalizado')
+
+            plt.suptitle('Análise de Componentes Principais das Trajetórias Temporais',
+                         fontsize=16, fontweight='bold')
+            plt.tight_layout(rect=[0, 0, 1, 0.96])
+            self._savePlot(fig, "7_Temporal_PCA.png")
+
+        except Exception as e:
+            print(f"  [Error] Temporal PCA plot failed: {e}")
+
+    # =========================================================================
+    # PLOTTING FUNCTIONS - ATOMIC STORIES
+    # =========================================================================
+
+    def _plotQueueIndividualStories(self):
+        """Histórias individuais detalhadas de cada fila"""
+        try:
+            high_load_data = self.masterDataFrame[self.masterDataFrame['rho'] == '0.999']
+
+            # Focar em uma janela temporal específica para mais detalhes
+            for policy in self.config.policies:
+                policy_data = high_load_data[high_load_data['policy'] == policy]
+                if policy_data.empty:
+                    continue
+
+                # Pegar uma janela do meio da simulação
+                window_size = min(1000, len(policy_data))
+                start_idx = len(policy_data) // 3
+                window_data = policy_data.iloc[start_idx:start_idx + window_size]
+
+                fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+
+                # Plot 1: Três filas juntas
+                for i, queue_col in enumerate(self.config.colQueues):
+                    axes[0, 0].plot(window_data[self.config.colTimestamp],
+                                    window_data[queue_col],
+                                    label=f'Fila {i + 1}',
+                                    color=self.visConfig.palette[f'queue{i + 1}'],
+                                    linewidth=2)
+
+                axes[0, 0].set_title(f'{policy} - Comportamento das 3 Filas')
+                axes[0, 0].set_ylabel('Tamanho da Fila')
+                axes[0, 0].legend()
+                axes[0, 0].grid(True, alpha=0.3)
+
+                # Plot 2: Desequilíbrio
+                axes[0, 1].plot(window_data[self.config.colTimestamp],
+                                window_data['queue_imbalance'],
+                                color='red', linewidth=2)
+                axes[0, 1].set_title(f'{policy} - Desequilíbrio entre Filas')
+                axes[0, 1].set_ylabel('Desequilíbrio (std)')
+                axes[0, 1].grid(True, alpha=0.3)
+
+                # Plot 3: Spread
+                axes[1, 0].plot(window_data[self.config.colTimestamp],
+                                window_data['queue_spread'],
+                                color='purple', linewidth=2)
+                axes[1, 0].set_title(f'{policy} - Spread (max-min)')
+                axes[1, 0].set_ylabel('Spread')
+                axes[1, 0].grid(True, alpha=0.3)
+
+                # Plot 4: Histograma dos tamanhos
+                for i, queue_col in enumerate(self.config.colQueues):
+                    axes[1, 1].hist(window_data[queue_col],
+                                    alpha=0.6,
+                                    label=f'Fila {i + 1}',
+                                    color=self.visConfig.palette[f'queue{i + 1}'],
+                                    bins=30)
+
+                axes[1, 1].set_title(f'{policy} - Distribuição dos Tamanhos')
+                axes[1, 1].set_xlabel('Tamanho da Fila')
+                axes[1, 1].set_ylabel('Frequência')
+                axes[1, 1].legend()
+
+                plt.suptitle(f'História Atômica: {policy} - ρ=0.999',
+                             fontsize=16, fontweight='bold')
+                plt.tight_layout(rect=[0, 0, 1, 0.96])
+                self._savePlot(fig, f"8_Atomic_Story_{policy}.png")
+                plt.close(fig)  # Fechar figura para liberar memória
+
+        except Exception as e:
+            print(f"  [Error] Atomic stories plot failed: {e}")
+
+    def _plotPhaseDiagrams(self):
+        """Diagramas de fase mostrando relações entre variáveis"""
+        try:
+            high_load_data = self.masterDataFrame[self.masterDataFrame['rho'] == '0.999']
+
+            fig, axes = plt.subplots(2, 3, figsize=(18, 12))
+
+            phase_pairs = [
+                ('queueSize1', 'queueSize2', 'Fila 1 vs Fila 2'),
+                ('queueSize1', 'queueSize3', 'Fila 1 vs Fila 3'),
+                ('queueSize2', 'queueSize3', 'Fila 2 vs Fila 3'),
+                ('queue_imbalance', 'total_queues', 'Desequilíbrio vs Total'),
+                ('averageNumberInSystem', 'averageWaitingTime', 'E[N] vs E[W]'),
+                ('queue_spread', 'queue_imbalance', 'Spread vs Desequilíbrio')
+            ]
+
+            for i, (x_col, y_col, title) in enumerate(phase_pairs):
+                row, col = i // 3, i % 3
+                ax = axes[row, col]
+
+                for policy in self.config.policies:
+                    policy_data = high_load_data[high_load_data['policy'] == policy]
+                    if not policy_data.empty:
+                        sample_data = policy_data.iloc[::5]  # Amostrar para clareza
+                        ax.scatter(sample_data[x_col], sample_data[y_col],
+                                   alpha=0.6, s=10, label=policy,
+                                   color=self.visConfig.palette[policy])
+
+                ax.set_title(title, fontweight='bold')
+                ax.set_xlabel(x_col)
+                ax.set_ylabel(y_col)
+                ax.legend()
+                ax.grid(True, alpha=0.3)
+
+            plt.suptitle('Diagramas de Fase - Relações entre Variáveis',
+                         fontsize=16, fontweight='bold')
+            plt.tight_layout(rect=[0, 0, 1, 0.96])
+            self._savePlot(fig, "9_Phase_Diagrams.png")
+
+        except Exception as e:
+            print(f"  [Error] Phase diagrams plot failed: {e}")
+
+    def _plotTransientBehavior(self):
+        """Análise do comportamento transiente vs steady-state"""
+        try:
+            fig, axes = plt.subplots(3, 2, figsize=(16, 12))
+
+            for policy_idx, policy in enumerate(self.config.policies):
+                policy_data = self.masterDataFrame[self.masterDataFrame['policy'] == policy]
+                if policy_data.empty:
+                    continue
+
+                for rho_idx, rho in enumerate(['0.800', '0.999']):  # Baixa vs alta carga
+                    rho_data = policy_data[policy_data['rho'] == rho]
+                    if rho_data.empty:
+                        continue
+
+                    # Dividir em transiente (primeiros 30%) e steady-state (últimos 70%)
+                    transient_cut = int(0.3 * len(rho_data))
+                    transient_data = rho_data.iloc[:transient_cut]
+                    steady_data = rho_data.iloc[transient_cut:]
+
+                    ax = axes[policy_idx, rho_idx]
+
+                    # Plot transiente
+                    if not transient_data.empty:
+                        ax.plot(transient_data[self.config.colTimestamp],
+                                transient_data[self.config.colAggEN],
+                                color='red', alpha=0.7, linewidth=2,
+                                label='Transiente')
+
+                    # Plot steady-state
+                    if not steady_data.empty:
+                        ax.plot(steady_data[self.config.colTimestamp],
+                                steady_data[self.config.colAggEN],
+                                color='blue', alpha=0.7, linewidth=2,
+                                label='Steady-State')
+
+                    ax.set_title(f'{policy} - ρ={rho}', fontweight='bold')
+                    ax.set_ylabel('E[N]')
+                    ax.legend()
+                    ax.grid(True, alpha=0.3)
+
+                    if policy_idx == 2:  # Última linha
+                        ax.set_xlabel('Tempo')
+
+            plt.suptitle('Comportamento Transiente vs Steady-State',
+                         fontsize=16, fontweight='bold')
+            plt.tight_layout(rect=[0, 0, 1, 0.96])
+            self._savePlot(fig, "10_Transient_vs_SteadyState.png")
+
+        except Exception as e:
+            print(f"  [Error] Transient behavior plot failed: {e}")
+
+    # =========================================================================
+    # PLOTTING FUNCTIONS - ADVANCED ML (OS QUE VOCÊ GOSTOU)
+    # =========================================================================
+
+    def _plotGMMClustering(self):
+        """GMM Clustering melhorado"""
+        try:
+            high_load_data = self.masterDataFrame[self.masterDataFrame['rho'] == '0.999']
+
+            # Preparar features para clustering
+            features = []
+            labels = []
+            for policy in self.config.policies:
+                policy_data = high_load_data[high_load_data['policy'] == policy]
+                if not policy_data.empty:
+                    policy_features = policy_data[self.config.colQueues + ['queue_imbalance']].values
+                    features.append(policy_features)
+                    labels.extend([policy] * len(policy_features))
+
+            if not features:
                 return
 
-            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 7),
-                                           gridspec_kw={'width_ratios': [2, 1]})
-            fig.suptitle('ML: Anomaly Detection (Isolation Forest)',
-                         fontsize=16, fontweight='bold', y=1.02)
+            X = np.vstack(features)
+            scaler = StandardScaler()
+            X_scaled = scaler.fit_transform(X)
 
-            # --- Left Plot: PCA scatter of anomalies ---
-            pcaData = pd.DataFrame(self.mlModels['X_pca'], columns=['PC1', 'PC2'])
-            pcaData['anomaly'] = self.mlModels['anomalies'].astype(str)
-            pcaData['anomaly'] = pcaData['anomaly'].map({'-1': 'Anomaly', '1': 'Inlier'})
+            # GMM
+            gmm = GaussianMixture(n_components=4, random_state=42, n_init=10)
+            clusters = gmm.fit_predict(X_scaled)
 
-            sns.scatterplot(
-                data=pcaData.sample(n=min(10000, len(pcaData)), random_state=42),
-                x='PC1', y='PC2', hue='anomaly',
-                style='anomaly', markers={'Inlier': '.', 'Anomaly': 'X'},
-                s=50, alpha=0.5, ax=ax1,
-                palette={'Inlier': 'gray', 'Anomaly': 'red'}
-            )
-            ax1.set_title('Anomalous System States (e.g., Extreme Imbalance)', fontweight='bold')
-            ax1.set_xlabel('Principal Component 1')
-            ax1.set_ylabel('Principal Component 2')
+            # PCA para visualização
+            pca = PCA(n_components=2)
+            X_pca = pca.fit_transform(X_scaled)
 
-            # --- Right Plot: Bar chart of rates ---
-            anomalyRates = self.mlModels['anomaly_rates']
-            anomalyRates.plot(kind='bar', ax=ax2, color=[self.visConfig.palette[p] for p in anomalyRates.index])
-            ax2.set_title('Anomaly Rate by Policy', fontweight='bold')
-            ax2.set_ylabel('Anomalous States (%)')
-            ax2.set_xlabel('Policy')
-            ax2.tick_params(axis='x', rotation=0)
+            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
 
-            plt.tight_layout(rect=[0, 0, 1, 0.95])
-            self._savePlot(fig, "7_ML_Anomaly_Detection.png")
+            # Plot por cluster
+            scatter1 = ax1.scatter(X_pca[:, 0], X_pca[:, 1], c=clusters,
+                                   cmap='viridis', alpha=0.6, s=20)
+            ax1.set_title('Clusters GMM (4 componentes)')
+            ax1.set_xlabel(f'PC1 ({pca.explained_variance_ratio_[0]:.2%})')
+            ax1.set_ylabel(f'PC2 ({pca.explained_variance_ratio_[1]:.2%})')
+            plt.colorbar(scatter1, ax=ax1, label='Cluster')
 
-        except Exception as e:
-            print(f"  [Error] Plot 7 failed: {e}")
+            # Plot por política
+            policy_to_num = {policy: i for i, policy in enumerate(self.config.policies)}
+            policy_nums = [policy_to_num[label] for label in labels]
 
-    def _plotSteadyStateExample(self):
-        """
-        PLOT 8: (METHODOLOGY)
-        Example of steady-state detection.
-        """
-        try:
-            # Find a high-load scenario for demonstration
-            high_load_data = self.masterDataFrame[
-                (self.masterDataFrame['rho'] == '0.999') &
-                (self.masterDataFrame['policy'] == self.config.policies[0])
-                ]
+            scatter2 = ax2.scatter(X_pca[:, 0], X_pca[:, 1], c=policy_nums,
+                                   cmap='Set1', alpha=0.6, s=20)
+            ax2.set_title('Coloração por Política')
+            ax2.set_xlabel(f'PC1 ({pca.explained_variance_ratio_[0]:.2%})')
+            ax2.set_ylabel(f'PC2 ({pca.explained_variance_ratio_[1]:.2%})')
 
-            if high_load_data.empty:
-                high_load_data = self.masterDataFrame[
-                    self.masterDataFrame['policy'] == self.config.policies[0]
-                    ].iloc[0:1]
-                if high_load_data.empty:
-                    print("  [Warning] No data found for steady-state example.")
-                    return
+            # Criar legend customizado para políticas
+            from matplotlib.lines import Line2D
+            legend_elements = [Line2D([0], [0], marker='o', color='w',
+                                      markerfacecolor=plt.cm.Set1(i),
+                                      markersize=10, label=policy)
+                               for i, policy in enumerate(self.config.policies)]
+            ax2.legend(handles=legend_elements)
 
-            dfFull = high_load_data
-            idx = self._findStabilizationPoint(dfFull[self.config.colAggEW])
-
-            fig, ax1 = plt.subplots(figsize=(14, 7))
-            ax2 = ax1.twinx()
-
-            policy = dfFull['policy'].iloc[0]
-            rho = dfFull['rho'].iloc[0]
-
-            ax1.plot(dfFull[self.config.colTimestamp], dfFull[self.config.colAggEW],
-                     label='E[W] (Transient)', color='lightblue', alpha=0.8, zorder=1)
-            ax1.plot(dfFull[self.config.colTimestamp].iloc[idx:], dfFull[self.config.colAggEW].iloc[idx:],
-                     label='E[W] (Steady-State)', color=self.visConfig.palette[policy], zorder=2)
-
-            rollingMean = dfFull[self.config.colAggEW].rolling(
-                window=self.config.stabilizationWindow, min_periods=1).mean()
-            ax2.plot(dfFull[self.config.colTimestamp], rollingMean,
-                     label=f'Moving Average (window={self.config.stabilizationWindow})',
-                     color='red', linestyle='--', zorder=3)
-
-            ax1.axvline(dfFull[self.config.colTimestamp].iloc[idx],
-                        label=f'Steady-State Detected ({dfFull[self.config.colTimestamp].iloc[idx]:.0f}s)',
-                        color='green', linestyle=':', linewidth=3, zorder=4)
-
-            ax1.set_xlabel('Simulation Time (s)', fontsize=12)
-            ax1.set_ylabel('E[W] (s)', color=self.visConfig.palette[policy], fontsize=12)
-            ax2.set_ylabel('Moving Average (s)', color='red', fontsize=12)
-
-            fig.legend(loc='upper center', bbox_to_anchor=(0.5, 0.96), ncol=4, fontsize=10)
-            fig.suptitle(f'Methodology: Steady-State Detection (Example: {policy}, ρ={rho})',
-                         fontsize=16, fontweight='bold', y=1.03)
-            plt.tight_layout(rect=[0, 0, 1, 0.9])
-            self._savePlot(fig, "8_Methodology_Steady_State.png")
+            plt.suptitle('Análise de Clusters GMM - Estados do Sistema',
+                         fontsize=16, fontweight='bold')
+            plt.tight_layout(rect=[0, 0, 1, 0.96])
+            self._savePlot(fig, "11_GMM_Clustering_Enhanced.png")
 
         except Exception as e:
-            print(f"  [Error] Plot 8 failed: {e}")
+            print(f"  [Error] GMM clustering plot failed: {e}")
 
-    def _plotCrossMatrixDynamics(self):
-        """
-        PLOT 9: (THE CROSS-MATRIX DYNAMIC)
-        A 3x4 (Policy x Rho) grid of time series plots showing Q1, Q2, Q3.
-        """
+    def _plotAnomalyDetection(self):
+        """Anomaly Detection melhorado"""
         try:
-            # Melt the full steady-state frame
-            dfMelted = self.steadyStateFrame.melt(
-                id_vars=['policy', 'rho', self.config.colTimestamp],
-                value_vars=self.config.colQueues,
-                var_name='queueID',
-                value_name='queueSize'
-            )
+            high_load_data = self.masterDataFrame[self.masterDataFrame['rho'] == '0.999']
 
-            # Sample for performance
-            dfSampled = dfMelted.sample(n=min(100000, len(dfMelted)), random_state=42)
+            features = []
+            policy_labels = []
+            time_labels = []
 
-            g = sns.FacetGrid(
-                dfSampled,
-                col='rho',
-                row='policy',
-                hue='queueID',
-                height=4,
-                aspect=1.5,
-                margin_titles=True,
-                palette='muted'
-            )
+            for policy in self.config.policies:
+                policy_data = high_load_data[high_load_data['policy'] == policy]
+                if not policy_data.empty:
+                    policy_features = policy_data[self.config.colQueues + [
+                        'queue_imbalance', 'queue_spread', 'total_queues'
+                    ]].values
+                    features.append(policy_features)
+                    policy_labels.extend([policy] * len(policy_features))
+                    time_labels.extend(policy_data[self.config.colTimestamp].values)
 
-            g.map(sns.lineplot, 'timestamp', 'queueSize', lw=1, alpha=0.7)
-
-            g.add_legend(title='Queue ID')
-            g.set_axis_labels('Simulation Time (s)', 'Queue Size')
-            g.set_titles(col_template="ρ = {col_name}", row_template="{row_name}")
-
-            plt.subplots_adjust(top=0.92)
-            g.fig.suptitle('Cross-Matrix Dynamics: Individual Queue Behavior by Policy and Scenario',
-                           fontsize=16, fontweight='bold')
-
-            self._savePlot(g.fig, "9_CrossMatrix_Dynamics_TimeSeries.png")
-
-        except Exception as e:
-            print(f"  [Error] Plot 9 failed: {e}")
-
-    def _plotShapSummary(self):
-        """
-        PLOT 10: (ML - ATOMIC INSIGHTS)
-        SHAP summary beeswarm plot.
-        """
-        try:
-            fig, ax = plt.subplots(figsize=(12, 8))
-
-            shap.summary_plot(
-                self.shapValues.values,
-                self.mlModels['X_shap_sample'],
-                feature_names=self.mlModels['feature_names'],
-                show=False,
-                plot_type='dot',  # beeswarm
-                ax=ax
-            )
-
-            ax.set_title('ML Insight: SHAP Feature Importance for Predicting E[W]',
-                         fontsize=16, fontweight='bold', y=1.03)
-
-            plt.tight_layout()
-            self._savePlot(fig, "10_ML_SHAP_Summary.png")
-
-        except Exception as e:
-            print(f"  [Error] Plot 10 failed: {e}")
-
-    def _plotShapDependence(self):
-        """
-        PLOT 11: (ML - RECURSIVE INSIGHTS)
-        SHAP dependence plots for the top 4 features in a 2x2 grid.
-        """
-        try:
-            if self.shapValues.shape[0] == 0:
-                print("  [Warning] No SHAP values for dependence plots.")
+            if not features:
                 return
 
-            # Get top features by mean absolute SHAP value
-            shap_abs_mean = np.abs(self.shapValues.values).mean(0)
-            top_indices = np.argsort(shap_abs_mean)[::-1][:4]
-            topFeatures = [self.mlModels['feature_names'][i] for i in top_indices]
+            X = np.vstack(features)
+            scaler = StandardScaler()
+            X_scaled = scaler.fit_transform(X)
+
+            # Isolation Forest
+            iso_forest = IsolationForest(contamination=0.1, random_state=42)
+            anomalies = iso_forest.fit_predict(X_scaled)
+
+            # PCA para visualização
+            pca = PCA(n_components=2)
+            X_pca = pca.fit_transform(X_scaled)
 
             fig, axes = plt.subplots(2, 2, figsize=(16, 12))
-            fig.suptitle('ML Insight: SHAP Dependence Plots (Impact on E[W])',
-                         fontsize=16, fontweight='bold', y=1.02)
 
-            axes_flat = axes.flatten()
+            # Plot 1: Anomalias por política
+            for i, policy in enumerate(self.config.policies):
+                mask = np.array(policy_labels) == policy
+                if not np.any(mask):
+                    continue
 
-            for i, feature in enumerate(topFeatures):
-                ax = axes_flat[i]
+                policy_anomalies = anomalies[mask] == -1
+                policy_normal = anomalies[mask] == 1
 
-                shap.dependence_plot(
-                    feature,
-                    self.shapValues.values,
-                    self.mlModels['X_shap_sample'],
-                    ax=ax,
-                    show=False
-                )
-                ax.set_title(f'Impact of {feature}', fontweight='bold')
+                # Normais
+                axes[0, 0].scatter(X_pca[mask, 0][policy_normal], X_pca[mask, 1][policy_normal],
+                                   alpha=0.3, s=20, label=f'{policy} (Normal)',
+                                   color=self.visConfig.palette[policy])
+                # Anomalias
+                axes[0, 0].scatter(X_pca[mask, 0][policy_anomalies], X_pca[mask, 1][policy_anomalies],
+                                   alpha=0.8, s=50, marker='x', label=f'{policy} (Anomalia)',
+                                   color=self.visConfig.palette[policy], linewidth=2)
 
-            # Remove empty subplots if we have less than 4 features
-            for i in range(len(topFeatures), 4):
-                fig.delaxes(axes_flat[i])
+            axes[0, 0].set_title('Detecção de Anomalias por Política')
+            axes[0, 0].set_xlabel('PC1')
+            axes[0, 0].set_ylabel('PC2')
+            axes[0, 0].legend()
 
-            plt.tight_layout(rect=[0, 0, 1, 0.95])
-            self._savePlot(fig, "11_ML_SHAP_Dependence.png")
+            # Plot 2: Taxa de anomalias por política
+            anomaly_rates = {}
+            for policy in self.config.policies:
+                mask = np.array(policy_labels) == policy
+                if np.any(mask):
+                    rate = (anomalies[mask] == -1).mean() * 100
+                    anomaly_rates[policy] = rate
+
+            axes[0, 1].bar(anomaly_rates.keys(), anomaly_rates.values(),
+                           color=[self.visConfig.palette[p] for p in anomaly_rates.keys()])
+            axes[0, 1].set_title('Taxa de Anomalias por Política')
+            axes[0, 1].set_ylabel('Anomalias (%)')
+
+            # Plot 3: Anomalias ao longo do tempo
+            time_labels = np.array(time_labels)
+            for policy in self.config.policies:
+                mask = np.array(policy_labels) == policy
+                if not np.any(mask):
+                    continue
+
+                policy_times = time_labels[mask]
+                policy_anomalies = anomalies[mask] == -1
+
+                axes[1, 0].scatter(policy_times[policy_anomalies],
+                                   [list(self.config.policies).index(policy)] * np.sum(policy_anomalies),
+                                   alpha=0.6, s=30, marker='x',
+                                   color=self.visConfig.palette[policy])
+
+            axes[1, 0].set_title('Anomalias ao Longo do Tempo')
+            axes[1, 0].set_xlabel('Tempo de Simulação')
+            axes[1, 0].set_ylabel('Política')
+            axes[1, 0].set_yticks(range(len(self.config.policies)))
+            axes[1, 0].set_yticklabels(self.config.policies)
+
+            # Plot 4: Características das anomalias
+            anomaly_features = X[anomalies == -1]
+            if len(anomaly_features) > 0:
+                feature_means = anomaly_features.mean(axis=0)
+                feature_names = self.config.colQueues + ['Desequilíbrio', 'Spread', 'Total']
+
+                axes[1, 1].barh(feature_names, feature_means)
+                axes[1, 1].set_title('Características Médias das Anomalias')
+                axes[1, 1].set_xlabel('Valor Médio')
+
+            plt.suptitle('Análise Avançada de Detecção de Anomalias',
+                         fontsize=16, fontweight='bold')
+            plt.tight_layout(rect=[0, 0, 1, 0.96])
+            self._savePlot(fig, "12_Anomaly_Detection_Enhanced.png")
 
         except Exception as e:
-            print(f"  [Error] Plot 11 failed: {e}")
+            print(f"  [Error] Anomaly detection plot failed: {e}")
+
+    def _plotTrajectoryAnalysis(self):
+        """Análise de trajetórias no espaço de estados"""
+        try:
+            high_load_data = self.masterDataFrame[self.masterDataFrame['rho'] == '0.999']
+
+            fig = plt.figure(figsize=(15, 10))
+            ax = fig.add_subplot(111, projection='3d')
+
+            for policy in self.config.policies:
+                policy_data = high_load_data[high_load_data['policy'] == policy]
+                if policy_data.empty:
+                    continue
+
+                # Amostrar trajetória
+                sample_data = policy_data.iloc[::10]
+
+                # Trajetória no espaço 3D das filas
+                ax.plot(sample_data['queueSize1'],
+                        sample_data['queueSize2'],
+                        sample_data['queueSize3'],
+                        label=policy, alpha=0.7, linewidth=1.5,
+                        color=self.visConfig.palette[policy])
+
+                # Pontos inicial e final
+                ax.scatter([sample_data['queueSize1'].iloc[0]],
+                           [sample_data['queueSize2'].iloc[0]],
+                           [sample_data['queueSize3'].iloc[0]],
+                           color=self.visConfig.palette[policy], s=100, marker='o')
+                ax.scatter([sample_data['queueSize1'].iloc[-1]],
+                           [sample_data['queueSize2'].iloc[-1]],
+                           [sample_data['queueSize3'].iloc[-1]],
+                           color=self.visConfig.palette[policy], s=100, marker='s')
+
+            ax.set_xlabel('Fila 1')
+            ax.set_ylabel('Fila 2')
+            ax.set_zlabel('Fila 3')
+            ax.set_title('Trajetórias no Espaço de Estados das Filas', fontweight='bold')
+            ax.legend()
+
+            plt.tight_layout()
+            self._savePlot(fig, "13_Trajectory_Analysis_3D.png")
+
+        except Exception as e:
+            print(f"  [Error] Trajectory analysis plot failed: {e}")
+
+    def _savePlot(self, fig: plt.Figure, filename: str):
+        """Salva plot com alta qualidade"""
+        path = self.config.outputDirectory / filename
+        fig.savefig(path, dpi=self.visConfig.dpi, bbox_inches='tight',
+                    facecolor='white', edgecolor='none')
+        plt.close(fig)
+        print(f"    Saved: {filename}")
 
 
 # =============================================================================
@@ -950,8 +930,5 @@ class SimulationAnalysisPipeline:
 # =============================================================================
 
 if __name__ == "__main__":
-    """
-    Main entry point for the script.
-    """
-    pipeline = SimulationAnalysisPipeline()
+    pipeline = SpectralQueueAnalysis()
     pipeline.runFullPipeline()
