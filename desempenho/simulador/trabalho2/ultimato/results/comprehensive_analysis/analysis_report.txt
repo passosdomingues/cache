@@ -1,0 +1,23 @@
+COMPREHENSIVE QUEUEING SYSTEM ANALYSIS REPORT
+============================================================
+Generated: 2025-10-24 11:45:26
+Total scenarios analyzed: 12
+Total data points: 103704
+
+SUMMARY STATISTICS
+----------------------------------------
+
+Policy: RoundRobin
+  Scenarios: 4
+  Average E[W]: 4799.276
+  Average queue imbalance: 209.315
+
+Policy: WaitingTimePriority
+  Scenarios: 4
+  Average E[W]: 4799.371
+  Average queue imbalance: 153.026
+
+Policy: UtilityBased
+  Scenarios: 4
+  Average E[W]: 4799.113
+  Average queue imbalance: 8.510
