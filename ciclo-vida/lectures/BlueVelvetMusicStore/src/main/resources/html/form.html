@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${category.id} ? 'Edit Category' : 'Create Category'"></title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body id="app" class="light-mode">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-music"></i> Bluevelvet Music Store
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories">Categories</a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link btn-theme-toggle" id="themeToggle">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link btn-accessibility" id="accessibilityToggle">
+                            <i class="fas fa-universal-access"></i>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="page-header bg-light py-4 mb-4">
+        <div class="container">
+            <h1 class="mb-2">
+                <i class="fas fa-edit"></i> 
+                <span th:text="${category.id} ? 'Edit Category' : 'Create New Category'"></span>
+            </h1>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <form th:action="@{/categories/save}" method="post" th:object="${category}">
+                            <!-- Hidden ID field for updates -->
+                            <input type="hidden" th:field="*{id}">
+
+                            <!-- Category Name -->
+                            <div class="mb-3">
+                                <label for="name" class="form-label">
+                                    <i class="fas fa-tag"></i> Category Name <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="name" th:field="*{name}" 
+                                       placeholder="Enter category name" required>
+                                <small class="form-text text-muted">The name must be unique</small>
+                            </div>
+
+                            <!-- Category Description -->
+                            <div class="mb-3">
+                                <label for="description" class="form-label">
+                                    <i class="fas fa-align-left"></i> Description
+                                </label>
+                                <textarea class="form-control" id="description" th:field="*{description}" 
+                                          rows="4" placeholder="Enter category description"></textarea>
+                            </div>
+
+                            <!-- Parent Category -->
+                            <div class="mb-3">
+                                <label for="parentId" class="form-label">
+                                    <i class="fas fa-sitemap"></i> Parent Category
+                                </label>
+                                <select class="form-select" id="parentId" th:field="*{parentId}">
+                                    <option value="">-- None (Root Category) --</option>
+                                    <option th:each="rootCategory : ${rootCategories}" 
+                                            th:value="${rootCategory.id}" 
+                                            th:text="${rootCategory.name}"
+                                            th:disabled="${category.id == rootCategory.id}"></option>
+                                </select>
+                                <small class="form-text text-muted">Select a parent category to create a subcategory</small>
+                            </div>
+
+                            <!-- Image File Name -->
+                            <div class="mb-3">
+                                <label for="imageFileName" class="form-label">
+                                    <i class="fas fa-image"></i> Image File Name
+                                </label>
+                                <input type="text" class="form-control" id="imageFileName" th:field="*{imageFileName}" 
+                                       placeholder="e.g., guitars.jpg">
+                            </div>
+
+                            <!-- Image URL -->
+                            <div class="mb-3">
+                                <label for="imageUrl" class="form-label">
+                                    <i class="fas fa-link"></i> Image URL
+                                </label>
+                                <input type="url" class="form-control" id="imageUrl" th:field="*{imageUrl}" 
+                                       placeholder="https://example.com/image.jpg">
+                                <small class="form-text text-muted">Full URL to the category image</small>
+                            </div>
+
+                            <!-- Display Order -->
+                            <div class="mb-3">
+                                <label for="displayOrder" class="form-label">
+                                    <i class="fas fa-sort"></i> Display Order
+                                </label>
+                                <input type="number" class="form-control" id="displayOrder" th:field="*{displayOrder}" 
+                                       placeholder="0" min="0">
+                                <small class="form-text text-muted">Lower numbers appear first</small>
+                            </div>
+
+                            <!-- Active Status -->
+                            <div class="mb-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="isActive" th:field="*{isActive}">
+                                    <label class="form-check-label" for="isActive">
+                                        <i class="fas fa-check-circle"></i> Active
+                                    </label>
+                                </div>
+                                <small class="form-text text-muted">Uncheck to deactivate this category</small>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> 
+                                    <span th:text="${category.id} ? 'Update Category' : 'Create Category'"></span>
+                                </button>
+                                <a href="/categories" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Info Box -->
+                <div class="alert alert-info mt-4" role="alert">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Note:</strong> Categories are never permanently deleted. They are marked as inactive instead, 
+                    preserving all historical data and relationships.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accessibility Panel -->
+    <div id="accessibilityPanel" class="accessibility-panel">
+        <div class="accessibility-content">
+            <h5>Accessibility Options</h5>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="highContrast">
+                <label class="form-check-label" for="highContrast">High Contrast</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="largeText">
+                <label class="form-check-label" for="largeText">Larger Text</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="reducedMotion">
+                <label class="form-check-label" for="reducedMotion">Reduce Motion</label>
+            </div>
+            <button type="button" class="btn btn-sm btn-secondary mt-3" id="closeAccessibility">Close</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer bg-dark text-white py-5 mt-5">
+        <div class="container text-center">
+            <p>&copy; 2025 Bluevelvet Music Store. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script th:src="@{/js/theme.js}"></script>
+    <script th:src="@{/js/accessibility.js}"></script>
+</body>
+</html>

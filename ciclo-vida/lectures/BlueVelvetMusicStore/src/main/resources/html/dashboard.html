@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Bluevelvet Music Store</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body id="app" class="light-mode">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-music"></i> Bluevelvet Music Store
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories">Categories</a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link btn-theme-toggle" id="themeToggle">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link btn-accessibility" id="accessibilityToggle">
+                            <i class="fas fa-universal-access"></i>
+                        </button>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i> <span th:text="${username}"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post" style="display: inline;">
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fas fa-sign-out-alt"></i> Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="page-header bg-light py-4 mb-4">
+        <div class="container">
+            <h1 class="mb-2">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </h1>
+            <p class="text-muted">Welcome back, <span th:text="${username}"></span>!</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card shadow-sm hover-effect">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-2">Active Categories</h6>
+                                <h3 class="mb-0" th:text="${activeCategoriesCount}"></h3>
+                            </div>
+                            <div class="text-primary" style="font-size: 2.5rem;">
+                                <i class="fas fa-list"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card shadow-sm hover-effect">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-2">Total Users</h6>
+                                <h3 class="mb-0">-</h3>
+                            </div>
+                            <div class="text-success" style="font-size: 2.5rem;">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card shadow-sm hover-effect">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-2">Total Orders</h6>
+                                <h3 class="mb-0">-</h3>
+                            </div>
+                            <div class="text-warning" style="font-size: 2.5rem;">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card shadow-sm hover-effect">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-2">Revenue</h6>
+                                <h3 class="mb-0">-</h3>
+                            </div>
+                            <div class="text-danger" style="font-size: 2.5rem;">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="/categories" class="btn btn-outline-primary">
+                                <i class="fas fa-list"></i> View All Categories
+                            </a>
+                            <a href="/categories/new" class="btn btn-outline-success" sec:authorize="hasRole('ADMIN')">
+                                <i class="fas fa-plus"></i> Create New Category
+                            </a>
+                            <a href="#" class="btn btn-outline-info">
+                                <i class="fas fa-chart-bar"></i> View Analytics
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-history"></i> Recent Activity</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="activity-list">
+                            <div class="activity-item mb-3 pb-3 border-bottom">
+                                <p class="mb-1">
+                                    <strong>Category Created</strong>
+                                    <span class="badge bg-success ms-2">New</span>
+                                </p>
+                                <small class="text-muted">Just now</small>
+                            </div>
+                            <div class="activity-item mb-3 pb-3 border-bottom">
+                                <p class="mb-1">
+                                    <strong>User Registered</strong>
+                                </p>
+                                <small class="text-muted">2 hours ago</small>
+                            </div>
+                            <div class="activity-item">
+                                <p class="mb-1">
+                                    <strong>System Updated</strong>
+                                </p>
+                                <small class="text-muted">1 day ago</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories Overview -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-list"></i> Featured Categories</h5>
+                            <a href="/categories" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div th:each="category : ${rootCategories.subList(0, #lists.size(rootCategories) > 6 ? 6 : #lists.size(rootCategories))}" 
+                                 class="col-md-4 col-lg-2">
+                                <div class="category-mini-card text-center">
+                                    <div class="category-mini-image mb-2">
+                                        <img th:if="${category.imageUrl}" th:src="${category.imageUrl}" 
+                                             th:alt="${category.name}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 0.5rem;">
+                                        <div th:unless="${category.imageUrl}" 
+                                             style="width: 100%; height: 100px; background-color: #f0f0f0; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-compact-disc fa-2x text-secondary"></i>
+                                        </div>
+                                    </div>
+                                    <h6 class="mb-2" th:text="${category.name}"></h6>
+                                    <a th:href="@{/categories/{id}(id=${category.id})}" class="btn btn-sm btn-outline-primary">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Section -->
+        <div sec:authorize="hasRole('ADMIN')" class="row mt-4">
+            <div class="col-lg-12">
+                <div class="card shadow-sm border-warning">
+                    <div class="card-header bg-warning bg-opacity-10">
+                        <h5 class="mb-0"><i class="fas fa-lock"></i> Admin Panel</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">Administrative tools and management options</p>
+                        <div class="d-grid gap-2 d-sm-flex">
+                            <a href="/admin/users" class="btn btn-warning">
+                                <i class="fas fa-users"></i> Manage Users
+                            </a>
+                            <a href="/admin/categories" class="btn btn-warning">
+                                <i class="fas fa-list"></i> Manage Categories
+                            </a>
+                            <a href="/admin/settings" class="btn btn-warning">
+                                <i class="fas fa-cog"></i> Settings
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accessibility Panel -->
+    <div id="accessibilityPanel" class="accessibility-panel">
+        <div class="accessibility-content">
+            <h5>Accessibility Options</h5>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="highContrast">
+                <label class="form-check-label" for="highContrast">High Contrast</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="largeText">
+                <label class="form-check-label" for="largeText">Larger Text</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="reducedMotion">
+                <label class="form-check-label" for="reducedMotion">Reduce Motion</label>
+            </div>
+            <button type="button" class="btn btn-sm btn-secondary mt-3" id="closeAccessibility">Close</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer bg-dark text-white py-5 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5>About Us</h5>
+                    <p>Bluevelvet Music Store is your premier destination for quality music products.</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/" class="text-white-50">Home</a></li>
+                        <li><a href="/categories" class="text-white-50">Categories</a></li>
+                        <li><a href="#" class="text-white-50">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>Follow Us</h5>
+                    <div class="social-links">
+                        <a href="#" class="text-white-50 me-3"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="text-white-50 me-3"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-white-50"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="bg-white-50">
+            <div class="text-center">
+                <p>&copy; 2025 Bluevelvet Music Store. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script th:src="@{/js/theme.js}"></script>
+    <script th:src="@{/js/accessibility.js}"></script>
+</body>
+</html>
