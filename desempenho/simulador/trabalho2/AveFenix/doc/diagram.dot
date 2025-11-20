@@ -1,0 +1,79 @@
+digraph QueueSimulatorPipeline {
+    rankdir=LR;
+    fontsize=10;
+    labelloc="t";
+    label="Advanced Queueing System Simulator - Pipeline and Tests Orchestration";
+    fontname="Helvetica, Arial, sans-serif";
+
+    node [shape=record, style=filled, fontcolor="#222", fillcolor="#f9f9f9", fontname="Helvetica"];
+
+    // Main Pipeline Components
+    subgraph cluster_pipeline {
+        label="Simulation Pipeline";
+        color="#4a90e2";
+        style=rounded;
+
+        Simulator [label="{Simulator|+ run() : void\n+ init() : void| - queue : Queue\n- policy : Policy\n- eventManager : EventManager\n- rng : RNG\n- config : Config\n- measurementWindow : MeasurementWindow}", fillcolor="#d0e4fb"];
+
+        Queue [label="{Queue|+ enqueue()\n+ dequeue()\n+ size()\n| - items : List<Item> }", fillcolor="#daeefd"];
+        Policy [label="{<<interface>> Policy\n+ applyPolicy() : void}", fillcolor="#cbe6ff"];
+        FIFO [label="{FIFO Policy\n+ applyPolicy()}", fillcolor="#e7f1ff"];
+        LIFO [label="{LIFO Policy\n+ applyPolicy()}", fillcolor="#e7f1ff"];
+        PriorityPolicy [label="{Priority Policy\n+ applyPolicy()}", fillcolor="#e7f1ff"];
+
+        EventManager [label="{EventManager\n+ scheduleEvent()\n+ processEvent()| - events : PriorityQueue<Event> }", fillcolor="#d0e4fb"];
+        Event [label="{<<abstract>> Event\n+ execute() : void}", fillcolor="#cbe6ff"];
+        ArrivalEvent [label="{ArrivalEvent\n+ execute()}", fillcolor="#e7f1ff"];
+        DepartureEvent [label="{DepartureEvent\n+ execute()}", fillcolor="#e7f1ff"];
+
+        RNG [label="{RNG\n+ generate() : double}", fillcolor="#d0e4fb"];
+        Config [label="{Config\n+ loadConfig() : void| - settings : Map}", fillcolor="#d0e4fb"];
+
+        MeasurementWindow [label="{MeasurementWindow\n+ record() : void\n+ getStats() : Stats| - data : List<Measurement>}", fillcolor="#cbe6ff"];
+        LittlesLaw [label="{LittlesLaw\n+ calculate() : double}", fillcolor="#cbe6ff"];
+
+        // Relationships
+        Simulator -> Queue [color="#3a69d8", penwidth=2, label="uses"];
+        Simulator -> Policy [color="#3a69d8", penwidth=2, label="uses"];
+        Simulator -> EventManager [color="#3a69d8", penwidth=2, label="uses"];
+        Simulator -> RNG [color="#3a69d8", penwidth=2, label="uses"];
+        Simulator -> Config [color="#3a69d8", penwidth=2, label="uses"];
+        Simulator -> MeasurementWindow [color="#3a69d8", penwidth=2, label="uses"];
+
+        Queue -> Policy [style=dashed, color="#82b1ff"];
+        EventManager -> Event [label="manages", color="#82b1ff"];
+        EventManager -> RNG [label="uses", style=dotted, color="#82b1ff"];
+        ArrivalEvent -> Event [style=dashed];
+        DepartureEvent -> Event [style=dashed];
+
+        Policy -> FIFO [style=dashed];
+        Policy -> LIFO [style=dashed];
+        Policy -> PriorityPolicy [style=dashed];
+    }
+
+    // Unit Tests Cluster
+    subgraph cluster_tests {
+        label="Unit Tests";
+        color="#7bc96f";
+        style=rounded;
+
+        node [shape=rect, style=filled, fontcolor="#1b3a15", fillcolor="#d4f0c5"];
+
+        TestSimulator [label="test_simulator.cpp"];
+        TestQueue [label="test_queue.cpp"];
+        TestPolicies [label="test_policies.cpp"];
+        TestEvents [label="test_events.cpp"];
+        TestLittlesLaw [label="test_littles_law.cpp"];
+        TestMeasurementWindow [label="test_measurement_window.cpp"];
+        TestRNG [label="test_rng.cpp"];
+
+        // Mapping tests to components
+        TestSimulator -> Simulator [style=dotted, color="#2d7a0f"];
+        TestQueue -> Queue [style=dotted, color="#2d7a0f"];
+        TestPolicies -> Policy [style=dotted, color="#2d7a0f"];
+        TestEvents -> Event [style=dotted, color="#2d7a0f"];
+        TestLittlesLaw -> LittlesLaw [style=dotted, color="#2d7a0f"];
+        TestMeasurementWindow -> MeasurementWindow [style=dotted, color="#2d7a0f"];
+        TestRNG -> RNG [style=dotted, color="#2d7a0f"];
+    }
+}
