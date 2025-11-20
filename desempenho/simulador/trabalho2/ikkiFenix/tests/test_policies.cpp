@@ -1,5 +1,5 @@
 #include "../include/policies.hpp"
-#include "../include/queue.hpp"
+#include "../include/components.hpp"
 #include <cassert>
 #include <iostream>
 #include <vector>
@@ -10,112 +10,132 @@ public:
     double currentTime = 0.0;
 };
 
-void testRoundRobinPolicy() {
-    std::cout << "Testing Round Robin policy...";
-    std::vector<QueueState*> queues;
+void testLongestQueuePolicy() {
+    std::cout << "Testing Longest Queue policy...";
+    std::vector<Queue*> queues;
     
     // Create test queues
-    QueueState q1, q2, q3;
-    queues.push_back(&q1);
-    queues.push_back(&q2);
-    queues.push_back(&q3);
+    // Queue(id, capacity, mu, policy)
+    Queue* q1 = new Queue(0, 100, 1.0, Queue::DiscardPolicy::DROP_TAIL);
+    Queue* q2 = new Queue(1, 100, 1.0, Queue::DiscardPolicy::DROP_TAIL);
+    Queue* q3 = new Queue(2, 100, 1.0, Queue::DiscardPolicy::DROP_TAIL);
+    
+    queues.push_back(q1);
+    queues.push_back(q2);
+    queues.push_back(q3);
     
     MockSimulationState state;
     
     // All queues empty - should return -1
-    int result = SchedulingPolicies::selectRoundRobin(queues, state.currentTime, nullptr);
+    int result = Policies::LongestQueue(queues, state.currentTime);
     assert(result == -1);
     
-    // Fill second queue
-    q2.enqueuePacket(1.0);
-    result = SchedulingPolicies::selectRoundRobin(queues, state.currentTime, nullptr);
-    assert(result == 0); // Should start from 0 and find q2 at index 1? Wait, let's check the logic
+    // q1 has 1 packet
+    Packet p1 = {1, 1.0, 0, 0};
+    q1->tryEnqueue(p1);
     
-    // The policy cycles from last served, so first call should find q2 at index 1
-    // Reset static variable for deterministic testing
-    std::cout << " PASSED (logic needs review)\n";
-}
-
-void testWaitingTimePriority() {
-    std::cout << "Testing Waiting Time Priority policy...";
-    std::vector<QueueState*> queues;
+    // q2 has 2 packets
+    Packet p2 = {2, 1.0, 0, 0};
+    Packet p3 = {3, 1.0, 0, 0};
+    q2->tryEnqueue(p2);
+    q2->tryEnqueue(p3);
     
-    QueueState q1, q2, q3;
-    queues.push_back(&q1);
-    queues.push_back(&q2);
-    queues.push_back(&q3);
+    // q3 has 0 packets
     
-    MockSimulationState state;
-    state.currentTime = 10.0;
+    result = Policies::LongestQueue(queues, state.currentTime);
+    assert(result == 1); // q2 has most packets
     
-    // q1: arrived at 8.0 (waiting 2.0)
-    q1.enqueuePacket(8.0);
-    // q2: arrived at 5.0 (waiting 5.0) 
-    q2.enqueuePacket(5.0);
-    // q3: arrived at 9.0 (waiting 1.0)
-    q3.enqueuePacket(9.0);
-    
-    int result = SchedulingPolicies::selectWaitingTimePriority(queues, state.currentTime, nullptr);
-    assert(result == 1); // q2 has longest waiting time
+    // Cleanup
+    for (auto q : queues) delete q;
     std::cout << " PASSED\n";
 }
 
-void testLargestQueuePolicy() {
-    std::cout << "Testing Largest Queue policy...";
-    std::vector<QueueState*> queues;
+void testMaxAverageWaitPolicy() {
+    std::cout << "Testing Max Average Wait policy...";
+    std::vector<Queue*> queues;
     
-    QueueState q1, q2, q3;
-    queues.push_back(&q1);
-    queues.push_back(&q2);
-    queues.push_back(&q3);
+    Queue* q1 = new Queue(0, 100, 1.0, Queue::DiscardPolicy::DROP_TAIL);
+    Queue* q2 = new Queue(1, 100, 1.0, Queue::DiscardPolicy::DROP_TAIL);
+    
+    queues.push_back(q1);
+    queues.push_back(q2);
     
     MockSimulationState state;
     
-    q1.enqueuePacket(1.0);
-    q1.enqueuePacket(2.0); // q1 has 2 packets
+    // Inject stats directly or simulate departures?
+    // Queue::registerDepartureStats updates the window.
     
-    q2.enqueuePacket(1.0); // q2 has 1 packet
-    q2.enqueuePacket(2.0);
-    q2.enqueuePacket(3.0); // q2 has 3 packets
+    // q1: avg wait 10.0
+    q1->registerDepartureStats(10.0, 100.0);
     
-    q3.enqueuePacket(1.0); // q3 has 1 packet
+    // q2: avg wait 20.0
+    q2->registerDepartureStats(20.0, 100.0);
+    q2->registerDepartureStats(20.0, 100.0);
     
-    int result = SchedulingPolicies::selectLargestQueue(queues, state.currentTime, nullptr);
-    assert(result == 1); // q2 has most packets
+    // We need queues to be non-empty for them to be selectable?
+    // The policy implementation checks `if (q->isEmpty()) continue;`
+    // So we must enqueue something.
+    Packet p = {1, 0.0, 0, 0};
+    q1->tryEnqueue(p);
+    q2->tryEnqueue(p);
+    
+    int result = Policies::MaxAverageWait(queues, state.currentTime);
+    assert(result == 1); // q2 has higher avg wait
+    
+    // Cleanup
+    for (auto q : queues) delete q;
+    std::cout << " PASSED\n";
+}
+
+void testOldestPacketPolicy() {
+    std::cout << "Testing Oldest Packet policy...";
+    std::vector<Queue*> queues;
+    
+    Queue* q1 = new Queue(0, 100, 1.0, Queue::DiscardPolicy::DROP_TAIL);
+    Queue* q2 = new Queue(1, 100, 1.0, Queue::DiscardPolicy::DROP_TAIL);
+    
+    queues.push_back(q1);
+    queues.push_back(q2);
+    
+    MockSimulationState state;
+    state.currentTime = 100.0;
+    
+    // q1: packet arrived at 90.0 (wait 10)
+    Packet p1 = {1, 90.0, 0, 0};
+    q1->tryEnqueue(p1);
+    
+    // q2: packet arrived at 80.0 (wait 20)
+    Packet p2 = {2, 80.0, 0, 0};
+    q2->tryEnqueue(p2);
+    
+    int result = Policies::OldestPacket(queues, state.currentTime);
+    assert(result == 1); // q2 has oldest packet (longest wait)
+    
+    // Cleanup
+    for (auto q : queues) delete q;
     std::cout << " PASSED\n";
 }
 
 void testPolicyByName() {
     std::cout << "Testing policy retrieval by name...";
     
-    auto policy1 = SchedulingPolicies::getPolicyByName("RoundRobin");
-    auto policy2 = SchedulingPolicies::getPolicyByName("WaitingTimePriority");
-    auto policy3 = SchedulingPolicies::getPolicyByName("LargestQueue");
+    auto policy1 = Policies::getPolicyByName("LONGEST_QUEUE");
+    auto policy2 = Policies::getPolicyByName("MAX_AVG_WAIT");
+    auto policy3 = Policies::getPolicyByName("OLDEST_PACKET");
     
-    // Should not throw for valid names
-    std::cout << " PASSED\n";
-}
-
-void testInvalidPolicyName() {
-    std::cout << "Testing invalid policy name...";
+    // Should default to LongestQueue for unknown
+    auto policyDefault = Policies::getPolicyByName("UNKNOWN_POLICY");
     
-    try {
-        auto policy = SchedulingPolicies::getPolicyByName("InvalidPolicy");
-        assert(false); // Should not reach here
-    } catch (const std::invalid_argument&) {
-        // Expected behavior
-    }
     std::cout << " PASSED\n";
 }
 
 int main() {
     std::cout << "Running Policies tests...\n";
     
-    testRoundRobinPolicy();
-    testWaitingTimePriority(); 
-    testLargestQueuePolicy();
+    testLongestQueuePolicy();
+    testMaxAverageWaitPolicy(); 
+    testOldestPacketPolicy();
     testPolicyByName();
-    testInvalidPolicyName();
     
     std::cout << "All Policies tests passed!\n";
     return 0;

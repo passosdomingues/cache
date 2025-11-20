@@ -81,7 +81,7 @@ BUILD_TYPE ?= release
 
 # Default target
 .PHONY: all
-all: release
+all: release test run-tests run-sample
 
 # Release build
 .PHONY: release
@@ -105,7 +105,7 @@ profile: $(SIMULATOR_PROFILE)
 $(SIMULATOR_RELEASE): $(RELEASE_OBJS) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(RELEASE_OBJS) $(LDFLAGS)
 	@echo "Release build complete: $@"
-	@echo "Executable size:" $(shell du -h $@ | cut -f1)
+	@echo "Executable size: $$(du -h $@ | cut -f1)"
 
 # Debug simulator executable
 $(SIMULATOR_DEBUG): $(DEBUG_OBJS) | $(BIN_DIR)
@@ -118,14 +118,20 @@ $(SIMULATOR_PROFILE): $(PROFILE_OBJS) | $(BIN_DIR)
 	@echo "Profile build complete: $@"
 
 # Test executable
+# Filter out main.o from objects for testing
+DEBUG_LIB_OBJS := $(filter-out $(DEBUG_OBJ_DIR)/main.o, $(DEBUG_OBJS))
+
+# Test executables (one per source file)
+TEST_EXECUTABLES := $(patsubst $(TEST_DIR)/%.cpp,$(BIN_DIR)/%,$(TEST_SRCS))
+
 .PHONY: test
 test: CXXFLAGS := $(STD_FLAGS) $(DEBUG_FLAGS) $(WARN_FLAGS) $(INCLUDE_FLAGS)
 test: LDFLAGS := $(LDFLAGS_DEBUG)
-test: $(TEST_EXECUTABLE)
+test: $(TEST_EXECUTABLES)
 
-$(TEST_EXECUTABLE): $(DEBUG_OBJS) $(TEST_OBJS) | $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(DEBUG_OBJS) $(TEST_OBJS) $(LDFLAGS)
-	@echo "Test build complete: $@"
+$(BIN_DIR)/%: $(TEST_DIR)/%.cpp $(DEBUG_LIB_OBJS) | $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(DEBUG_LIB_OBJS) $(LDFLAGS)
+	@echo "Built test: $@"
 
 # =============================================================================
 # Object File Rules
@@ -181,6 +187,10 @@ analysis: $(RESULTS_DIR)/comprehensive_analysis
 	@echo "Running Python analysis..."
 	cd $(ANALYSIS_DIR) && python run_analysis.py
 
+# Run sample simulation
+.PHONY: run
+run: run-sample
+
 .PHONY: run-sample
 run-sample: release
 	@echo "Running sample simulation..."
@@ -194,7 +204,10 @@ run-batch: release
 .PHONY: run-tests
 run-tests: test
 	@echo "Running test suite..."
-	./$(TEST_EXECUTABLE)
+	@for test_bin in $(TEST_EXECUTABLES); do \
+		echo "Running $$test_bin..."; \
+		./$$test_bin; \
+	done
 
 .PHONY: valgrind-check
 valgrind-check: debug

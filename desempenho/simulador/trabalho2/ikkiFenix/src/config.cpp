@@ -1,5 +1,5 @@
-#include "../include/config.h"
-#include "../include/rng.h"
+#include "../include/config.hpp"
+#include "../include/rng.hpp"
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -10,7 +10,7 @@ SimulationConfig::SimulationConfig()
       maxQueueSize(1000) {
     serviceRates = {1.0, 1.0, 1.0};
     calculateArrivalRates();
-    schedulingPolicy = SchedulingPolicies::selectRoundRobin;
+    schedulingPolicy = Policies::LongestQueue;
     scenarioName = "default_scenario";
 }
 
@@ -80,7 +80,7 @@ SimulationConfig ConfigManager::loadFromFile(const std::string& filename) {
     }
     
     if (configMap.count("policy")) {
-        config.schedulingPolicy = SchedulingPolicies::getPolicyByName(configMap["policy"]);
+        config.schedulingPolicy = Policies::getPolicyByName(configMap["policy"]);
     }
     
     config.calculateArrivalRates();

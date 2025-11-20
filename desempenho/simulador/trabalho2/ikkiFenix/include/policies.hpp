@@ -1,69 +1,41 @@
+/**
+ * @file policies.hpp
+ * @brief Definition of queue selection policies for the shared server.
+ */
+
 #ifndef POLICIES_HPP
 #define POLICIES_HPP
 
-#include "queue.hpp"
 #include <vector>
 #include <functional>
+#include "components.hpp"
 
 // Forward declaration
-class SimulationState;
+class Queue;
 
-/**
- * @brief Policy function type for queue selection
- */
-using QueueSelectionPolicy = std::function<int(
-    const std::vector<QueueState*>& queues, 
-    double currentTime,
-    const SimulationState* simulationState
-)>;
+typedef std::function<int(const std::vector<Queue*>&, double)> PolicyFunction;
+using QueueSelectionPolicy = PolicyFunction;
 
-/**
- * @brief Policy implementations
- */
-class SchedulingPolicies {
-public:
+namespace Policies {
     /**
-     * @brief Round Robin policy - cycles through queues
+     * @brief Selects the queue with the largest number of items.
      */
-    static int selectRoundRobin(
-        const std::vector<QueueState*>& queues,
-        double currentTime,
-        const SimulationState* simulationState
-    );
+    int LongestQueue(const std::vector<Queue*>& queues, double currentTime);
+
+    /**
+     * @brief Selects the queue with the highest average waiting time (from measurement window).
+     */
+    int MaxAverageWait(const std::vector<Queue*>& queues, double currentTime);
+
+    /**
+     * @brief Selects the queue containing the packet that has waited the longest (Head-Of-Line).
+     */
+    int OldestPacket(const std::vector<Queue*>& queues, double currentTime);
     
     /**
-     * @brief Waiting Time Priority - selects queue with longest head waiting time
+     * @brief Helper to get policy by name string.
      */
-    static int selectWaitingTimePriority(
-        const std::vector<QueueState*>& queues,
-        double currentTime, 
-        const SimulationState* simulationState
-    );
-    
-    /**
-     * @brief Utility Based - uses measurement window for average delay
-     */
-    static int selectUtilityBased(
-        const std::vector<QueueState*>& queues,
-        double currentTime,
-        const SimulationState* simulationState
-    );
-    
-    /**
-     * @brief Largest Queue - selects queue with most packets
-     */
-    static int selectLargestQueue(
-        const std::vector<QueueState*>& queues,
-        double currentTime,
-        const SimulationState* simulationState
-    );
-    
-    /**
-     * @brief Get policy by name
-     * @param policyName Name of the policy
-     * @return QueueSelectionPolicy Function pointer to policy
-     */
-    static QueueSelectionPolicy getPolicyByName(const std::string& policyName);
-};
+    PolicyFunction getPolicyByName(const std::string& name);
+}
 
 #endif // POLICIES_HPP

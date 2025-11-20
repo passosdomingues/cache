@@ -1,20 +1,29 @@
-# Build otimizado
-make release
+Advanced Queueing System Simulator - Build System
 
-# Build com debug
-make debug
+Build Targets:
+  all/release    - Build optimized release version (default)
+  debug          - Build with debug symbols and sanitizers
+  profile        - Build for profiling
+  test           - Build and run test suite
 
-# Análise de memória
-make valgrind-check
+Utility Targets:
+  run-sample     - Run sample simulation
+  run-batch      - Run batch simulations
+  analysis       - Run Python analysis pipeline
+  benchmark      - Performance benchmark
+  valgrind-check - Memory leak detection
+  profile-run    - Generate profiling data
 
-# Performance profiling  
-make profile-run
+Clean Targets:
+  clean          - Remove build artifacts
+  distclean      - Remove build artifacts and results
+  veryclean      - Remove all generated files
 
-# Testes completos
-make test
+Development:
+  format         - Format source code
+  lint           - Static code analysis
+  coverage       - Generate code coverage report
 
-# Análise Python
-make analysis
-
-# Benchmark de performance
-make benchmark
+Info:
+  info           - Show build configuration
+  help           - Show this help message

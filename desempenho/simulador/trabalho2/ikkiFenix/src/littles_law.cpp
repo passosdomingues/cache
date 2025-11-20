@@ -16,7 +16,7 @@ void LittlesLawTracker::initialize() {
 void LittlesLawTracker::updateArea(double currentTime) {
     double timeDelta = currentTime - previousMeasurementTime;
     if (timeDelta > 0) {
-        accumulatedArea += timeDelta * currentRequestCount;
+        accumulatedArea += timeDelta * (double)currentRequestCount;
     }
     previousMeasurementTime = currentTime;
 }
@@ -42,5 +42,5 @@ double LittlesLawTracker::computeEN(double currentTime) const {
 
 double LittlesLawTracker::computeEW() const {
     if (totalArrivals == 0) return 0.0;
-    return totalWaitingTime / totalArrivals;
+    return totalWaitingTime / (double)totalArrivals;
 }

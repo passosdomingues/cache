@@ -1,9 +1,9 @@
-#include "../include/events.h"
+#include "../include/events.hpp"
 #include <stdexcept>
 
 void EventQueue::pushEvent(const Event& event) {
     heap.push_back(event);
-    heapifyUp(heap.size() - 1);
+    heapifyUp((int)heap.size() - 1);
 }
 
 Event EventQueue::popEvent() {
@@ -41,11 +41,11 @@ void EventQueue::heapifyDown(int index) {
     int left = leftChild(index);
     int right = rightChild(index);
     
-    if (left < (int)heap.size() && heap[left] > heap[smallest]) {
+    if (left < (int)heap.size() && heap[smallest] > heap[left]) {
         smallest = left;
     }
     
-    if (right < (int)heap.size() && heap[right] > heap[smallest]) {
+    if (right < (int)heap.size() && heap[smallest] > heap[right]) {
         smallest = right;
     }
     

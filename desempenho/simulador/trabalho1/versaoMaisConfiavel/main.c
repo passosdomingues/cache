@@ -57,7 +57,7 @@ int main(void){
     srand(0);
 
     /** @param cenarios Ocupações a serem testadas */
-    double cenarios[] = {0.80, 0.90, 0.95, 0.999};
+    double cenarios[] = {0.800, 0.900, 0.950, 0.999};
     int qtd_cenarios = 4;
 
     for(int c = 0; c < qtd_cenarios; c++){

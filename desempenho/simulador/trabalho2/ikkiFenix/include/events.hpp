@@ -21,9 +21,10 @@ struct Event {
     double timestamp;
     EventType type;
     int queueId; // -1 for system-wide events
-    
-    Event(double ts, EventType t, int qid = -1) 
-        : timestamp(ts), type(t), queueId(qid) {}
+    unsigned long packetId; // For tracking specific packets
+
+    Event(double ts, EventType t, int qid = -1, unsigned long pid = 0) 
+        : timestamp(ts), type(t), queueId(qid), packetId(pid) {}
     
     // Comparison for min-heap (earliest timestamp first)
     bool operator>(const Event& other) const {
