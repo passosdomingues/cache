@@ -1,0 +1,308 @@
+<svg width="1457pt" height="766pt" viewBox="0.00 0.00 1457.00 766.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 762.08)">
+<title>QueueSimulatorPipeline</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-762.08 1453.02,-762.08 1453.02,4 -4,4"/>
+<text xml:space="preserve" text-anchor="middle" x="724.51" y="-745.08" font-family="Helvetica, Arial, sans-serif" font-size="10.00">Advanced Queueing System Simulator - Pipeline and Tests Orchestration</text>
+<g id="clust1" class="cluster">
+<title>cluster_pipeline</title>
+<path fill="none" stroke="#4a90e2" d="M269.88,-192.08C269.88,-192.08 1429.02,-192.08 1429.02,-192.08 1435.02,-192.08 1441.02,-198.08 1441.02,-204.08 1441.02,-204.08 1441.02,-718.08 1441.02,-718.08 1441.02,-724.08 1435.02,-730.08 1429.02,-730.08 1429.02,-730.08 269.88,-730.08 269.88,-730.08 263.88,-730.08 257.88,-724.08 257.88,-718.08 257.88,-718.08 257.88,-204.08 257.88,-204.08 257.88,-198.08 263.88,-192.08 269.88,-192.08"/>
+<text xml:space="preserve" text-anchor="middle" x="849.45" y="-717.08" font-family="Helvetica, Arial, sans-serif" font-size="10.00">Simulation Pipeline</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_tests</title>
+<path fill="none" stroke="#7bc96f" d="M20,-54.08C20,-54.08 224.88,-54.08 224.88,-54.08 230.88,-54.08 236.88,-60.08 236.88,-66.08 236.88,-66.08 236.88,-438.08 236.88,-438.08 236.88,-444.08 230.88,-450.08 224.88,-450.08 224.88,-450.08 20,-450.08 20,-450.08 14,-450.08 8,-444.08 8,-438.08 8,-438.08 8,-66.08 8,-66.08 8,-60.08 14,-54.08 20,-54.08"/>
+<text xml:space="preserve" text-anchor="middle" x="122.44" y="-437.08" font-family="Helvetica, Arial, sans-serif" font-size="10.00">Unit Tests</text>
+</g>
+<!-- Simulator -->
+<g id="node1" class="node">
+<title>Simulator</title>
+<polygon fill="#d0e4fb" stroke="black" points="265.88,-320.68 265.88,-429.48 742.98,-429.48 742.98,-320.68 265.88,-320.68"/>
+<text xml:space="preserve" text-anchor="middle" x="303.45" y="-370.88" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">Simulator</text>
+<polyline fill="none" stroke="black" points="341.01,-320.68 341.01,-429.48"/>
+<text xml:space="preserve" text-anchor="middle" x="388.5" y="-379.28" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">+ run() : void</text>
+<text xml:space="preserve" text-anchor="middle" x="388.5" y="-362.48" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">+ init() : void</text>
+<polyline fill="none" stroke="black" points="435.99,-320.68 435.99,-429.48"/>
+<text xml:space="preserve" text-anchor="middle" x="589.48" y="-412.88" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">- queue : Queue</text>
+<text xml:space="preserve" text-anchor="middle" x="589.48" y="-396.08" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">- policy : Policy</text>
+<text xml:space="preserve" text-anchor="middle" x="589.48" y="-379.28" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">- eventManager : EventManager</text>
+<text xml:space="preserve" text-anchor="middle" x="589.48" y="-362.48" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">- rng : RNG</text>
+<text xml:space="preserve" text-anchor="middle" x="589.48" y="-345.68" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">- config : Config</text>
+<text xml:space="preserve" text-anchor="middle" x="589.48" y="-328.88" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">- measurementWindow : MeasurementWindow</text>
+</g>
+<!-- Queue -->
+<g id="node2" class="node">
+<title>Queue</title>
+<polygon fill="#daeefd" stroke="black" points="854.82,-277.88 854.82,-336.28 1004.75,-336.28 1004.75,-277.88 854.82,-277.88"/>
+<text xml:space="preserve" text-anchor="middle" x="883.84" y="-302.88" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">Queue</text>
+<polyline fill="none" stroke="black" points="912.85,-277.88 912.85,-336.28"/>
+<text xml:space="preserve" text-anchor="middle" x="958.8" y="-319.68" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">+ enqueue()</text>
+<text xml:space="preserve" text-anchor="middle" x="958.8" y="-302.88" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">+ dequeue()</text>
+<text xml:space="preserve" text-anchor="middle" x="958.8" y="-286.08" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">+ size()</text>
+<polyline fill="none" stroke="black" points="1004.75,-277.88 1004.75,-336.28"/>
+</g>
+<!-- Simulator&#45;&gt;Queue -->
+<g id="edge1" class="edge">
+<title>Simulator-&gt;Queue</title>
+<path fill="none" stroke="#3a69d8" stroke-width="2" d="M743.28,-345.97C757.45,-343.77 771.47,-341.47 785.09,-339.08 803.5,-335.85 823.11,-331.86 841.75,-327.79"/>
+<polygon fill="#3a69d8" stroke="#3a69d8" stroke-width="2" points="842.5,-331.21 851.51,-325.64 840.99,-324.38 842.5,-331.21"/>
+<text xml:space="preserve" text-anchor="middle" x="773.04" y="-347.09" font-family="Times,serif" font-size="14.00">uses</text>
+</g>
+<!-- Policy -->
+<g id="node3" class="node">
+<title>Policy</title>
+<polygon fill="#cbe6ff" stroke="black" points="1187.64,-289.08 1187.64,-325.08 1241.64,-325.08 1241.64,-289.08 1187.64,-289.08"/>
+<text xml:space="preserve" text-anchor="middle" x="1214.64" y="-302.98" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">Policy</text>
+</g>
+<!-- Simulator&#45;&gt;Policy -->
+<g id="edge2" class="edge">
+<title>Simulator-&gt;Policy</title>
+<path fill="none" stroke="#3a69d8" stroke-width="2" d="M743.27,-422.74C841.86,-433.73 956.36,-434.98 1056.47,-406.08 1105.25,-392 1153.47,-357.79 1183.38,-333.54"/>
+<polygon fill="#3a69d8" stroke="#3a69d8" stroke-width="2" points="1185.37,-336.44 1190.83,-327.36 1180.9,-331.05 1185.37,-336.44"/>
+<text xml:space="preserve" text-anchor="middle" x="929.78" y="-434.15" font-family="Times,serif" font-size="14.00">uses</text>
+</g>
+<!-- EventManager -->
+<g id="node7" class="node">
+<title>EventManager</title>
+<polygon fill="#d0e4fb" stroke="black" points="865.17,-521.88 865.17,-580.28 994.4,-580.28 994.4,-521.88 865.17,-521.88"/>
+<text xml:space="preserve" text-anchor="middle" x="929.78" y="-563.68" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">EventManager</text>
+<text xml:space="preserve" text-anchor="middle" x="929.78" y="-546.88" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">+ scheduleEvent()</text>
+<text xml:space="preserve" text-anchor="middle" x="929.78" y="-530.08" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">+ processEvent()</text>
+<polyline fill="none" stroke="black" points="994.4,-521.88 994.4,-580.28"/>
+</g>
+<!-- Simulator&#45;&gt;EventManager -->
+<g id="edge3" class="edge">
+<title>Simulator-&gt;EventManager</title>
+<path fill="none" stroke="#3a69d8" stroke-width="2" d="M732.26,-429.93C735.96,-432.83 739.54,-435.87 742.98,-439.08 760.87,-455.75 743.95,-473.53 760.98,-491.08 774.92,-505.44 784.28,-500.21 803.09,-507.08 819.01,-512.89 836.12,-518.98 852.44,-524.71"/>
+<polygon fill="#3a69d8" stroke="#3a69d8" stroke-width="2" points="851.27,-528.01 861.87,-528.02 853.59,-521.41 851.27,-528.01"/>
+<text xml:space="preserve" text-anchor="middle" x="773.04" y="-506.95" font-family="Times,serif" font-size="14.00">uses</text>
+</g>
+<!-- RNG -->
+<g id="node11" class="node">
+<title>RNG</title>
+<polygon fill="#d0e4fb" stroke="black" points="1141.45,-465.28 1141.45,-506.88 1287.82,-506.88 1287.82,-465.28 1141.45,-465.28"/>
+<text xml:space="preserve" text-anchor="middle" x="1214.64" y="-490.28" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">RNG</text>
+<text xml:space="preserve" text-anchor="middle" x="1214.64" y="-473.48" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">+ generate() : double</text>
+</g>
+<!-- Simulator&#45;&gt;RNG -->
+<g id="edge4" class="edge">
+<title>Simulator-&gt;RNG</title>
+<path fill="none" stroke="#3a69d8" stroke-width="2" d="M710.33,-429.95C748.75,-439.63 783.11,-447.7 803.09,-451.08 914.56,-469.93 1044.87,-478.84 1128.27,-482.91"/>
+<polygon fill="#3a69d8" stroke="#3a69d8" stroke-width="2" points="1128.07,-486.4 1138.22,-483.37 1128.4,-479.41 1128.07,-486.4"/>
+<text xml:space="preserve" text-anchor="middle" x="929.78" y="-482.82" font-family="Times,serif" font-size="14.00">uses</text>
+</g>
+<!-- Config -->
+<g id="node12" class="node">
+<title>Config</title>
+<polygon fill="#d0e4fb" stroke="black" points="803.09,-355.28 803.09,-396.88 1056.47,-396.88 1056.47,-355.28 803.09,-355.28"/>
+<text xml:space="preserve" text-anchor="middle" x="873.93" y="-380.28" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">Config</text>
+<text xml:space="preserve" text-anchor="middle" x="873.93" y="-363.48" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">+ loadConfig() : void</text>
+<polyline fill="none" stroke="black" points="944.77,-355.28 944.77,-396.88"/>
+<text xml:space="preserve" text-anchor="middle" x="1000.62" y="-371.88" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">- settings : Map</text>
+</g>
+<!-- Simulator&#45;&gt;Config -->
+<g id="edge5" class="edge">
+<title>Simulator-&gt;Config</title>
+<path fill="none" stroke="#3a69d8" stroke-width="2" d="M743.43,-379.28C757.53,-379.28 771.5,-379.22 785.09,-379.08 786.62,-379.06 788.15,-379.04 789.69,-379.03"/>
+<polygon fill="#3a69d8" stroke="#3a69d8" stroke-width="2" points="789.64,-382.53 799.6,-378.9 789.55,-375.53 789.64,-382.53"/>
+<text xml:space="preserve" text-anchor="middle" x="773.04" y="-383.44" font-family="Times,serif" font-size="14.00">uses</text>
+</g>
+<!-- MeasurementWindow -->
+<g id="node13" class="node">
+<title>MeasurementWindow</title>
+<polygon fill="#cbe6ff" stroke="black" points="854.09,-200.88 854.09,-259.28 1005.47,-259.28 1005.47,-200.88 854.09,-200.88"/>
+<text xml:space="preserve" text-anchor="middle" x="929.78" y="-242.68" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">MeasurementWindow</text>
+<text xml:space="preserve" text-anchor="middle" x="929.78" y="-225.88" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">+ record() : void</text>
+<text xml:space="preserve" text-anchor="middle" x="929.78" y="-209.08" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">+ getStats() : Stats</text>
+<polyline fill="none" stroke="black" points="1005.47,-200.88 1005.47,-259.28"/>
+</g>
+<!-- Simulator&#45;&gt;MeasurementWindow -->
+<g id="edge6" class="edge">
+<title>Simulator-&gt;MeasurementWindow</title>
+<path fill="none" stroke="#3a69d8" stroke-width="2" d="M653.29,-320.23C700.93,-303.01 754.08,-284.28 803.09,-268.08 815.47,-263.98 828.6,-259.82 841.52,-255.82"/>
+<polygon fill="#3a69d8" stroke="#3a69d8" stroke-width="2" points="842.38,-259.22 850.92,-252.94 840.33,-252.53 842.38,-259.22"/>
+<text xml:space="preserve" text-anchor="middle" x="773.04" y="-286" font-family="Times,serif" font-size="14.00">uses</text>
+</g>
+<!-- Queue&#45;&gt;Policy -->
+<g id="edge7" class="edge">
+<title>Queue-&gt;Policy</title>
+<path fill="none" stroke="#82b1ff" stroke-dasharray="5,2" d="M1005.1,-307.08C1060.01,-307.08 1132.49,-307.08 1175.94,-307.08"/>
+<polygon fill="#82b1ff" stroke="#82b1ff" points="1175.87,-310.58 1185.87,-307.08 1175.87,-303.58 1175.87,-310.58"/>
+</g>
+<!-- FIFO -->
+<g id="node4" class="node">
+<title>FIFO</title>
+<polygon fill="#e7f1ff" stroke="black" points="1324.82,-225.28 1324.82,-266.88 1433.02,-266.88 1433.02,-225.28 1324.82,-225.28"/>
+<text xml:space="preserve" text-anchor="middle" x="1378.92" y="-250.28" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">FIFO Policy</text>
+<text xml:space="preserve" text-anchor="middle" x="1378.92" y="-233.48" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">+ applyPolicy()</text>
+</g>
+<!-- Policy&#45;&gt;FIFO -->
+<g id="edge12" class="edge">
+<title>Policy-&gt;FIFO</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M1242.07,-297.14C1261.56,-289.82 1288.93,-279.53 1314.01,-270.1"/>
+<polygon fill="black" stroke="black" points="1315.03,-273.45 1323.16,-266.66 1312.57,-266.9 1315.03,-273.45"/>
+</g>
+<!-- LIFO -->
+<g id="node5" class="node">
+<title>LIFO</title>
+<polygon fill="#e7f1ff" stroke="black" points="1324.82,-286.28 1324.82,-327.88 1433.02,-327.88 1433.02,-286.28 1324.82,-286.28"/>
+<text xml:space="preserve" text-anchor="middle" x="1378.92" y="-311.28" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">LIFO Policy</text>
+<text xml:space="preserve" text-anchor="middle" x="1378.92" y="-294.48" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">+ applyPolicy()</text>
+</g>
+<!-- Policy&#45;&gt;LIFO -->
+<g id="edge13" class="edge">
+<title>Policy-&gt;LIFO</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M1242.07,-307.08C1261.39,-307.08 1288.45,-307.08 1313.33,-307.08"/>
+<polygon fill="black" stroke="black" points="1313.07,-310.58 1323.07,-307.08 1313.07,-303.58 1313.07,-310.58"/>
+</g>
+<!-- PriorityPolicy -->
+<g id="node6" class="node">
+<title>PriorityPolicy</title>
+<polygon fill="#e7f1ff" stroke="black" points="1324.82,-347.28 1324.82,-388.88 1433.02,-388.88 1433.02,-347.28 1324.82,-347.28"/>
+<text xml:space="preserve" text-anchor="middle" x="1378.92" y="-372.28" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">Priority Policy</text>
+<text xml:space="preserve" text-anchor="middle" x="1378.92" y="-355.48" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">+ applyPolicy()</text>
+</g>
+<!-- Policy&#45;&gt;PriorityPolicy -->
+<g id="edge14" class="edge">
+<title>Policy-&gt;PriorityPolicy</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M1242.07,-317.01C1261.56,-324.34 1288.93,-334.63 1314.01,-344.05"/>
+<polygon fill="black" stroke="black" points="1312.57,-347.25 1323.16,-347.49 1315.03,-340.7 1312.57,-347.25"/>
+</g>
+<!-- Event -->
+<g id="node8" class="node">
+<title>Event</title>
+<polygon fill="#cbe6ff" stroke="black" points="1187.64,-567.08 1187.64,-603.08 1241.64,-603.08 1241.64,-567.08 1187.64,-567.08"/>
+<text xml:space="preserve" text-anchor="middle" x="1214.64" y="-580.98" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">Event</text>
+</g>
+<!-- EventManager&#45;&gt;Event -->
+<g id="edge8" class="edge">
+<title>EventManager-&gt;Event</title>
+<path fill="none" stroke="#82b1ff" d="M994.61,-558.75C1050.52,-565.47 1129.86,-575.01 1176.12,-580.57"/>
+<polygon fill="#82b1ff" stroke="#82b1ff" points="1175.56,-584.03 1185.91,-581.74 1176.4,-577.08 1175.56,-584.03"/>
+<text xml:space="preserve" text-anchor="middle" x="1098.96" y="-578.28" font-family="Times,serif" font-size="14.00">manages</text>
+</g>
+<!-- EventManager&#45;&gt;RNG -->
+<g id="edge9" class="edge">
+<title>EventManager-&gt;RNG</title>
+<path fill="none" stroke="#82b1ff" stroke-dasharray="1,5" d="M994.61,-536.41C1034.63,-527.21 1086.66,-515.26 1129.97,-505.3"/>
+<polygon fill="#82b1ff" stroke="#82b1ff" points="1130.63,-508.74 1139.59,-503.09 1129.06,-501.92 1130.63,-508.74"/>
+<text xml:space="preserve" text-anchor="middle" x="1098.96" y="-520.83" font-family="Times,serif" font-size="14.00">uses</text>
+</g>
+<!-- ArrivalEvent -->
+<g id="node9" class="node">
+<title>ArrivalEvent</title>
+<polygon fill="#e7f1ff" stroke="black" points="884.05,-599.28 884.05,-640.88 975.52,-640.88 975.52,-599.28 884.05,-599.28"/>
+<text xml:space="preserve" text-anchor="middle" x="929.78" y="-624.28" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">ArrivalEvent</text>
+<text xml:space="preserve" text-anchor="middle" x="929.78" y="-607.48" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">+ execute()</text>
+</g>
+<!-- ArrivalEvent&#45;&gt;Event -->
+<g id="edge10" class="edge">
+<title>ArrivalEvent-&gt;Event</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M975.91,-614.49C1031.33,-607.64 1124.32,-596.13 1176.05,-589.73"/>
+<polygon fill="black" stroke="black" points="1176.35,-593.22 1185.84,-588.52 1175.49,-586.27 1176.35,-593.22"/>
+</g>
+<!-- DepartureEvent -->
+<g id="node10" class="node">
+<title>DepartureEvent</title>
+<polygon fill="#e7f1ff" stroke="black" points="872.75,-660.28 872.75,-701.88 986.81,-701.88 986.81,-660.28 872.75,-660.28"/>
+<text xml:space="preserve" text-anchor="middle" x="929.78" y="-685.28" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">DepartureEvent</text>
+<text xml:space="preserve" text-anchor="middle" x="929.78" y="-668.48" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">+ execute()</text>
+</g>
+<!-- DepartureEvent&#45;&gt;Event -->
+<g id="edge11" class="edge">
+<title>DepartureEvent-&gt;Event</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M987.29,-669.05C1009.12,-663.91 1034.16,-657.4 1056.47,-650.08 1098.64,-636.25 1145.46,-616.25 1176.94,-602.1"/>
+<polygon fill="black" stroke="black" points="1178.36,-605.3 1186.02,-597.98 1175.47,-598.92 1178.36,-605.3"/>
+</g>
+<!-- LittlesLaw -->
+<g id="node14" class="node">
+<title>LittlesLaw</title>
+<polygon fill="#cbe6ff" stroke="black" points="431.25,-448.28 431.25,-489.88 577.61,-489.88 577.61,-448.28 431.25,-448.28"/>
+<text xml:space="preserve" text-anchor="middle" x="504.43" y="-473.28" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">LittlesLaw</text>
+<text xml:space="preserve" text-anchor="middle" x="504.43" y="-456.48" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#222222">+ calculate() : double</text>
+</g>
+<!-- TestSimulator -->
+<g id="node15" class="node">
+<title>TestSimulator</title>
+<polygon fill="#d4f0c5" stroke="black" points="187.24,-368.08 57.64,-368.08 57.64,-332.08 187.24,-332.08 187.24,-368.08"/>
+<text xml:space="preserve" text-anchor="middle" x="122.44" y="-345.88" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#1b3a15">test_simulator.cpp</text>
+</g>
+<!-- TestSimulator&#45;&gt;Simulator -->
+<g id="edge15" class="edge">
+<title>TestSimulator-&gt;Simulator</title>
+<path fill="none" stroke="#2d7a0f" stroke-dasharray="1,5" d="M187.47,-354.29C207.1,-355.58 229.99,-357.09 254.31,-358.69"/>
+<polygon fill="#2d7a0f" stroke="#2d7a0f" points="253.87,-362.17 264.07,-359.33 254.33,-355.18 253.87,-362.17"/>
+</g>
+<!-- TestQueue -->
+<g id="node16" class="node">
+<title>TestQueue</title>
+<polygon fill="#d4f0c5" stroke="black" points="178.31,-314.08 66.57,-314.08 66.57,-278.08 178.31,-278.08 178.31,-314.08"/>
+<text xml:space="preserve" text-anchor="middle" x="122.44" y="-291.88" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#1b3a15">test_queue.cpp</text>
+</g>
+<!-- TestQueue&#45;&gt;Queue -->
+<g id="edge16" class="edge">
+<title>TestQueue-&gt;Queue</title>
+<path fill="none" stroke="#2d7a0f" stroke-dasharray="1,5" d="M178.78,-296.1C292.41,-296.25 560.28,-297.15 785.09,-302.08 803.88,-302.49 824.05,-303.09 843.16,-303.74"/>
+<polygon fill="#2d7a0f" stroke="#2d7a0f" points="842.96,-307.23 853.07,-304.08 843.2,-300.24 842.96,-307.23"/>
+</g>
+<!-- TestPolicies -->
+<g id="node17" class="node">
+<title>TestPolicies</title>
+<polygon fill="#d4f0c5" stroke="black" points="182.19,-98.08 62.69,-98.08 62.69,-62.08 182.19,-62.08 182.19,-98.08"/>
+<text xml:space="preserve" text-anchor="middle" x="122.44" y="-75.88" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#1b3a15">test_policies.cpp</text>
+</g>
+<!-- TestPolicies&#45;&gt;Policy -->
+<g id="edge17" class="edge">
+<title>TestPolicies-&gt;Policy</title>
+<path fill="none" stroke="#2d7a0f" stroke-dasharray="1,5" d="M182.67,-63.17C347.71,-19.79 820.56,78.67 1123.45,-120.08 1177.99,-155.87 1200.49,-234.52 1208.99,-277.54"/>
+<polygon fill="#2d7a0f" stroke="#2d7a0f" points="1205.51,-277.97 1210.76,-287.17 1212.4,-276.7 1205.51,-277.97"/>
+</g>
+<!-- TestEvents -->
+<g id="node18" class="node">
+<title>TestEvents</title>
+<polygon fill="#d4f0c5" stroke="black" points="179.47,-206.08 65.41,-206.08 65.41,-170.08 179.47,-170.08 179.47,-206.08"/>
+<text xml:space="preserve" text-anchor="middle" x="122.44" y="-183.88" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#1b3a15">test_events.cpp</text>
+</g>
+<!-- TestEvents&#45;&gt;Event -->
+<g id="edge18" class="edge">
+<title>TestEvents-&gt;Event</title>
+<path fill="none" stroke="#2d7a0f" stroke-dasharray="1,5" d="M179.79,-179.68C360.17,-154.07 919.54,-84.99 1056.47,-191.08 1174.5,-282.51 1065.74,-387.4 1141.45,-516.08 1151.12,-532.5 1165.79,-547.54 1179.39,-559.36"/>
+<polygon fill="#2d7a0f" stroke="#2d7a0f" points="1177.03,-561.95 1186.95,-565.67 1181.51,-556.58 1177.03,-561.95"/>
+</g>
+<!-- TestLittlesLaw -->
+<g id="node19" class="node">
+<title>TestLittlesLaw</title>
+<polygon fill="#d4f0c5" stroke="black" points="189.19,-422.08 55.69,-422.08 55.69,-386.08 189.19,-386.08 189.19,-422.08"/>
+<text xml:space="preserve" text-anchor="middle" x="122.44" y="-399.88" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#1b3a15">test_littles_law.cpp</text>
+</g>
+<!-- TestLittlesLaw&#45;&gt;LittlesLaw -->
+<g id="edge19" class="edge">
+<title>TestLittlesLaw-&gt;LittlesLaw</title>
+<path fill="none" stroke="#2d7a0f" stroke-dasharray="1,5" d="M187.33,-422.57C209.52,-428.49 234.66,-434.66 257.88,-439.08 311.29,-449.25 371.93,-456.69 419.58,-461.63"/>
+<polygon fill="#2d7a0f" stroke="#2d7a0f" points="418.97,-465.08 429.28,-462.61 419.68,-458.12 418.97,-465.08"/>
+</g>
+<!-- TestMeasurementWindow -->
+<g id="node20" class="node">
+<title>TestMeasurementWindow</title>
+<polygon fill="#d4f0c5" stroke="black" points="228.88,-260.08 16,-260.08 16,-224.08 228.88,-224.08 228.88,-260.08"/>
+<text xml:space="preserve" text-anchor="middle" x="122.44" y="-237.88" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#1b3a15">test_measurement_window.cpp</text>
+</g>
+<!-- TestMeasurementWindow&#45;&gt;MeasurementWindow -->
+<g id="edge20" class="edge">
+<title>TestMeasurementWindow-&gt;MeasurementWindow</title>
+<path fill="none" stroke="#2d7a0f" stroke-dasharray="1,5" d="M229.14,-240.5C390.2,-238.1 693.98,-233.58 842.56,-231.36"/>
+<polygon fill="#2d7a0f" stroke="#2d7a0f" points="842.39,-234.87 852.33,-231.22 842.28,-227.87 842.39,-234.87"/>
+</g>
+<!-- TestRNG -->
+<g id="node21" class="node">
+<title>TestRNG</title>
+<polygon fill="#d4f0c5" stroke="black" points="168.96,-152.08 75.92,-152.08 75.92,-116.08 168.96,-116.08 168.96,-152.08"/>
+<text xml:space="preserve" text-anchor="middle" x="122.44" y="-129.88" font-family="Helvetica,sans-Serif" font-size="14.00" fill="#1b3a15">test_rng.cpp</text>
+</g>
+<!-- TestRNG&#45;&gt;RNG -->
+<g id="edge21" class="edge">
+<title>TestRNG-&gt;RNG</title>
+<path fill="none" stroke="#2d7a0f" stroke-dasharray="1,5" d="M169.19,-127.63C346.21,-103.77 983.33,-28.4 1123.45,-158.08 1152.47,-184.93 1130.77,-297.01 1141.45,-335.08 1153.74,-378.87 1177.99,-425.57 1194.98,-455.24"/>
+<polygon fill="#2d7a0f" stroke="#2d7a0f" points="1191.84,-456.8 1199.9,-463.69 1197.89,-453.28 1191.84,-456.8"/>
+</g>
+</g>
+</svg>
