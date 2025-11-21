@@ -1,0 +1,229 @@
+digraph ProjectChronos {
+    rankdir=TB;
+    fontsize=12;
+    labelloc="t";
+    label="Project Chronos: Adaptive Stochastic Control & Queueing Analysis Framework\n11 Policies × 4 Occupancy Scenarios = 44 Simulation Configurations";
+    fontname="Helvetica Bold";
+    compound=true;
+    
+    node [shape=record, style=filled, fontname="Helvetica"];
+    edge [fontname="Helvetica", fontsize=10];
+
+    // ========== Core Interface ==========
+    subgraph cluster_interface {
+        label="Core Interfaces";
+        color="#2c3e50";
+        style="rounded,bold";
+        fontcolor="#2c3e50";
+        
+        SchedulingPolicy [label="{«interface»\nSchedulingPolicy|+ selectQueue(state) : int\l+ getName() : string\l}", 
+                         fillcolor="#3498db", fontcolor="white", style="filled,bold"];
+        
+        SystemState [label="{SystemState|+ queues : vector\<Queue*\>\l+ currentTime : double\l+ globalArrivalRate : double\l}", 
+                    fillcolor="#95a5a6", fontcolor="white"];
+    }
+
+    // ========== 11 Concrete Policies ==========
+    subgraph cluster_concrete_policies {
+        label="11 Concrete Scheduling Policies";
+        color="#27ae60";
+        style="rounded,bold";
+        fontcolor="#27ae60";
+        
+        subgraph cluster_basic {
+            label="Basic Policies";
+            style="rounded";
+            color="#16a085";
+            
+            LongestQueue [label="LongestQueuePolicy", fillcolor="#a8e6cf", shape=box];
+            ShortestQueue [label="ShortestQueuePolicy", fillcolor="#a8e6cf", shape=box];
+            RoundRobin [label="RoundRobinPolicy", fillcolor="#a8e6cf", shape=box];
+            StrictPriority [label="StrictPriorityPolicy", fillcolor="#a8e6cf", shape=box];
+        }
+        
+        subgraph cluster_advanced {
+            label="Advanced Policies";
+            style="rounded";
+            color="#16a085";
+            
+            MaxAvgWait [label="MaxAverageWaitPolicy", fillcolor="#abebc6", shape=box];
+            OldestPacket [label="OldestPacketPolicy", fillcolor="#abebc6", shape=box];
+            Aging [label="AgingPolicy", fillcolor="#abebc6", shape=box];
+        }
+        
+        subgraph cluster_optimization {
+            label="Optimization Policies";
+            style="rounded";
+            color="#16a085";
+            
+            SallesUtility [label="SallesUtilityPolicy", fillcolor="#a9dfbf", shape=box];
+            CMuRule [label="CMuRulePolicy", fillcolor="#a9dfbf", shape=box];
+            WeightedRR [label="WeightedRoundRobinPolicy", fillcolor="#a9dfbf", shape=box];
+            WhittleIndex [label="WhittleIndexPolicy", fillcolor="#a9dfbf", shape=box];
+        }
+    }
+
+    // ========== Meta-Policies ==========
+    subgraph cluster_meta {
+        label="Meta-Policies (Orchestration)";
+        color="#9b59b6";
+        style="rounded,bold";
+        fontcolor="#9b59b6";
+        
+        PolicyOrchestrator [label="{PolicyOrchestrator\n(Min-Heap)|+ selectQueue() : int\l+ createPolicy(name) : unique_ptr\l|- minHeap : priority_queue\l}", 
+                           fillcolor="#d7bde2", shape=record];
+        
+        MarkovSwitching [label="{MarkovSwitchingPolicy|+ selectQueue() : int\l+ loadMatrix(csv) : void\l|- subPolicies : vector\l- stateToPolicy : map\l}", 
+                        fillcolor="#d7bde2", shape=record];
+    }
+
+    // ========== Simulation Core ==========
+    subgraph cluster_core {
+        label="Simulation Core";
+        color="#e67e22";
+        style="rounded,bold";
+        fontcolor="#e67e22";
+        
+        Simulator [label="{Simulator|+ run() : void\l+ processArrival(id) : void\l+ processDeparture() : void\l+ processSample(idx) : void\l|- currentTime : double\l- serverBusy : bool\l- policyPtr : shared_ptr\l- eventQueue : priority_queue\l}", 
+                  fillcolor="#f5cba7", shape=record];
+        
+        Queue [label="{Queue|+ tryEnqueue(packet) : bool\l+ dequeue() : Packet\l+ getLength() : int\l+ getAvgWait() : double\l|- id : int\l- capacity : int\l- serviceRate : double\l- weight : double\l- utilityType : int\l}", 
+              fillcolor="#fadbd8", shape=record];
+        
+        Config [label="{SimulationConfig|+ schedulingPolicy : shared_ptr\l+ targetOccupancy : double\l+ serviceRates : vector\l+ arrivalRates : vector\l+ randomSeed : ulong\l}", 
+               fillcolor="#f5cba7", shape=record];
+    }
+
+    // ========== Simulation Scenarios ==========
+    subgraph cluster_scenarios {
+        label="Simulation Scenarios\n(11 policies × 4 occupancy)";
+        color="#c0392b";
+        style="rounded,bold";
+        fontcolor="#c0392b";
+        
+        node [shape=cylinder, fillcolor="#f1948a"];
+        
+        Rho080 [label="ρ = 0.800\n(Low Load)"];
+        Rho090 [label="ρ = 0.900\n(Medium Load)"];
+        Rho095 [label="ρ = 0.950\n(High Load)"];
+        Rho099 [label="ρ = 0.999\n(Critical Load)"];
+    }
+
+    // ========== Analysis Pipeline ==========
+    subgraph cluster_analysis {
+        label="Analysis Pipeline";
+        color="#1abc9c";
+        style="rounded,bold";
+        fontcolor="#1abc9c";
+        
+        node [shape=note, fillcolor="#a3e4d7"];
+        
+        CSVOutput [label="CSV Output\n(44 files)"];
+        ResidualAnalysis [label="residual_analysis.py\n(Statistical Tests)"];
+        TrainPolicy [label="train_policy.py\n(ML Optimization)"];
+        PolicyMatrix [label="policy_matrix.csv\n(State→Policy Map)"];
+    }
+
+    // ========== Test Suite ==========
+    subgraph cluster_tests {
+        label="Test Suite (7 Suites, 60+ Tests)";
+        color="#f39c12";
+        style="rounded,bold";
+        fontcolor="#f39c12";
+        
+        node [shape=folder, fillcolor="#fdebd0"];
+        
+        TestPolicies [label="test_policies.cpp\n(11 policies tested)"];
+        TestSimulator [label="test_simulator.cpp"];
+        TestQueue [label="test_queue.cpp"];
+        TestEvents [label="test_events.cpp"];
+        TestRNG [label="test_rng.cpp"];
+        TestLittles [label="test_littles_law.cpp"];
+        TestWindow [label="test_measurement_window.cpp"];
+    }
+
+    // ========== Inheritance Relationships ==========
+    edge [arrowhead="onormal", style="dashed", color="#34495e", penwidth=1.5];
+    
+    LongestQueue -> SchedulingPolicy;
+    ShortestQueue -> SchedulingPolicy;
+    RoundRobin -> SchedulingPolicy;
+    StrictPriority -> SchedulingPolicy;
+    MaxAvgWait -> SchedulingPolicy;
+    OldestPacket -> SchedulingPolicy;
+    Aging -> SchedulingPolicy;
+    SallesUtility -> SchedulingPolicy;
+    CMuRule -> SchedulingPolicy;
+    WeightedRR -> SchedulingPolicy;
+    WhittleIndex -> SchedulingPolicy;
+    
+    PolicyOrchestrator -> SchedulingPolicy [color="#9b59b6", penwidth=2];
+    MarkovSwitching -> SchedulingPolicy [color="#9b59b6", penwidth=2];
+
+    // ========== Core Dependencies ==========
+    edge [arrowhead="vee", style="solid", color="#2980b9", penwidth=1.5];
+    
+    Simulator -> Queue [label="manages 3×", headlabel="*"];
+    Simulator -> Config [label="uses"];
+    Config -> SchedulingPolicy [label="holds", color="#e74c3c", penwidth=2];
+    Simulator -> SchedulingPolicy [label="delegates to", color="#e74c3c", penwidth=2];
+    SchedulingPolicy -> SystemState [label="receives", style="dotted"];
+    SystemState -> Queue [label="references", style="dotted"];
+
+    // ========== Meta-Policy Dependencies ==========
+    edge [color="#8e44ad", penwidth=1.5];
+    
+    PolicyOrchestrator -> LongestQueue [label="creates", style="dotted"];
+    PolicyOrchestrator -> ShortestQueue [style="dotted"];
+    PolicyOrchestrator -> MaxAvgWait [style="dotted"];
+    
+    MarkovSwitching -> PolicyMatrix [label="loads"];
+    MarkovSwitching -> LongestQueue [label="contains", style="dashed"];
+    MarkovSwitching -> ShortestQueue [style="dashed"];
+    MarkovSwitching -> RoundRobin [style="dashed"];
+    MarkovSwitching -> StrictPriority [style="dashed"];
+    MarkovSwitching -> MaxAvgWait [style="dashed"];
+
+    // ========== Simulation Flow ==========
+    edge [color="#16a085", penwidth=2];
+    
+    Config -> Simulator [label="configures"];
+    Simulator -> Rho080 [label="runs", lhead="cluster_scenarios"];
+    Rho080 -> CSVOutput [ltail="cluster_scenarios", label="generates"];
+    
+    // ========== Analysis Flow ==========
+    edge [color="#1abc9c", penwidth=1.5];
+    
+    CSVOutput -> ResidualAnalysis [label="input"];
+    CSVOutput -> TrainPolicy [label="input"];
+    TrainPolicy -> PolicyMatrix [label="generates"];
+    PolicyMatrix -> MarkovSwitching [label="feeds back"];
+
+    // ========== Test Coverage ==========
+    edge [color="#d68910", style="dotted", penwidth=1];
+    
+    TestPolicies -> SchedulingPolicy [label="validates"];
+    TestSimulator -> Simulator;
+    TestQueue -> Queue;
+    TestRNG -> Simulator [label="validates RNG"];
+
+    // ========== Legend ==========
+    subgraph cluster_legend {
+        label="Legend";
+        style="rounded";
+        color="#7f8c8d";
+        
+        node [shape=plaintext, fillcolor="none", fontsize=10];
+        
+        Legend [label=<
+            <table border="0" cellborder="0" cellspacing="0">
+                <tr><td align="left"><b>Policy Count:</b> 11 Concrete + 2 Meta = 13 Total</td></tr>
+                <tr><td align="left"><b>Occupancy Scenarios:</b> ρ ∈ {0.8, 0.9, 0.95, 0.999}</td></tr>
+                <tr><td align="left"><b>Simulation Runs:</b> 11 policies × 4 scenarios = 44 configurations</td></tr>
+                <tr><td align="left"><b>Batch Default:</b> 7 policies × 4 scenarios = 28 runs</td></tr>
+                <tr><td align="left"><b>Random Seed:</b> Fixed at 42 (deterministic)</td></tr>
+                <tr><td align="left"><b>Test Coverage:</b> 100% of policies tested</td></tr>
+            </table>
+        >];
+    }
+}
