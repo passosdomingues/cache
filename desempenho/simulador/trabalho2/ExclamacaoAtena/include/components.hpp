@@ -34,11 +34,12 @@ struct Packet {
     /**
      * @brief Parameterized constructor
      * @param packetId Unique packet identifier
-     * @param arrivalTime Packet arrival time
-     * @param serviceRate Service rate for the packet
+     * @param packetArrivalTime Packet arrival time
+     * @param packetServiceRate Service rate for the packet
      */
-    Packet(unsigned long packetId, double arrivalTime, double serviceRate) 
-        : id(packetId), arrivalTime(arrivalTime), serviceRate(serviceRate), serviceStartTime(0), departureTime(0) {}
+    Packet(unsigned long packetId, double packetArrivalTime, double packetServiceRate) 
+        : id(packetId), arrivalTime(packetArrivalTime), serviceRate(packetServiceRate), 
+          serviceStartTime(0), departureTime(0) {}
 };
 
 #include "measurement_window.hpp"
@@ -73,12 +74,12 @@ public:
      * @brief Construct a new Queue object
      * @param queueId Queue identifier
      * @param queueCapacity Maximum queue capacity
-     * @param serviceRate Service rate (mu)
+     * @param queueServiceRate Service rate (mu)
      * @param policy Packet discard policy
      * @param queueWeight Queue weight for weighted policies
      * @param queueUtilityType Utility type identifier
      */
-    Queue(int queueId, int queueCapacity, double serviceRate, 
+    Queue(int queueId, int queueCapacity, double queueServiceRate, 
           DiscardPolicy policy = DiscardPolicy::DROP_TAIL, 
           double queueWeight = 1.0, int queueUtilityType = 0);
 
