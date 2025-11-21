@@ -1,3 +1,8 @@
+/**
+ * @file events.hpp
+ * @brief Event system for discrete event simulation
+ */
+
 #ifndef EVENTS_HPP
 #define EVENTS_HPP
 
@@ -9,24 +14,35 @@
  * @brief Event types in the simulation
  */
 enum class EventType {
-    ARRIVAL,
-    DEPARTURE, 
-    SAMPLE
+    ARRIVAL,    ///< Packet arrival event
+    DEPARTURE,  ///< Packet departure event 
+    SAMPLE      ///< Statistics sampling event
 };
 
 /**
  * @brief Event structure for discrete event simulation
  */
 struct Event {
-    double timestamp;
-    EventType type;
-    int queueId; // -1 for system-wide events
-    unsigned long packetId; // For tracking specific packets
+    double timestamp;        ///< Event timestamp
+    EventType type;          ///< Event type
+    int queueId;             ///< Queue identifier (-1 for system-wide events)
+    unsigned long packetId;  ///< Packet identifier for tracking specific packets
 
-    Event(double ts, EventType t, int qid = -1, unsigned long pid = 0) 
-        : timestamp(ts), type(t), queueId(qid), packetId(pid) {}
+    /**
+     * @brief Construct a new Event object
+     * @param eventTimestamp Event timestamp
+     * @param eventType Event type
+     * @param eventQueueId Queue identifier (-1 for system-wide events)
+     * @param eventPacketId Packet identifier
+     */
+    Event(double eventTimestamp, EventType eventType, int eventQueueId = -1, unsigned long eventPacketId = 0) 
+        : timestamp(eventTimestamp), type(eventType), queueId(eventQueueId), packetId(eventPacketId) {}
     
-    // Comparison for min-heap (earliest timestamp first)
+    /**
+     * @brief Comparison operator for min-heap (earliest timestamp first)
+     * @param other Event to compare with
+     * @return bool True if this event has greater timestamp than other
+     */
     bool operator>(const Event& other) const {
         return timestamp > other.timestamp;
     }
@@ -37,15 +53,45 @@ struct Event {
  */
 class EventQueue {
 private:
-    std::vector<Event> heap;
+    std::vector<Event> heap;  ///< Underlying heap storage
 
+    /**
+     * @brief Heapify up operation for maintaining heap property
+     * @param index Starting index for heapify up
+     */
     void heapifyUp(int index);
+    
+    /**
+     * @brief Heapify down operation for maintaining heap property
+     * @param index Starting index for heapify down
+     */
     void heapifyDown(int index);
+    
+    /**
+     * @brief Get parent index
+     * @param index Current index
+     * @return int Parent index
+     */
     int parent(int index) const { return (index - 1) / 2; }
+    
+    /**
+     * @brief Get left child index
+     * @param index Current index
+     * @return int Left child index
+     */
     int leftChild(int index) const { return 2 * index + 1; }
+    
+    /**
+     * @brief Get right child index
+     * @param index Current index
+     * @return int Right child index
+     */
     int rightChild(int index) const { return 2 * index + 2; }
 
 public:
+    /**
+     * @brief Construct a new Event Queue object
+     */
     EventQueue() = default;
     
     /**
@@ -57,12 +103,14 @@ public:
     /**
      * @brief Pop event from the queue
      * @return Event The earliest event
+     * @throws std::runtime_error if queue is empty
      */
     Event popEvent();
     
     /**
      * @brief Peek at the earliest event without removing it
      * @return Event The earliest event
+     * @throws std::runtime_error if queue is empty
      */
     Event peekEvent() const;
     

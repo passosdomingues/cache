@@ -1,8 +1,16 @@
+/**
+ * @file test_events.cpp
+ * @brief Unit tests for event system functionality
+ */
+
 #include "../include/events.hpp"
 #include <cassert>
 #include <iostream>
 #include <vector>
 
+/**
+ * @brief Test event creation and basic properties
+ */
 void testEventCreation() {
     std::cout << "Testing event creation...";
     Event arrival(1.0, EventType::ARRIVAL, 0);
@@ -23,16 +31,22 @@ void testEventCreation() {
     std::cout << " PASSED\n";
 }
 
+/**
+ * @brief Test event comparison operations
+ */
 void testEventComparison() {
     std::cout << "Testing event comparison...";
     Event early(1.0, EventType::ARRIVAL);
     Event late(2.0, EventType::DEPARTURE);
     
-    assert(early > late == false); // early is not greater than late
-    assert(late > early == true);  // late is greater than early
+    assert((early > late) == false); // early is not greater than late
+    assert((late > early) == true);  // late is greater than early
     std::cout << " PASSED\n";
 }
 
+/**
+ * @brief Test empty queue behavior and error handling
+ */
 void testEmptyQueue() {
     std::cout << "Testing empty queue behavior...";
     EventQueue queue;
@@ -56,6 +70,9 @@ void testEmptyQueue() {
     std::cout << " PASSED\n";
 }
 
+/**
+ * @brief Test single event operations
+ */
 void testSingleEvent() {
     std::cout << "Testing single event...";
     EventQueue queue;
@@ -77,6 +94,9 @@ void testSingleEvent() {
     std::cout << " PASSED\n";
 }
 
+/**
+ * @brief Test multiple events ordering in min-heap
+ */
 void testMultipleEventsOrder() {
     std::cout << "Testing multiple events ordering...";
     EventQueue queue;
@@ -104,6 +124,9 @@ void testMultipleEventsOrder() {
     std::cout << " PASSED\n";
 }
 
+/**
+ * @brief Test queue clear operation
+ */
 void testQueueClear() {
     std::cout << "Testing queue clear...";
     EventQueue queue;
@@ -120,6 +143,10 @@ void testQueueClear() {
     std::cout << " PASSED\n";
 }
 
+/**
+ * @brief Main function for events tests
+ * @return int Exit status
+ */
 int main() {
     std::cout << "Running Events tests...\n";
     

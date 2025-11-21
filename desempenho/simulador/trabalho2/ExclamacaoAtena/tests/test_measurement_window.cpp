@@ -1,8 +1,16 @@
+/**
+ * @file test_measurement_window.cpp
+ * @brief Unit tests for circular measurement window functionality
+ */
+
 #include "../include/measurement_window.hpp"
 #include <cassert>
 #include <iostream>
 #include <cmath>
 
+/**
+ * @brief Test measurement window initialization
+ */
 void testInitialization() {
     std::cout << "Testing measurement window initialization...";
     CircularMeasurementWindow window;
@@ -14,6 +22,9 @@ void testInitialization() {
     std::cout << " PASSED\n";
 }
 
+/**
+ * @brief Test packet addition to window
+ */
 void testAddPackets() {
     std::cout << "Testing packet addition...";
     CircularMeasurementWindow window;
@@ -21,21 +32,24 @@ void testAddPackets() {
     
     window.addPacket(1.0, 2.0, 1.0);
     assert(window.getTotalPacketsInWindow() == 1);
-    assert(window.getSumArrivalTimestamps() == 1.0);
-    assert(window.getSumWaitingTimes() == 1.0);
+    assert(std::abs(window.getSumArrivalTimestamps() - 1.0) < 1e-10);
+    assert(std::abs(window.getSumWaitingTimes() - 1.0) < 1e-10);
     
     window.addPacket(2.0, 4.0, 2.0);
     assert(window.getTotalPacketsInWindow() == 2);
-    assert(window.getSumArrivalTimestamps() == 3.0);
-    assert(window.getSumWaitingTimes() == 3.0);
+    assert(std::abs(window.getSumArrivalTimestamps() - 3.0) < 1e-10);
+    assert(std::abs(window.getSumWaitingTimes() - 3.0) < 1e-10);
     
     window.addPacket(3.0, 6.0, 3.0);
     assert(window.getTotalPacketsInWindow() == 3);
-    assert(window.getSumArrivalTimestamps() == 6.0);
-    assert(window.getSumWaitingTimes() == 6.0);
+    assert(std::abs(window.getSumArrivalTimestamps() - 6.0) < 1e-10);
+    assert(std::abs(window.getSumWaitingTimes() - 6.0) < 1e-10);
     std::cout << " PASSED\n";
 }
 
+/**
+ * @brief Test circular buffer behavior (wraparound)
+ */
 void testCircularBehavior() {
     std::cout << "Testing circular behavior...";
     CircularMeasurementWindow window;
@@ -50,11 +64,14 @@ void testCircularBehavior() {
     window.addPacket(4.0, 8.0, 4.0);
     
     assert(window.getTotalPacketsInWindow() == 3);
-    assert(window.getSumArrivalTimestamps() == 9.0); // 2.0 + 3.0 + 4.0
-    assert(window.getSumWaitingTimes() == 9.0); // 2.0 + 3.0 + 4.0
+    assert(std::abs(window.getSumArrivalTimestamps() - 9.0) < 1e-10); // 2.0 + 3.0 + 4.0
+    assert(std::abs(window.getSumWaitingTimes() - 9.0) < 1e-10); // 2.0 + 3.0 + 4.0
     std::cout << " PASSED\n";
 }
 
+/**
+ * @brief Test average calculations
+ */
 void testAverageCalculations() {
     std::cout << "Testing average calculations...";
     CircularMeasurementWindow window;
@@ -72,6 +89,9 @@ void testAverageCalculations() {
     std::cout << " PASSED\n";
 }
 
+/**
+ * @brief Test empty window behavior
+ */
 void testEmptyWindow() {
     std::cout << "Testing empty window behavior...";
     CircularMeasurementWindow window;
@@ -82,6 +102,9 @@ void testEmptyWindow() {
     std::cout << " PASSED\n";
 }
 
+/**
+ * @brief Test window clear operation
+ */
 void testClear() {
     std::cout << "Testing window clear...";
     CircularMeasurementWindow window;
@@ -98,6 +121,10 @@ void testClear() {
     std::cout << " PASSED\n";
 }
 
+/**
+ * @brief Main function for measurement window tests
+ * @return int Exit status
+ */
 int main() {
     std::cout << "Running Measurement Window tests...\n";
     
