@@ -1,0 +1,20 @@
+ENHANCED REGRESSION ANALYSIS RESULTS
+==================================================
+
+LinearRegression:
+  MSE: 0.0000
+  R2: 1.0000
+
+Ridge:
+  MSE: 0.0000
+  R2: 1.0000
+
+RandomForest:
+  MSE: 0.0000
+  R2: 1.0000
+
+GradientBoosting:
+  MSE: 0.0000
+  R2: 1.0000
+
+Best Model: LinearRegression (R2: 1.0000)

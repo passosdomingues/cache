@@ -1,0 +1,22 @@
+
+SCIENTIFIC ANALYSIS: STATISTICAL DISTRIBUTION ANALYSIS (HISTOGRAM & QQ)
+================================================================================
+PLOT ID: 06
+FILENAME: plot_06_statistical_distribution_analysis.png
+GENERATED: 2025-11-24 12:22:46
+DATA: 380,160 samples from 11 policies × 4 load scenarios
+
+HYPOTHESIS:
+Distributional properties (skew, heavy tails) differ across metrics and reveal modeling needs.
+
+EXPECTED INSIGHTS:
+- EW and EN may show heavy-tail behavior at high loads
+  - Little's error distribution indicates systematic bias or noise
+
+METHODOLOGY:
+Histogram + KDE and QQ-plot against normal distribution for each selected metric, sampled for performance.
+
+IMPACT:
+Guides transformation choices (log, robust scaling) for modeling and hypothesis testing.
+
+SPECIAL FOCUS: Policies MAX_AVG_WAIT, ROUND_ROBIN, SALLES_UTILITY are highlighted for comparative analysis.

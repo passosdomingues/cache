@@ -3,7 +3,7 @@ ENHANCED COMPREHENSIVE QUEUEING SYSTEM ANALYSIS - EXECUTIVE SUMMARY
 
 ANALYSIS OVERVIEW:
 ------------------------------
-Analysis Date: 2025-11-24 11:12:06
+Analysis Date: 2025-11-24 12:24:07
 Data Files Processed: 44/44
 Total Data Points: 380,160
 Policies Analyzed: 11
@@ -30,7 +30,7 @@ RECOMMENDATIONS:
 
 GENERATED ARTIFACTS:
 ------------------------------
-• Visualizations: 3 high-resolution plots
+• Visualizations: 8 high-resolution plots
 • Statistical Reports: Comprehensive analysis and tests
 • ML Results: Regression performance and feature importance
 • Scientific Captions: Detailed analysis justifications

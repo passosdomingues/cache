@@ -1,0 +1,29 @@
+
+SCIENTIFIC ANALYSIS: PROTAGONIST POLICY COMPARATIVE ANALYSIS
+================================================================================
+PLOT ID: 02
+FILENAME: plot_02_protagonist_policy_deep_dive.png
+GENERATED: 2025-11-24 12:22:40
+DATA: 380,160 samples from 11 policies × 4 load scenarios
+
+HYPOTHESIS:
+The three protagonist policies (MAX_AVG_WAIT, ROUND_ROBIN, SALLES_UTILITY)
+             exhibit distinct performance characteristics across different load scenarios,
+             with each policy excelling in specific operational regimes.
+
+EXPECTED INSIGHTS:
+- MAX_AVG_WAIT: Optimizes for wait time minimization across loads
+  - ROUND_ROBIN: Provides consistent fairness but may sacrifice optimality
+  - SALLES_UTILITY: Balances multiple objectives using utility optimization
+  - Each policy shows different sensitivity to increasing load
+
+METHODOLOGY:
+Comprehensive boxplot analysis of 4 key metrics (columns) for each of the
+              3 protagonist policies (rows) across all 4 load scenarios, enabling
+              detailed comparative performance assessment.
+
+IMPACT:
+Enables informed selection among protagonist policies based on specific
+         application requirements and expected load conditions.
+
+SPECIAL FOCUS: Policies MAX_AVG_WAIT, ROUND_ROBIN, SALLES_UTILITY are highlighted for comparative analysis.

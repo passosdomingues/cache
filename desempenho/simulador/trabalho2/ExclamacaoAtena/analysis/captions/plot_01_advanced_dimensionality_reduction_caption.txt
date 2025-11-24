@@ -3,7 +3,7 @@ SCIENTIFIC ANALYSIS: COMPREHENSIVE DIMENSIONALITY REDUCTION
 ================================================================================
 PLOT ID: 01
 FILENAME: plot_01_advanced_dimensionality_reduction.png
-GENERATED: 2025-11-24 11:12:04
+GENERATED: 2025-11-24 12:24:06
 DATA: 380,160 samples from 11 policies × 4 load scenarios
 
 HYPOTHESIS:

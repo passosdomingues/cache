@@ -43,12 +43,12 @@ class AnalysisConfig:
     @brief Central configuration for the comprehensive MM1 Analysis Pipeline
     """
     # Path configurations
-    rawDataPath: str = "../results/raw"
-    outputPath: str = "../analysis"
-    plotsPath: str = "../analysis/plots"
-    summariesPath: str = "../analysis/summaries"
-    captionsPath: str = "../analysis/captions"
-    mlResultsPath: str = "../analysis/ml_results"
+    rawDataPath: str = "results/raw"
+    outputPath: str = "analysis"
+    plotsPath: str = "analysis/plots"
+    summariesPath: str = "analysis/summaries"
+    captionsPath: str = "analysis/captions"
+    mlResultsPath: str = "analysis/ml_results"
 
     # Graphics settings
     dpi: int = 300

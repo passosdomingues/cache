@@ -1,21 +1,41 @@
 COMPREHENSIVE VISUALIZATION CATALOG
 ============================================================
 
-Generated: 2025-11-24 11:12:02
-Total Plots: 3
+Generated: 2025-11-24 12:24:05
+Total Plots: 8
 Total Policies: 11
 Load Scenarios: [0.8, 0.9, 0.95, 0.999]
 Protagonist Policies: MAX_AVG_WAIT, ROUND_ROBIN, SALLES_UTILITY
 
-PLOT 01: Comprehensive Policy Performance Radar Analysis
-  Filename: plot_01_performance_radar_all_policies.png
+PLOT 01: Comprehensive Temporal Analysis Across All Load Scenarios
+  Filename: plot_01_temporal_evolution_all_scenarios.png
+  Analysis: temporal_evolution_all_scenarios
+--------------------------------------------------
+PLOT 02: Protagonist Policy Comparative Analysis
+  Filename: plot_02_protagonist_policy_deep_dive.png
+  Analysis: protagonist_policy_deep_dive
+--------------------------------------------------
+PLOT 03: Load Scenario Comparative Analysis (Aggregate Metrics)
+  Filename: plot_03_load_scenario_comparative_analysis.png
+  Analysis: load_scenario_comparative_analysis
+--------------------------------------------------
+PLOT 04: Correlation Analysis Matrix (Core Numeric Features)
+  Filename: plot_04_correlation_analysis_matrix.png
+  Analysis: correlation_analysis_matrix
+--------------------------------------------------
+PLOT 05: Performance Radar for All Policies
+  Filename: plot_05_performance_radar_all_policies.png
   Analysis: performance_radar_all_policies
 --------------------------------------------------
-PLOT 02: Advanced Statistical Distribution Analysis
-  Filename: plot_02_statistical_distribution_analysis.png
+PLOT 06: Statistical Distribution Analysis (Histogram & QQ)
+  Filename: plot_06_statistical_distribution_analysis.png
   Analysis: statistical_distribution_analysis
 --------------------------------------------------
-PLOT 03: Policy Behavioral Clustering Analysis
-  Filename: plot_03_behavioral_clustering_analysis.png
+PLOT 07: Behavioral Clustering Analysis (KMeans + t-SNE)
+  Filename: plot_07_behavioral_clustering_analysis.png
   Analysis: behavioral_clustering_analysis
+--------------------------------------------------
+PLOT 08: Comparative Performance Dashboard (Protagonist Policies)
+  Filename: plot_08_comparative_performance_dashboard.png
+  Analysis: comparative_performance_dashboard
 --------------------------------------------------
