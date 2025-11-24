@@ -18,21 +18,19 @@ import seaborn as sns
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
-from dataclasses import dataclass, field
 import warnings
 
 # Machine Learning Imports
-from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LinearRegression, Ridge
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, GradientBoostingRegressor
-from sklearn.svm import SVC
-from sklearn.metrics import mean_squared_error, r2_score, classification_report, confusion_matrix, accuracy_score
-from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
 from sklearn.cluster import KMeans
 from sklearn.manifold import TSNE
 import scipy.stats as stats
-from scipy import signal
+import statsmodels.api as sm
 
 warnings.filterwarnings('ignore')
 
@@ -40,7 +38,6 @@ warnings.filterwarnings('ignore')
 # =================================================================================
 # CONFIGURATION & CONSTANTS - Enhanced Configuration
 # =================================================================================
-@dataclass
 class AnalysisConfig:
     """
     @brief Central configuration for the comprehensive MM1 Analysis Pipeline
@@ -70,10 +67,10 @@ class AnalysisConfig:
     timeSeriesSampleStep: int = 10
 
     # Special focus policies
-    protagonistPolicies: List[str] = field(default_factory=lambda: ["MAX_AVG_WAIT", "ROUND_ROBIN", "SALLES_UTILITY"])
+    protagonistPolicies: List[str] = ["MAX_AVG_WAIT", "ROUND_ROBIN", "SALLES_UTILITY"]
 
     # All load scenarios
-    loadScenarios: List[float] = field(default_factory=lambda: [0.800, 0.900, 0.950, 0.999])
+    loadScenarios: List[float] = [0.800, 0.900, 0.950, 0.999]
 
     @classmethod
     def getProtagonistPolicies(cls):
@@ -284,6 +281,10 @@ class EnhancedDataIngestionEngine:
                 self.globalDataFrame[col] = self.globalDataFrame[col].fillna(self.globalDataFrame[col].median())
 
         logger.info("Performing advanced feature engineering for all policies and scenarios")
+
+        # Create system_lambda if it doesn't exist
+        if 'system_lambda' not in self.globalDataFrame.columns:
+            self.globalDataFrame['system_lambda'] = self.globalDataFrame['arrival_rate_est']
 
         self.globalDataFrame['total_queue_length'] = (
                 self.globalDataFrame['q0_len'] +
@@ -684,7 +685,7 @@ IMPACT: Enables informed selection among protagonist policies based on specific
 
             for j, load in enumerate(loadScenarios):
                 vals = pivotMean[load] if load in pivotMean.columns else np.zeros(len(pivotMean))
-                errs = pivotStd[load] if f'{load}' in pivotStd.columns else np.zeros(len(pivotMean))
+                errs = pivotStd[load] if load in pivotStd.columns else np.zeros(len(pivotMean))
                 ax.bar(x + offsets[j], vals, width=width, label=f'ρ={load}', alpha=0.9)
                 ax.errorbar(x + offsets[j], vals, yerr=errs, fmt='none', ecolor='black', alpha=0.6, capsize=3)
 
@@ -819,7 +820,6 @@ IMPACT: Rapid identification of balanced vs specialized policies for decision ma
             axHist.set_title(f'Histogram & KDE: {metric}', fontweight='bold')
             axHist.grid(True, alpha=0.25)
 
-            import statsmodels.api as sm
             sm.qqplot(data, line='s', ax=axQq)
             axQq.set_title(f'QQ-Plot (Normal) - {metric}', fontweight='bold')
             axQq.grid(True, alpha=0.25)
@@ -1076,7 +1076,7 @@ class EnhancedStatisticalLearningEngine:
         logger.info("Performing comprehensive statistical analysis for all policies and scenarios")
 
         descriptiveStats = self.df.groupby(['policy_name', 'load_factor']).agg({
-            'system_EW': ['mean', 'std', 'min', 'max', 'skew', 'kurt'],
+            'system_EW': ['mean', 'std', 'min', 'max'],
             'system_EN': ['mean', 'std', 'min', 'max'],
             'total_occupancy': ['mean', 'max'],
             'throughput_efficiency': ['mean']
