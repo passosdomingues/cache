@@ -1,0 +1,37 @@
+ENHANCED COMPREHENSIVE QUEUEING SYSTEM ANALYSIS - EXECUTIVE SUMMARY
+================================================================================
+
+ANALYSIS OVERVIEW:
+------------------------------
+Analysis Date: 2025-11-24 11:12:06
+Data Files Processed: 44/44
+Total Data Points: 380,160
+Policies Analyzed: 11
+Load Scenarios: [0.8, 0.9, 0.95, 0.999]
+Protagonist Policies: MAX_AVG_WAIT, ROUND_ROBIN, SALLES_UTILITY
+
+KEY FINDINGS:
+------------------------------
+• Best Overall Performance: AGING (EW: 0.00)
+• Protagonist Policy Rankings:
+  - MAX_AVG_WAIT: Rank 4, EW: 0.00
+  - ROUND_ROBIN: Rank 6, EW: 0.00
+  - SALLES_UTILITY: Rank 7, EW: 0.00
+• System EW Predictability: R² = 1.000
+• Data Quality: 0.00% data retained
+
+RECOMMENDATIONS:
+------------------------------
+1. Review protagonist policy performance for specific use cases
+2. Consider load sensitivity when selecting policies
+3. Use comprehensive visualizations for policy comparison
+4. Leverage statistical insights for capacity planning
+5. Consider tradeoffs between performance, stability, and fairness
+
+GENERATED ARTIFACTS:
+------------------------------
+• Visualizations: 3 high-resolution plots
+• Statistical Reports: Comprehensive analysis and tests
+• ML Results: Regression performance and feature importance
+• Scientific Captions: Detailed analysis justifications
+• Executive Summary: High-level findings and recommendations

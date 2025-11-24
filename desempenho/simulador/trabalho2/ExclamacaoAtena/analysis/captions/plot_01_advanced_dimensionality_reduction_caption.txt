@@ -1,0 +1,29 @@
+
+SCIENTIFIC ANALYSIS: COMPREHENSIVE DIMENSIONALITY REDUCTION
+================================================================================
+PLOT ID: 01
+FILENAME: plot_01_advanced_dimensionality_reduction.png
+GENERATED: 2025-11-24 11:12:04
+DATA: 380,160 samples from 11 policies × 4 load scenarios
+
+HYPOTHESIS:
+The complete dataset containing all policies and load scenarios occupies
+             a structured low-dimensional manifold, with clear separation between
+             policies and systematic variation with load conditions.
+
+EXPECTED INSIGHTS:
+- Policies form distinct clusters in the behavioral space
+  - Load factor systematically influences system state
+  - Protagonist policies may occupy characteristic regions
+  - Dimensionality reduction reveals fundamental system structure
+
+METHODOLOGY:
+Principal Component Analysis applied to the complete dataset containing
+              all 11 policies across 4 load scenarios, visualizing both policy-based
+              and load-based patterns in the reduced dimensional space.
+
+IMPACT:
+Provides fundamental understanding of the complete policy design space
+         and supports development of reduced-order models for system optimization.
+
+SPECIAL FOCUS: Policies MAX_AVG_WAIT, ROUND_ROBIN, SALLES_UTILITY are highlighted for comparative analysis.

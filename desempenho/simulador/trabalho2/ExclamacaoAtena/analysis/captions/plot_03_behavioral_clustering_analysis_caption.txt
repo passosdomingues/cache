@@ -1,0 +1,31 @@
+
+SCIENTIFIC ANALYSIS: POLICY BEHAVIORAL CLUSTERING ANALYSIS
+================================================================================
+PLOT ID: 03
+FILENAME: plot_03_behavioral_clustering_analysis.png
+GENERATED: 2025-11-24 11:12:02
+DATA: 380,160 samples from 11 policies × 4 load scenarios
+
+HYPOTHESIS:
+Scheduling policies form natural clusters in behavioral space based on
+             their operational characteristics, with protagonist policies potentially
+             defining distinct behavioral clusters or representing optimal points
+             in the policy design space.
+
+EXPECTED INSIGHTS:
+- Policies cluster by fundamental algorithmic characteristics
+  - Protagonist policies may define cluster centroids or boundaries
+  - Similarity matrix reveals policy families and relationships
+  - Feature loadings identify key discriminative performance metrics
+
+METHODOLOGY:
+Multi-method behavioral analysis combining PCA for dimensionality
+              reduction, K-means clustering for group identification, feature
+              importance analysis, and similarity matrix computation.
+
+IMPACT:
+Enables policy taxonomy development, informed policy selection from
+         similar families, and identification of unique vs redundant policies
+         in the design space.
+
+SPECIAL FOCUS: Policies MAX_AVG_WAIT, ROUND_ROBIN, SALLES_UTILITY are highlighted for comparative analysis.

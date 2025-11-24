@@ -1,0 +1,29 @@
+
+SCIENTIFIC ANALYSIS: SYSTEM PERFORMANCE PREDICTION MODELING
+================================================================================
+PLOT ID: 01
+FILENAME: plot_01_enhanced_regression_analysis.png
+GENERATED: 2025-11-24 11:12:06
+DATA: 380,160 samples from 11 policies × 4 load scenarios
+
+HYPOTHESIS:
+System expected wait time can be accurately predicted from current
+             system state metrics using machine learning regression, with the
+             complete dataset providing robust training for predictive models.
+
+EXPECTED INSIGHTS:
+- Ensemble methods achieve high prediction accuracy
+  - Feature importance reveals key drivers of system performance
+  - Comprehensive dataset enables robust model training
+  - Predictive models can support real-time system optimization
+
+METHODOLOGY:
+Comparative evaluation of regression algorithms using the complete
+              dataset with rigorous train-test splitting and comprehensive performance
+              metrics. Best model: Linear Regression with R² = 1.000
+
+IMPACT:
+Enables development of predictive models for system performance optimization
+         and proactive management based on current system state.
+
+SPECIAL FOCUS: Policies MAX_AVG_WAIT, ROUND_ROBIN, SALLES_UTILITY are highlighted for comparative analysis.

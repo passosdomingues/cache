@@ -1,0 +1,21 @@
+COMPREHENSIVE VISUALIZATION CATALOG
+============================================================
+
+Generated: 2025-11-24 11:12:02
+Total Plots: 3
+Total Policies: 11
+Load Scenarios: [0.8, 0.9, 0.95, 0.999]
+Protagonist Policies: MAX_AVG_WAIT, ROUND_ROBIN, SALLES_UTILITY
+
+PLOT 01: Comprehensive Policy Performance Radar Analysis
+  Filename: plot_01_performance_radar_all_policies.png
+  Analysis: performance_radar_all_policies
+--------------------------------------------------
+PLOT 02: Advanced Statistical Distribution Analysis
+  Filename: plot_02_statistical_distribution_analysis.png
+  Analysis: statistical_distribution_analysis
+--------------------------------------------------
+PLOT 03: Policy Behavioral Clustering Analysis
+  Filename: plot_03_behavioral_clustering_analysis.png
+  Analysis: behavioral_clustering_analysis
+--------------------------------------------------
