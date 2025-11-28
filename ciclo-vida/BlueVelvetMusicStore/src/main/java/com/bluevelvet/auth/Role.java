@@ -16,9 +16,9 @@ public class Role {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 20)
+    @Column(length = 30)  // Increased from 20 to 30
     private RoleName name;
-    
+
     public Role(RoleName name) {
         this.name = name;
     }
