@@ -44,12 +44,28 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-            .authorizeHttpRequests(auth -> 
-                auth.requestMatchers("/api/auth/**").permitAll()
-                    .requestMatchers("/api/test/**").permitAll()
-                    .requestMatchers("/h2-console/**").permitAll()
-                    .anyRequest().authenticated()
-            );
+                .authorizeHttpRequests(auth ->
+                        auth
+                                // Public endpoints
+                                .requestMatchers("/").permitAll()
+                                .requestMatchers("/index.html").permitAll()
+                                .requestMatchers("/error").permitAll()
+                                .requestMatchers("/favicon.ico").permitAll()
+                                .requestMatchers("/static/**").permitAll()
+                                .requestMatchers("/css/**").permitAll()
+                                .requestMatchers("/js/**").permitAll()
+                                .requestMatchers("/images/**").permitAll()
+
+                                // API endpoints
+                                .requestMatchers("/api/auth/**").permitAll()
+                                .requestMatchers("/api/test/**").permitAll()
+
+                                // H2 Console (dev only)
+                                .requestMatchers("/h2-console/**").permitAll()
+
+                                // All other requests require authentication
+                                .anyRequest().authenticated()
+                );
         
         // Fix for H2 console
         http.headers(headers -> headers.frameOptions(frameOption -> frameOption.sameOrigin()));
