@@ -14,62 +14,83 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Security configuration class for authentication and authorization setup
+ *
+ * @brief Configures Spring Security components including authentication provider,
+ *         password encoder, and HTTP security rules
+ * @author Developer
+ */
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
+
     @Autowired
     UserDetailsServiceImpl userDetailsService;
 
+    /**
+     * @brief Configures the authentication provider with custom user details service
+     * @return DaoAuthenticationProvider configured with user details service and password encoder
+     */
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
-   
         return authProvider;
     }
 
+    /**
+     * @brief Exposes AuthenticationManager as a bean
+     * @param authConfig AuthenticationConfiguration provided by Spring
+     * @return AuthenticationManager instance
+     * @throws Exception if authentication manager cannot be created
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 
+    /**
+     * @brief Configures password encoder for secure password storage
+     * @return BCryptPasswordEncoder instance for password hashing
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * @brief Configures HTTP security rules and filters
+     * @param http HttpSecurity instance to configure
+     * @return SecurityFilterChain with defined security rules
+     * @throws Exception if security configuration fails
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth ->
                         auth
                                 // Public endpoints
                                 .requestMatchers("/").permitAll()
-                                .requestMatchers("/index.html").permitAll()
-                                .requestMatchers("/error").permitAll()
-                                .requestMatchers("/favicon.ico").permitAll()
-                                .requestMatchers("/static/**").permitAll()
-                                .requestMatchers("/css/**").permitAll()
-                                .requestMatchers("/js/**").permitAll()
-                                .requestMatchers("/images/**").permitAll()
-
-                                // API endpoints
-                                .requestMatchers("/api/auth/**").permitAll()
+                                .requestMatchers("/api/status").permitAll()
                                 .requestMatchers("/api/test/**").permitAll()
+                                .requestMatchers("/api/categories/public").permitAll()
 
-                                // H2 Console (dev only)
+                                // Authentication endpoints
+                                .requestMatchers("/api/auth/**").permitAll()
+
+                                // H2 Console for development
                                 .requestMatchers("/h2-console/**").permitAll()
 
                                 // All other requests require authentication
                                 .anyRequest().authenticated()
                 );
-        
-        // Fix for H2 console
+
+        // Configure headers for H2 console compatibility
         http.headers(headers -> headers.frameOptions(frameOption -> frameOption.sameOrigin()));
-        
+
         http.authenticationProvider(authenticationProvider());
 
         return http.build();

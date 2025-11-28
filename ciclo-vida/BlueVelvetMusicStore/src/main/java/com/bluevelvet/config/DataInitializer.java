@@ -3,10 +3,18 @@ package com.bluevelvet.config;
 import com.bluevelvet.auth.Role;
 import com.bluevelvet.auth.RoleName;
 import com.bluevelvet.auth.RoleRepository;
+import com.bluevelvet.category.Category;
+import com.bluevelvet.category.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+/**
+ * Data initializer for pre-populating database with essential data
+ *
+ * @brief Loads initial roles and categories into the database on application startup
+ * @author Developer
+ */
 @Component
 public class DataInitializer implements CommandLineRunner {
 
@@ -14,40 +22,80 @@ public class DataInitializer implements CommandLineRunner {
     RoleRepository roleRepository;
 
     @Autowired
-    com.bluevelvet.category.CategoryRepository categoryRepository;
+    CategoryRepository categoryRepository;
 
+    /**
+     * @brief Executes data initialization on application startup
+     * @param args Command line arguments passed to the application
+     * @throws Exception if data initialization fails
+     */
     @Override
     public void run(String... args) throws Exception {
+        initializeRoles();
+        initializeCategories();
+    }
+
+    /**
+     * @brief Initializes system roles if they don't exist
+     */
+    private void initializeRoles() {
         if (roleRepository.count() == 0) {
             roleRepository.save(new Role(RoleName.ROLE_ADMINISTRATOR));
             roleRepository.save(new Role(RoleName.ROLE_SALES_MANAGER));
             roleRepository.save(new Role(RoleName.ROLE_EDITOR));
             roleRepository.save(new Role(RoleName.ROLE_ASSISTANT));
             roleRepository.save(new Role(RoleName.ROLE_SHIPPING_MANAGER));
+
+            System.out.println("Initial roles created successfully");
         }
+    }
 
+    /**
+     * @brief Initializes product categories if they don't exist
+     */
+    private void initializeCategories() {
         if (categoryRepository.count() == 0) {
-            // Root Categories
-            com.bluevelvet.category.Category music = new com.bluevelvet.category.Category("Music");
-            music.setEnabled(true);
-            categoryRepository.save(music);
+            // Create root categories
+            Category musicCategory = new Category("Music");
+            musicCategory.setEnabled(true);
+            categoryRepository.save(musicCategory);
 
-            com.bluevelvet.category.Category books = new com.bluevelvet.category.Category("Books");
-            books.setEnabled(true);
-            categoryRepository.save(books);
+            Category booksCategory = new Category("Books");
+            booksCategory.setEnabled(true);
+            categoryRepository.save(booksCategory);
 
-            com.bluevelvet.category.Category tshirts = new com.bluevelvet.category.Category("T-Shirts");
-            tshirts.setEnabled(true);
-            categoryRepository.save(tshirts);
+            Category tshirtsCategory = new Category("T-Shirts");
+            tshirtsCategory.setEnabled(true);
+            categoryRepository.save(tshirtsCategory);
 
-            // Subcategories for Music
-            categoryRepository.save(new com.bluevelvet.category.Category("Vinyl", music));
-            categoryRepository.save(new com.bluevelvet.category.Category("CD", music));
-            categoryRepository.save(new com.bluevelvet.category.Category("MP3", music));
+            // Create subcategories for Music
+            Category vinylCategory = new Category("Vinyl");
+            vinylCategory.setParent(musicCategory);
+            vinylCategory.setEnabled(true);
+            categoryRepository.save(vinylCategory);
 
-            // Subcategories for Books
-            categoryRepository.save(new com.bluevelvet.category.Category("Biographies", books));
-            categoryRepository.save(new com.bluevelvet.category.Category("Sheet Music", books));
+            Category cdCategory = new Category("CD");
+            cdCategory.setParent(musicCategory);
+            cdCategory.setEnabled(true);
+            categoryRepository.save(cdCategory);
+
+            Category mp3Category = new Category("MP3");
+            mp3Category.setParent(musicCategory);
+            mp3Category.setEnabled(true);
+            categoryRepository.save(mp3Category);
+
+            // Create subcategories for Books
+            Category biographiesCategory = new Category("Biographies");
+            biographiesCategory.setParent(booksCategory);
+            biographiesCategory.setEnabled(true);
+            categoryRepository.save(biographiesCategory);
+
+            Category sheetMusicCategory = new Category("Sheet Music");
+            sheetMusicCategory.setParent(booksCategory);
+            sheetMusicCategory.setEnabled(true);
+            categoryRepository.save(sheetMusicCategory);
+
+            System.out.println("Initial categories created successfully");
         }
     }
 }

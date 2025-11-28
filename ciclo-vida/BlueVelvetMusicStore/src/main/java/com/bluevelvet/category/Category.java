@@ -3,52 +3,159 @@ package com.bluevelvet.category;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
 
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * Entity class representing a product category in the system
+ *
+ * @brief Defines the category structure with hierarchical support for subcategories
+ * @author Developer
+ */
 @Entity
-@Table(name = "categories", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "name")
-})
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Table(name = "categories")
 public class Category {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotBlank
     @Size(max = 100)
-    @Column(nullable = false, unique = true)
+    @Column(name = "name", unique = true, nullable = false)
     private String name;
 
+    @Column(name = "image_file_name")
     private String imageFileName;
 
-    private boolean enabled;
+    @Column(name = "enabled", nullable = false)
+    private Boolean enabled = true;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
-    @ToString.Exclude
-    @com.fasterxml.jackson.annotation.JsonBackReference
     private Category parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
-    @ToString.Exclude
-    @com.fasterxml.jackson.annotation.JsonManagedReference
-    private List<Category> children = new ArrayList<>();
-
-    public Category(String name) {
-        this.name = name;
+    /**
+     * @brief Default constructor for JPA
+     */
+    public Category() {
     }
 
-    public Category(String name, Category parent) {
-        this.name = name;
-        this.parent = parent;
+    /**
+     * @brief Parameterized constructor for creating category instances
+     * @param categoryName The name of the category
+     * @param categoryImageFileName The filename of the category image
+     * @param categoryEnabled The enabled status of the category
+     * @param categoryParent The parent category for hierarchical structure
+     */
+    public Category(String categoryName, String categoryImageFileName, Boolean categoryEnabled, Category categoryParent) {
+        this.name = categoryName;
+        this.imageFileName = categoryImageFileName;
+        this.enabled = categoryEnabled;
+        this.parent = categoryParent;
+    }
+
+    /**
+     * @brief Parameterized constructor for basic category creation
+     * @param categoryName The name of the category
+     */
+    public Category(String categoryName) {
+        this.name = categoryName;
+        this.enabled = true;
+    }
+
+    // Getters and Setters with JavaDoc
+
+    /**
+     * @brief Retrieves the category identifier
+     * @return Long representing the unique category ID
+     */
+    public Long getId() {
+        return id;
+    }
+
+    /**
+     * @brief Sets the category identifier
+     * @param categoryId The unique identifier for the category
+     */
+    public void setId(Long categoryId) {
+        this.id = categoryId;
+    }
+
+    /**
+     * @brief Retrieves the category name
+     * @return String containing the category name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @brief Sets the category name
+     * @param categoryName The name to set for the category
+     */
+    public void setName(String categoryName) {
+        this.name = categoryName;
+    }
+
+    /**
+     * @brief Retrieves the category image filename
+     * @return String containing the image filename
+     */
+    public String getImageFileName() {
+        return imageFileName;
+    }
+
+    /**
+     * @brief Sets the category image filename
+     * @param categoryImageFileName The image filename to associate with the category
+     */
+    public void setImageFileName(String categoryImageFileName) {
+        this.imageFileName = categoryImageFileName;
+    }
+
+    /**
+     * @brief Retrieves the enabled status of the category
+     * @return Boolean indicating if the category is enabled
+     */
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    /**
+     * @brief Sets the enabled status of the category
+     * @param categoryEnabled The enabled status to set for the category
+     */
+    public void setEnabled(Boolean categoryEnabled) {
+        this.enabled = categoryEnabled;
+    }
+
+    /**
+     * @brief Retrieves the parent category
+     * @return Category object representing the parent, or null if root category
+     */
+    public Category getParent() {
+        return parent;
+    }
+
+    /**
+     * @brief Sets the parent category
+     * @param categoryParent The parent category to set for hierarchical structure
+     */
+    public void setParent(Category categoryParent) {
+        this.parent = categoryParent;
+    }
+
+    /**
+     * @brief Generates string representation of the category
+     * @return String containing category details
+     */
+    @Override
+    public String toString() {
+        return "Category{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", imageFileName='" + imageFileName + '\'' +
+                ", enabled=" + enabled +
+                ", parent=" + (parent != null ? parent.getName() : "null") +
+                '}';
     }
 }
