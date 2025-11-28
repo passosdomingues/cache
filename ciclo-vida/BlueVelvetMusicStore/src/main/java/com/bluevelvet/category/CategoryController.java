@@ -25,23 +25,28 @@ public class CategoryController {
     public ResponseEntity<List<Category>> getAllCategories() {
         return ResponseEntity.ok(categoryService.getAllCategories());
     }
-    
+
     @GetMapping("/root")
     public ResponseEntity<Page<Category>> getRootCategories(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "name") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDir) {
-        
+
         Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        
+
         return ResponseEntity.ok(categoryService.getRootCategories(pageable));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Category> getCategoryById(@PathVariable Long id) {
         return ResponseEntity.ok(categoryService.getCategoryById(id));
+    }
+
+    @GetMapping("/{id}/path")
+    public ResponseEntity<List<Category>> getCategoryPath(@PathVariable Long id) {
+        return ResponseEntity.ok(categoryService.getCategoryPath(id));
     }
 
     @PostMapping
@@ -58,7 +63,7 @@ public class CategoryController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-    
+
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     public ResponseEntity<?> updateCategory(

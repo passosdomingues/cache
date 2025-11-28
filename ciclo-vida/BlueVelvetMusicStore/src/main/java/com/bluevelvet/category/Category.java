@@ -35,10 +35,12 @@ public class Category {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     @ToString.Exclude
+    @com.fasterxml.jackson.annotation.JsonBackReference
     private Category parent;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     @ToString.Exclude
+    @com.fasterxml.jackson.annotation.JsonManagedReference
     private List<Category> children = new ArrayList<>();
 
     public Category(String name) {

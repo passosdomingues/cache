@@ -13,6 +13,9 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     RoleRepository roleRepository;
 
+    @Autowired
+    com.bluevelvet.category.CategoryRepository categoryRepository;
+
     @Override
     public void run(String... args) throws Exception {
         if (roleRepository.count() == 0) {
@@ -21,6 +24,30 @@ public class DataInitializer implements CommandLineRunner {
             roleRepository.save(new Role(RoleName.ROLE_EDITOR));
             roleRepository.save(new Role(RoleName.ROLE_ASSISTANT));
             roleRepository.save(new Role(RoleName.ROLE_SHIPPING_MANAGER));
+        }
+
+        if (categoryRepository.count() == 0) {
+            // Root Categories
+            com.bluevelvet.category.Category music = new com.bluevelvet.category.Category("Music");
+            music.setEnabled(true);
+            categoryRepository.save(music);
+
+            com.bluevelvet.category.Category books = new com.bluevelvet.category.Category("Books");
+            books.setEnabled(true);
+            categoryRepository.save(books);
+
+            com.bluevelvet.category.Category tshirts = new com.bluevelvet.category.Category("T-Shirts");
+            tshirts.setEnabled(true);
+            categoryRepository.save(tshirts);
+
+            // Subcategories for Music
+            categoryRepository.save(new com.bluevelvet.category.Category("Vinyl", music));
+            categoryRepository.save(new com.bluevelvet.category.Category("CD", music));
+            categoryRepository.save(new com.bluevelvet.category.Category("MP3", music));
+
+            // Subcategories for Books
+            categoryRepository.save(new com.bluevelvet.category.Category("Biographies", books));
+            categoryRepository.save(new com.bluevelvet.category.Category("Sheet Music", books));
         }
     }
 }
