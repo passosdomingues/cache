@@ -1,9 +1,17 @@
 # Blue Velvet Music Store Makefile
+# Orchestration for Docker Compose (Legacy Compatibility)
 
-.PHONY: all build up down logs clean help
+# Ensure legacy builder is used to prevent 'ContainerConfig' errors in docker-compose 1.29.x
+export DOCKER_BUILDKIT=0
+export COMPOSE_DOCKER_CLI_BUILD=0
+
+.PHONY: all build up run down logs clean help
 
 # Default target
-all: build up
+all: clean build up
+
+# Run alias (user convenience)
+run: up
 
 # Build the applications
 build:
@@ -29,7 +37,7 @@ logs:
 # Clean up
 clean:
 	@echo "Cleaning up..."
-	docker-compose down -v
+	docker-compose down --rmi all --volumes --remove-orphans
 	./gradlew clean
 
 # Help

@@ -8,9 +8,7 @@
 package com.bluevelvet.controller;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import jakarta.validation.Valid;
 
@@ -32,7 +30,6 @@ import com.bluevelvet.auth.RoleName;
 import com.bluevelvet.auth.User;
 import com.bluevelvet.auth.UserRepository;
 import com.bluevelvet.auth.RoleRepository;
-import com.bluevelvet.auth.UserDetailsImpl;
 import com.bluevelvet.payload.request.LoginRequest;
 import com.bluevelvet.payload.request.SignupRequest;
 import com.bluevelvet.payload.response.MessageResponse;
