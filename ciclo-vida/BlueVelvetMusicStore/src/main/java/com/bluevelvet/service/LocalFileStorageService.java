@@ -1,7 +1,8 @@
 /**
- * @brief Implementation of FileStorageService for local file system.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Implementation of FileStorageService for local file system.
+ * @us US-1306 Create category of products - Granularity: Service Implementation
  */
 package com.bluevelvet.service;
 

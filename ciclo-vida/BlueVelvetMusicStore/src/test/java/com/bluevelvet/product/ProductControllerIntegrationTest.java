@@ -1,7 +1,8 @@
 /**
- * @brief Product Controller Integration Test.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Integration Test for Product Controller.
+ * @us US-2100 List products within a category - Granularity: Integration Test
  */
 package com.bluevelvet.product;
 

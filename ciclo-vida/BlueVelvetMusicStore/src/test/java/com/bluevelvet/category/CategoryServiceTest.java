@@ -1,7 +1,8 @@
 /**
- * @brief Category Service Test.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Unit Test for Category Service.
+ * @us US-1306 Create category of products - Granularity: Unit Test
  */
 package com.bluevelvet.category;
 

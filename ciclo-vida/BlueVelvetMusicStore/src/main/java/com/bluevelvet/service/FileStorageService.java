@@ -1,7 +1,8 @@
 /**
- * @brief Service interface for file storage operations.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Service interface for file storage operations.
+ * @us US-1306 Create category of products - Granularity: Service Interface
  */
 package com.bluevelvet.service;
 

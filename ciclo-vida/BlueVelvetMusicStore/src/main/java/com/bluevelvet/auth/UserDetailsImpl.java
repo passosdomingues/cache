@@ -1,7 +1,8 @@
 /**
- * @brief Implementation of UserDetails interface.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Implementation of UserDetails interface.
+ * @us US-1232 Login - Granularity: User Context
  */
 package com.bluevelvet.auth;
 

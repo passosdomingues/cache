@@ -1,7 +1,8 @@
 /**
- * @brief Test controller for access level validation and endpoint testing
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Test controller for access level validation and endpoint testing
+ * @us US-0000 Shared - Granularity: Testing Endpoint
  */
 package com.bluevelvet.controller;
 

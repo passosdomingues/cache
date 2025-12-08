@@ -1,7 +1,8 @@
 /**
- * @brief Security configuration class for authentication and authorization setup
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Security configuration class for authentication and authorization setup
+ * @us US-1232 Login - Granularity: Security Configuration
  */
 package com.bluevelvet.config;
 

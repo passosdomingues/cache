@@ -1,7 +1,9 @@
 /**
- * @brief Repository interface for category data access operations
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Repository interface for category data access operations
+ * @us US-1306 Create category of products - Granularity: Data Access
+ * @us US-0907 List categories of products - Granularity: Data Access
  */
 package com.bluevelvet.category;
 

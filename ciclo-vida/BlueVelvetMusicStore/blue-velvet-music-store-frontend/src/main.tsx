@@ -1,3 +1,9 @@
+/**
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025-12-08
+ * @brief Application entry point.
+ * @us US-0000 Project Configuration - Granularity: Entry Point
+ */
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'

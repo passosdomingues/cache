@@ -1,7 +1,9 @@
 /**
- * @brief Integration Test.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Integration Test for Category Controller.
+ * @us US-1306 Create category of products - Granularity: Integration Test
+ * @us US-0907 List categories of products - Granularity: Integration Test
  */
 package com.bluevelvet.category;
 

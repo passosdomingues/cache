@@ -1,7 +1,8 @@
 /**
- * @brief Service class for product-related operations.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Service class for product-related operations.
+ * @us US-2100 List products within a category - Granularity: Business Logic
  */
 package com.bluevelvet.product;
 

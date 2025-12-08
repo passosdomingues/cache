@@ -1,7 +1,8 @@
 /**
- * @brief Home controller for root and status endpoints
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Home controller for root and status endpoints
+ * @us US-0000 Project Configuration - Granularity: Status Endpoint
  */
 package com.bluevelvet.controller;
 

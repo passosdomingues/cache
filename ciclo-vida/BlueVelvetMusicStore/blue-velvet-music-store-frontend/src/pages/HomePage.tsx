@@ -1,3 +1,9 @@
+/**
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025-12-08
+ * @brief Home page component.
+ * @us US-0000 Project Configuration - Granularity: Page
+ */
 import React, { useState } from 'react';
 import ProductCard from '../components/ProductCard';
 import CategoryBadge from '../components/CategoryBadge';

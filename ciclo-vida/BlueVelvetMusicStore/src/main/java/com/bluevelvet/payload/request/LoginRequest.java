@@ -1,7 +1,8 @@
 /**
- * @brief Request object for user login.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Request object for user login.
+ * @us US-1232 Login - Granularity: DTO
  */
 package com.bluevelvet.payload.request;
 

@@ -1,3 +1,9 @@
+/**
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025-12-08
+ * @brief Navigation bar component.
+ * @us US-0000 Project Configuration - Granularity: UI Component
+ */
 import React from 'react';
 import { useTheme } from '../context/ThemeContext';
 import '../styles/NavigationBar.css'; // We will create this

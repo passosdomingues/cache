@@ -1,3 +1,9 @@
+/**
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025-12-08
+ * @brief Sidebar menu component.
+ * @us US-0000 Project Configuration - Granularity: UI Component
+ */
 import React from 'react';
 import '../styles/SidebarMenu.css';
 

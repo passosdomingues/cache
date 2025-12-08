@@ -1,7 +1,8 @@
 /**
- * @brief Entity class representing a product in the system.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Entity class representing a product in the system.
+ * @us US-2100 List products within a category - Granularity: Entity Definition
  */
 package com.bluevelvet.product;
 

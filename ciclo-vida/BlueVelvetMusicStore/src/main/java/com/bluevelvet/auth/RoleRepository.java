@@ -1,7 +1,8 @@
 /**
- * @brief Repository interface for Role entity.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30 [20:09]
+ * @lastUpdate 2025-12-08
+ * @brief Repository interface for Role entity.
+ * @us US-1603 Register new users - Granularity: Data Access
  */
 package com.bluevelvet.auth;
 

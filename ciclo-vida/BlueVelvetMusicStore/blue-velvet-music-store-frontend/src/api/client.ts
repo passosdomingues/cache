@@ -1,3 +1,9 @@
+/**
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025-12-08
+ * @brief Axios client configuration with interceptors.
+ * @us US-0000 Project Configuration - Granularity: API Client
+ */
 import axios from 'axios';
 
 const API_URL = '/api';

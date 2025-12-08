@@ -1,7 +1,9 @@
 /**
- * @brief Repository interface for User entity.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Repository interface for User entity.
+ * @us US-1232 Login - Granularity: Data Access
+ * @us US-1603 Register new users - Granularity: Data Access
  */
 package com.bluevelvet.auth;
 

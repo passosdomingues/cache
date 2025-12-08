@@ -1,3 +1,9 @@
+/**
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025-12-08
+ * @brief Category list page.
+ * @us US-0907 List categories of products - Granularity: Page
+ */
 import React from 'react';
 
 

@@ -1,7 +1,9 @@
 /**
- * @brief Controller for authentication operations.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Controller for authentication operations.
+ * @us US-1232 Login - Granularity: Controller Endpoint
+ * @us US-1603 Register new users - Granularity: Controller Endpoint
  */
 package com.bluevelvet.controller;
 

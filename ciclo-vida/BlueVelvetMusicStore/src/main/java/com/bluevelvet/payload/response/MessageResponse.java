@@ -1,7 +1,8 @@
 /**
- * @brief Response object for messages.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Response object for messages.
+ * @us US-0000 Shared - Granularity: DTO
  */
 package com.bluevelvet.payload.response;
 

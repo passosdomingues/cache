@@ -1,7 +1,9 @@
 /**
- * @brief Entity class representing a product category in the system
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Entity class representing a product category in the system
+ * @us US-1306 Create category of products - Granularity: Entity Definition
+ * @us US-0907 List categories of products - Granularity: Entity Definition
  */
 package com.bluevelvet.category;
 

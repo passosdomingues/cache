@@ -1,7 +1,8 @@
 /**
- * @brief Data initializer for pre-populating database with essential data
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Data initializer for pre-populating database with essential data
+ * @us US-1306 Create category of products - Granularity: Database Seeding
  */
 package com.bluevelvet.config;
 

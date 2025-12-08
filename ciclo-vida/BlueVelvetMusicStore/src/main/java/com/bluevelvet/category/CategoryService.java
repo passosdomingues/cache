@@ -1,7 +1,9 @@
 /**
- * @brief Service layer for category business logic and operations
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Service layer for category business logic and operations
+ * @us US-1306 Create category of products - Granularity: Business Logic
+ * @us US-0907 List categories of products - Granularity: Business Logic
  */
 package com.bluevelvet.category;
 

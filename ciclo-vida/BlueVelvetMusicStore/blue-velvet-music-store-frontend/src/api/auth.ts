@@ -1,33 +1,24 @@
+/**
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025-12-08
+ * @brief Authentication API service.
+ * @us US-1232 Login - Granularity: API Service
+ */
 import client from './client';
 
 export interface LoginRequest {
-    username: string;
+    email: string; // Changed from username to email to match Backend
     password?: string;
 }
 
 export interface AuthResponse {
     token: string;
-    username: string;
+    username: string; // OR email
     roles: string[];
 }
 
 export const login = async (credentials: LoginRequest): Promise<AuthResponse> => {
-    // TODO: Replace with actual endpoint /api/auth/login
-    // For now, we simulate a successful login
-    // return client.post<AuthResponse>('/auth/login', credentials).then(res => res.data);
-
-    console.log('Simulating login for:', credentials);
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            const fakeToken = "fake-jwt-token-" + Date.now();
-            localStorage.setItem('token', fakeToken);
-            resolve({
-                token: fakeToken,
-                username: credentials.username,
-                roles: ['ROLE_USER']
-            });
-        }, 500);
-    });
+    return client.post<AuthResponse>('/auth/signin', credentials).then(res => res.data);
 };
 
 export const logout = () => {

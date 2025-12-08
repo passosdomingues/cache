@@ -1,7 +1,9 @@
 /**
- * @brief Represents a user in the system.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Represents a user in the system.
+ * @us US-1603 Register new users - Granularity: User Entity
+ * @us US-1232 Login - Granularity: User Entity
  */
 package com.bluevelvet.auth;
 

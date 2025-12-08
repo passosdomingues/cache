@@ -1,7 +1,8 @@
 /**
- * @brief Main application class for Blue Velvet Music Store.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Main application class for Blue Velvet Music Store.
+ * @us US-0000 Project Configuration - Granularity: Application Entry Point
  */
 package com.bluevelvet;
 

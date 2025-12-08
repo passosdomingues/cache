@@ -1,3 +1,9 @@
+/**
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025-12-08
+ * @brief Product list page.
+ * @us US-2100 List products within a category - Granularity: Page
+ */
 import React, { useState } from 'react';
 import ProductCard from '../components/ProductCard';
 

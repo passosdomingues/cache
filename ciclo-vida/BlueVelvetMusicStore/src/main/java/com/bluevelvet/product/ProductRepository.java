@@ -1,7 +1,8 @@
 /**
- * @brief Repository interface for Product entity.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Repository interface for Product entity.
+ * @us US-2100 List products within a category - Granularity: Data Access
  */
 package com.bluevelvet.product;
 

@@ -1,3 +1,9 @@
+/**
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025-12-08
+ * @brief Root component defining routes and layout.
+ * @us US-0000 Project Configuration - Granularity: Routing
+ */
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import NavigationBar from './components/NavigationBar';
 import SidebarMenu from './components/SidebarMenu';

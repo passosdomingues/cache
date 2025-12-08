@@ -1,7 +1,8 @@
 /**
- * @brief Global exception handler for the application.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Global exception handler for the application.
+ * @us US-0000 Shared - Granularity: Exception Handling
  */
 package com.bluevelvet.exception;
 

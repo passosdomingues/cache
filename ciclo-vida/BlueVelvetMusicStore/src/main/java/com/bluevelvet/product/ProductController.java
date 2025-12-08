@@ -1,7 +1,8 @@
 /**
- * @brief REST controller for product management operations.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief REST controller for product management operations.
+ * @us US-2100 List products within a category - Granularity: API Endpoint
  */
 package com.bluevelvet.product;
 

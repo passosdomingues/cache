@@ -1,7 +1,8 @@
 /**
- * @brief Request object for user registration.
  * @author Rafael Passos Domingues
- * @lastUpdate 2025 November 30
+ * @lastUpdate 2025-12-08
+ * @brief Request object for user registration.
+ * @us US-1603 Register new users - Granularity: DTO
  */
 package com.bluevelvet.payload.request;
 
