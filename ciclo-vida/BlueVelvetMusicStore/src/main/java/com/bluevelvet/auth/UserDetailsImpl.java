@@ -1,3 +1,8 @@
+/**
+ * @brief Implementation of UserDetails interface.
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025 November 30
+ */
 package com.bluevelvet.auth;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -10,6 +15,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * @brief Custom implementation of the Spring Security UserDetails interface.
+ */
 public class UserDetailsImpl implements UserDetails {
     private static final long serialVersionUID = 1L;
 
@@ -22,14 +30,26 @@ public class UserDetailsImpl implements UserDetails {
 
     private Collection<? extends GrantedAuthority> authorities;
 
+    /**
+     * @brief Constructs a new UserDetailsImpl.
+     * @param id          The user's ID.
+     * @param email       The user's email.
+     * @param password    The user's password.
+     * @param authorities The user's authorities.
+     */
     public UserDetailsImpl(Long id, String email, String password,
-                           Collection<? extends GrantedAuthority> authorities) {
+            Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.authorities = authorities;
     }
 
+    /**
+     * @brief Builds a UserDetailsImpl from a User entity.
+     * @param user The User entity.
+     * @return A new UserDetailsImpl instance.
+     */
     public static UserDetailsImpl build(User user) {
         List<GrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName().name()))

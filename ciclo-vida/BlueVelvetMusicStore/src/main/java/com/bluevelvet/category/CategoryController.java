@@ -1,3 +1,8 @@
+/**
+ * @brief REST controller for category management operations
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025 November 30
+ */
 package com.bluevelvet.category;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,10 +16,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * REST controller for category management operations
- *
- * @brief Provides endpoints for category CRUD operations and hierarchical management
- * @author Developer
+ * @brief Provides endpoints for category CRUD operations and hierarchical
+ *        management
  */
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -139,7 +142,7 @@ public class CategoryController {
     /**
      * @brief Updates an existing category (admin only)
      * @param categoryId The ID of the category to update
-     * @param category The updated category data
+     * @param category   The updated category data
      * @return ResponseEntity with updated category or error message
      */
     @PutMapping("/{categoryId}")

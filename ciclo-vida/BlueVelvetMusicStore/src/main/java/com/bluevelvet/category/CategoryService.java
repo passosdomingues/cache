@@ -1,29 +1,38 @@
+/**
+ * @brief Service layer for category business logic and operations
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025 November 30
+ */
 package com.bluevelvet.category;
 
+import com.bluevelvet.service.FileStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Service layer for category business logic and operations
- *
  * @brief Handles category-related business operations and data processing
- * @author Developer
  */
 @Service
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final FileStorageService fileStorageService;
 
     /**
-     * @brief Constructor for dependency injection of category repository
+     * @brief Constructor for dependency injection of category repository and file
+     *        storage service
      * @param categoryRepository The category repository to be injected
+     * @param fileStorageService The file storage service to be injected
      */
     @Autowired
-    public CategoryService(CategoryRepository categoryRepository) {
+    public CategoryService(CategoryRepository categoryRepository, FileStorageService fileStorageService) {
         this.categoryRepository = categoryRepository;
+        this.fileStorageService = fileStorageService;
     }
 
     /**
@@ -56,6 +65,8 @@ public class CategoryService {
      * @return Optional containing the category if found
      */
     public Optional<Category> getCategoryById(Long categoryId) {
+        if (categoryId == null)
+            return Optional.empty();
         return categoryRepository.findById(categoryId);
     }
 
@@ -74,6 +85,42 @@ public class CategoryService {
      * @return The saved category entity
      */
     public Category saveCategory(Category category) {
+        if (category == null)
+            throw new IllegalArgumentException("Category must not be null");
+        return categoryRepository.save(category);
+    }
+
+    /**
+     * @brief Creates a new category with the specified details.
+     * @param name     The name of the category.
+     * @param parentId The ID of the parent category (can be null).
+     * @param enabled  Whether the category is enabled.
+     * @param image    The image file for the category (can be null).
+     * @return The created Category.
+     * @throws IOException              If an error occurs while saving the image.
+     * @throws IllegalArgumentException If the category name already exists or
+     *                                  parent is not found.
+     */
+    public Category createCategory(String name, Long parentId, boolean enabled, MultipartFile image)
+            throws IOException {
+        if (categoryRepository.existsByName(name)) {
+            throw new IllegalArgumentException("Category with name " + name + " already exists");
+        }
+
+        Category category = new Category(name);
+        category.setEnabled(enabled);
+
+        if (parentId != null) {
+            Category parent = categoryRepository.findById(parentId)
+                    .orElseThrow(() -> new IllegalArgumentException("Parent category not found with ID: " + parentId));
+            category.setParent(parent);
+        }
+
+        if (image != null && !image.isEmpty()) {
+            String fileName = fileStorageService.saveFile(image);
+            category.setImageFileName(fileName);
+        }
+
         return categoryRepository.save(category);
     }
 
@@ -82,7 +129,9 @@ public class CategoryService {
      * @param categoryId The ID of the category to delete
      */
     public void deleteCategory(Long categoryId) {
-        categoryRepository.deleteById(categoryId);
+        if (categoryId != null) {
+            categoryRepository.deleteById(categoryId);
+        }
     }
 
     /**
@@ -109,6 +158,8 @@ public class CategoryService {
      * @return List of child categories
      */
     public List<Category> getSubcategoriesByParentId(Long parentCategoryId) {
+        if (parentCategoryId == null)
+            return List.of();
         Optional<Category> parentCategory = categoryRepository.findById(parentCategoryId);
         return parentCategory.map(categoryRepository::findByParent)
                 .orElse(List.of());
@@ -117,9 +168,12 @@ public class CategoryService {
     /**
      * @brief Toggles the enabled status of a category
      * @param categoryId The ID of the category to toggle
-     * @return Boolean indicating the new enabled status, or null if category not found
+     * @return Boolean indicating the new enabled status, or null if category not
+     *         found
      */
     public Boolean toggleCategoryStatus(Long categoryId) {
+        if (categoryId == null)
+            return null;
         Optional<Category> categoryOptional = categoryRepository.findById(categoryId);
         if (categoryOptional.isPresent()) {
             Category category = categoryOptional.get();

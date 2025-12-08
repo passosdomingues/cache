@@ -1,3 +1,8 @@
+/**
+ * @brief Data initializer for pre-populating database with essential data
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025 November 30
+ */
 package com.bluevelvet.config;
 
 import com.bluevelvet.auth.Role;
@@ -10,10 +15,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 /**
- * Data initializer for pre-populating database with essential data
- *
- * @brief Loads initial roles and categories into the database on application startup
- * @author Developer
+ * @brief Loads initial roles and categories into the database on application
+ *        startup
  */
 @Component
 public class DataInitializer implements CommandLineRunner {

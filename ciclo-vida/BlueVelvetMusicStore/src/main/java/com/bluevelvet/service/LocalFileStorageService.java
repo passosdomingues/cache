@@ -1,3 +1,8 @@
+/**
+ * @brief Implementation of FileStorageService for local file system.
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025 November 30
+ */
 package com.bluevelvet.service;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -13,23 +18,36 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
+/**
+ * @brief Service for storing files locally.
+ */
 @Service
 public class LocalFileStorageService implements FileStorageService {
 
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
+    /**
+     * @brief Saves a file to the local file system.
+     * @param file The file to save.
+     * @return The unique name of the saved file.
+     * @throws IOException If an I/O error occurs.
+     */
     @Override
     public String saveFile(MultipartFile file) throws IOException {
-        String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null) {
+            throw new IOException("File name cannot be null");
+        }
+        String fileName = StringUtils.cleanPath(originalFilename);
         String uniqueFileName = UUID.randomUUID().toString() + "_" + fileName;
-        
+
         Path uploadPath = Paths.get(uploadDir);
-        
+
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
         }
-        
+
         try (InputStream inputStream = file.getInputStream()) {
             Path filePath = uploadPath.resolve(uniqueFileName);
             Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
@@ -39,6 +57,10 @@ public class LocalFileStorageService implements FileStorageService {
         }
     }
 
+    /**
+     * @brief Deletes a file from the local file system.
+     * @param fileName The name of the file to delete.
+     */
     @Override
     public void deleteFile(String fileName) {
         // Implementation for deleting file locally

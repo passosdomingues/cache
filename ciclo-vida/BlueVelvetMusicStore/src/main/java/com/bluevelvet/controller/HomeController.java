@@ -1,3 +1,8 @@
+/**
+ * @brief Home controller for root and status endpoints
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025 November 30
+ */
 package com.bluevelvet.controller;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -8,10 +13,7 @@ import org.springframework.http.ResponseEntity;
 import com.bluevelvet.payload.response.MessageResponse;
 
 /**
- * Home controller for root and status endpoints
- *
  * @brief Provides basic API information and health status endpoints
- * @author Developer
  */
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -24,8 +26,7 @@ public class HomeController {
     @GetMapping("/")
     public ResponseEntity<?> home() {
         return ResponseEntity.ok(new MessageResponse(
-                "Blue Velvet Music Store API is running. Access /h2-console for database management."
-        ));
+                "Blue Velvet Music Store API is running. Access /h2-console for database management."));
     }
 
     /**

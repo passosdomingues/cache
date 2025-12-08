@@ -1,3 +1,8 @@
+/**
+ * @brief Product Controller Integration Test.
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025 November 30
+ */
 package com.bluevelvet.product;
 
 import com.bluevelvet.category.Category;
@@ -22,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@SuppressWarnings("null")
 public class ProductControllerIntegrationTest {
 
     @Autowired

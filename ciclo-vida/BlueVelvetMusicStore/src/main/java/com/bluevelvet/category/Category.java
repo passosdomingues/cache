@@ -1,14 +1,20 @@
+/**
+ * @brief Entity class representing a product category in the system
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025 November 30
+ */
 package com.bluevelvet.category;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Entity class representing a product category in the system
- *
- * @brief Defines the category structure with hierarchical support for subcategories
- * @author Developer
+ * @brief Defines the category structure with hierarchical support for
+ *        subcategories
  */
 @Entity
 @Table(name = "categories")
@@ -31,7 +37,12 @@ public class Category {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
+    @com.fasterxml.jackson.annotation.JsonBackReference
     private Category parent;
+
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+    @com.fasterxml.jackson.annotation.JsonManagedReference
+    private List<Category> children = new ArrayList<>();
 
     /**
      * @brief Default constructor for JPA
@@ -41,12 +52,13 @@ public class Category {
 
     /**
      * @brief Parameterized constructor for creating category instances
-     * @param categoryName The name of the category
+     * @param categoryName          The name of the category
      * @param categoryImageFileName The filename of the category image
-     * @param categoryEnabled The enabled status of the category
-     * @param categoryParent The parent category for hierarchical structure
+     * @param categoryEnabled       The enabled status of the category
+     * @param categoryParent        The parent category for hierarchical structure
      */
-    public Category(String categoryName, String categoryImageFileName, Boolean categoryEnabled, Category categoryParent) {
+    public Category(String categoryName, String categoryImageFileName, Boolean categoryEnabled,
+            Category categoryParent) {
         this.name = categoryName;
         this.imageFileName = categoryImageFileName;
         this.enabled = categoryEnabled;
@@ -59,6 +71,17 @@ public class Category {
      */
     public Category(String categoryName) {
         this.name = categoryName;
+        this.enabled = true;
+    }
+
+    /**
+     * @brief Parameterized constructor for creating a subcategory
+     * @param categoryName The name of the category
+     * @param parent       The parent category
+     */
+    public Category(String categoryName, Category parent) {
+        this.name = categoryName;
+        this.parent = parent;
         this.enabled = true;
     }
 
@@ -106,7 +129,8 @@ public class Category {
 
     /**
      * @brief Sets the category image filename
-     * @param categoryImageFileName The image filename to associate with the category
+     * @param categoryImageFileName The image filename to associate with the
+     *                              category
      */
     public void setImageFileName(String categoryImageFileName) {
         this.imageFileName = categoryImageFileName;
@@ -142,6 +166,22 @@ public class Category {
      */
     public void setParent(Category categoryParent) {
         this.parent = categoryParent;
+    }
+
+    /**
+     * @brief Retrieves the children categories
+     * @return List of child categories
+     */
+    public List<Category> getChildren() {
+        return children;
+    }
+
+    /**
+     * @brief Sets the children categories
+     * @param children The list of child categories
+     */
+    public void setChildren(List<Category> children) {
+        this.children = children;
     }
 
     /**

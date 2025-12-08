@@ -1,3 +1,8 @@
+/**
+ * @brief Controller for authentication operations.
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025 November 30
+ */
 package com.bluevelvet.controller;
 
 import java.util.HashSet;
@@ -30,6 +35,9 @@ import com.bluevelvet.payload.request.LoginRequest;
 import com.bluevelvet.payload.request.SignupRequest;
 import com.bluevelvet.payload.response.MessageResponse;
 
+/**
+ * @brief Controller handling user authentication and registration.
+ */
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
@@ -46,6 +54,11 @@ public class AuthController {
 	@Autowired
 	PasswordEncoder encoder;
 
+	/**
+	 * @brief Authenticates a user.
+	 * @param loginRequest The login request containing email and password.
+	 * @return A ResponseEntity containing the JWT token and user details.
+	 */
 	@PostMapping("/signin")
 	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 
@@ -53,14 +66,18 @@ public class AuthController {
 				new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 
 		SecurityContextHolder.getContext().setAuthentication(authentication);
-		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();		
-		List<String> roles = userDetails.getAuthorities().stream()
-				.map(item -> item.getAuthority())
-				.collect(Collectors.toList());
+		// UserDetailsImpl userDetails = (UserDetailsImpl)
+		// authentication.getPrincipal();
+		// Roles are available in userDetails if needed for JWT generation in the future
 
 		return ResponseEntity.ok(new MessageResponse("User signed in successfully!"));
 	}
 
+	/**
+	 * @brief Registers a new user.
+	 * @param signUpRequest The signup request containing user details.
+	 * @return A ResponseEntity indicating success or failure.
+	 */
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
 		if (userRepository.existsByEmail(signUpRequest.getEmail())) {
@@ -71,7 +88,7 @@ public class AuthController {
 
 		// Create new user's account
 		User user = new User(signUpRequest.getEmail(),
-							 encoder.encode(signUpRequest.getPassword()));
+				encoder.encode(signUpRequest.getPassword()));
 
 		Set<String> strRoles = signUpRequest.getRole();
 		Set<Role> roles = new HashSet<>();
@@ -83,22 +100,22 @@ public class AuthController {
 		} else {
 			strRoles.forEach(role -> {
 				switch (role) {
-				case "admin":
-					Role adminRole = roleRepository.findByName(RoleName.ROLE_ADMINISTRATOR)
-							.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-					roles.add(adminRole);
+					case "admin":
+						Role adminRole = roleRepository.findByName(RoleName.ROLE_ADMINISTRATOR)
+								.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+						roles.add(adminRole);
 
-					break;
-				case "sales":
-					Role modRole = roleRepository.findByName(RoleName.ROLE_SALES_MANAGER)
-							.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-					roles.add(modRole);
+						break;
+					case "sales":
+						Role modRole = roleRepository.findByName(RoleName.ROLE_SALES_MANAGER)
+								.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+						roles.add(modRole);
 
-					break;
-				default:
-					Role userRole = roleRepository.findByName(RoleName.ROLE_EDITOR)
-							.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-					roles.add(userRole);
+						break;
+					default:
+						Role userRole = roleRepository.findByName(RoleName.ROLE_EDITOR)
+								.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+						roles.add(userRole);
 				}
 			});
 		}

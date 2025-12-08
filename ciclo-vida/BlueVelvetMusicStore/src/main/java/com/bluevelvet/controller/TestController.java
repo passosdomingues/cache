@@ -1,3 +1,8 @@
+/**
+ * @brief Test controller for access level validation and endpoint testing
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025 November 30
+ */
 package com.bluevelvet.controller;
 
 import org.springframework.http.ResponseEntity;
@@ -10,10 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bluevelvet.payload.response.MessageResponse;
 
 /**
- * Test controller for access level validation and endpoint testing
- *
- * @brief Provides endpoints to verify different authorization levels and public access
- * @author Developer
+ * @brief Provides endpoints to verify different authorization levels and public
+ *        access
  */
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController

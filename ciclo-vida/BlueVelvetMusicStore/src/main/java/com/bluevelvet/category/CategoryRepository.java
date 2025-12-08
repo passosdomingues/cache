@@ -1,3 +1,8 @@
+/**
+ * @brief Repository interface for category data access operations
+ * @author Rafael Passos Domingues
+ * @lastUpdate 2025 November 30
+ */
 package com.bluevelvet.category;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,10 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Repository interface for category data access operations
- *
  * @brief Provides data access methods for category entity with custom queries
- * @author Developer
  */
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
@@ -52,11 +54,11 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     /**
      * @brief Custom query to find categories by enabled status and name pattern
-     * @param categoryEnabled The enabled status to filter by
+     * @param categoryEnabled     The enabled status to filter by
      * @param categoryNamePattern The name pattern to search for (using LIKE)
      * @return List of categories matching the criteria
      */
     @Query("SELECT c FROM Category c WHERE c.enabled = :categoryEnabled AND c.name LIKE %:categoryNamePattern%")
     List<Category> findByEnabledAndNameContaining(@Param("categoryEnabled") Boolean categoryEnabled,
-                                                  @Param("categoryNamePattern") String categoryNamePattern);
+            @Param("categoryNamePattern") String categoryNamePattern);
 }
