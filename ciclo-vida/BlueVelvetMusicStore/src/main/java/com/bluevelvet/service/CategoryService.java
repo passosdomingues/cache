@@ -152,6 +152,9 @@ public class CategoryService {
      */
     public Category updateCategory(Long id, String name, Long parentId, boolean enabled, MultipartFile image)
             throws IOException {
+        if (id == null) {
+            throw new IllegalArgumentException("Category ID must not be null");
+        }
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Category not found with ID: " + id));
 
@@ -161,10 +164,10 @@ public class CategoryService {
         if (parentId != null) {
             Category parent = categoryRepository.findById(parentId)
                     .orElseThrow(() -> new IllegalArgumentException("Parent category not found"));
-            // Prevent circular reference: parent cannot be itself or a child of itself
-            // (basic check: not itself)
-            if (parent.getId().equals(id)) {
-                throw new IllegalArgumentException("Category cannot be its own parent");
+
+            // Check for circular reference
+            if (parent.getId().equals(id) || isDescendant(category, parent)) {
+                throw new IllegalArgumentException("Category cannot be its own parent or a descendant of itself");
             }
             category.setParent(parent);
         } else {
@@ -261,5 +264,21 @@ public class CategoryService {
             return category.getEnabled();
         }
         return null;
+    }
+
+    /**
+     * @brief Checks if a category is a descendant of another category (recursive)
+     * @param ancestor   The potential ancestor category
+     * @param descendant The potential descendant category
+     * @return true if 'descendant' is indeed a descendant of 'ancestor'
+     */
+    private boolean isDescendant(Category ancestor, Category descendant) {
+        if (descendant == null || descendant.getParent() == null) {
+            return false;
+        }
+        if (descendant.getParent().getId().equals(ancestor.getId())) {
+            return true;
+        }
+        return isDescendant(ancestor, descendant.getParent());
     }
 }

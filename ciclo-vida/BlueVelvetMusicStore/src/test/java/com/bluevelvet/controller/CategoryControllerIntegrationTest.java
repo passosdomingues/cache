@@ -9,14 +9,13 @@ package com.bluevelvet.controller;
 
 import com.bluevelvet.entity.Category;
 import com.bluevelvet.repository.CategoryRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockMultipartFile;
+
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,9 +35,6 @@ public class CategoryControllerIntegrationTest {
 
     @Autowired
     private CategoryRepository categoryRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
@@ -89,8 +85,8 @@ public class CategoryControllerIntegrationTest {
 
         mockMvc.perform(get("/api/categories/public/roots"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name", is("Parent")))
-                .andExpect(jsonPath("$[0].children", hasSize(1)))
-                .andExpect(jsonPath("$[0].children[0].name", is("Child")));
+                .andExpect(jsonPath("$.content[0].name", is("Parent")))
+                .andExpect(jsonPath("$.content[0].children", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].children[0].name", is("Child")));
     }
 }
