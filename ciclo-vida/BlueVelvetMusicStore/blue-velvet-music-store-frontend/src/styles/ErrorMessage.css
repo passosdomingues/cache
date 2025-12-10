@@ -1,0 +1,49 @@
+.error-message-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    min-height: 200px;
+    background-color: rgba(255, 59, 48, 0.1);
+    border-radius: var(--border-radius);
+    margin: 2rem 0;
+}
+
+.error-icon {
+    color: #FF3B30;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.error-icon svg {
+    width: 48px;
+    height: 48px;
+}
+
+.error-text {
+    color: var(--text-primary);
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    max-width: 400px;
+}
+
+.retry-button {
+    padding: 0.75rem 2rem;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.retry-button:hover {
+    background-color: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(187, 134, 252, 0.3);
+}

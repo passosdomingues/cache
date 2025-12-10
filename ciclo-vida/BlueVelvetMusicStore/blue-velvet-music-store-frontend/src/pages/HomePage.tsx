@@ -1,28 +1,34 @@
 /**
  * @author Rafael Passos Domingues
- * @lastUpdate 2025-12-08
- * @brief Home page component.
- * @us US-0000 Project Configuration - Granularity: Page
+ * @lastUpdate 2025 December 10 (Wed)
+ * @brief Home page component with real API integration.
+ * @us US-0000 E-Commerce Features - Granularity: Page
  */
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import CategoryBadge from '../components/CategoryBadge';
-import { useNavigate } from 'react-router-dom';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorMessage from '../components/ErrorMessage';
+import { useProducts } from '../hooks/useProducts';
+import { useCategories } from '../hooks/useCategories';
 
 const HomePage: React.FC = () => {
     const navigate = useNavigate();
-    const [activeCategory, setActiveCategory] = useState('All');
+    const [activeCategory, setActiveCategory] = useState<number | null>(null);
 
-    // Demo data - later replaced by API call
-    const demoProducts = [
-        { id: 1, name: 'Fender Stratocaster', price: 1499.00, imageUrl: '', category: 'Guitars' },
-        { id: 2, name: 'Gibson Les Paul', price: 2499.00, imageUrl: '', category: 'Guitars' },
-        { id: 3, name: 'Yamaha P-125', price: 649.99, imageUrl: '', category: 'Keyboards' },
-        { id: 4, name: 'Roland TD-17KV', price: 1199.99, imageUrl: '', category: 'Drums' },
-        { id: 5, name: 'Shure SM7B', price: 399.00, imageUrl: '', category: 'Microphones' },
-    ];
+    // Fetch featured products or products by category
+    const { products, loading: productsLoading, error: productsError, refetch } = useProducts(
+        activeCategory || undefined,
+        !activeCategory
+    );
 
-    const categories = ['All', 'Guitars', 'Keyboards', 'Drums', 'Microphones', 'Accessories'];
+    // Fetch categories
+    const { categories, loading: categoriesLoading } = useCategories(true);
+
+    const handleCategoryClick = (categoryId: number | null) => {
+        setActiveCategory(categoryId);
+    };
 
     return (
         <div className="home-page">
@@ -56,30 +62,52 @@ const HomePage: React.FC = () => {
                 </button>
             </div>
 
-            <div style={{ marginBottom: '2rem', display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-                {categories.map(cat => (
+            {!categoriesLoading && categories.length > 0 && (
+                <div style={{ marginBottom: '2rem', display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
                     <CategoryBadge
-                        key={cat}
-                        name={cat}
-                        active={activeCategory === cat}
-                        onClick={() => setActiveCategory(cat)}
+                        key="all"
+                        name="All"
+                        active={activeCategory === null}
+                        onClick={() => handleCategoryClick(null)}
                     />
-                ))}
-            </div>
+                    {categories.map(cat => (
+                        <CategoryBadge
+                            key={cat.id}
+                            name={cat.name}
+                            active={activeCategory === cat.id}
+                            onClick={() => handleCategoryClick(cat.id)}
+                        />
+                    ))}
+                </div>
+            )}
 
-            <h2>Featured Products</h2>
-            <div className="product-grid">
-                {demoProducts.map(product => (
-                    <ProductCard
-                        key={product.id}
-                        id={product.id}
-                        name={product.name}
-                        price={product.price}
-                        imageUrl={product.imageUrl}
-                        category={product.category}
-                    />
-                ))}
-            </div>
+            <h2>{activeCategory ? 'Products' : 'Featured Products'}</h2>
+
+            {productsLoading && <LoadingSpinner />}
+
+            {productsError && <ErrorMessage message={productsError} onRetry={refetch} />}
+
+            {!productsLoading && !productsError && products.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+                    <p>No products found.</p>
+                </div>
+            )}
+
+            {!productsLoading && !productsError && products.length > 0 && (
+                <div className="product-grid">
+                    {products.map(product => (
+                        <ProductCard
+                            key={product.id}
+                            id={product.id}
+                            name={product.name}
+                            price={product.price}
+                            imageUrl={product.images?.[0]}
+                            category={product.category.name}
+                            inStock={product.inStock}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

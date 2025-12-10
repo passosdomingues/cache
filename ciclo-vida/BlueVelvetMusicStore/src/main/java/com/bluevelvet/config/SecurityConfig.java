@@ -1,6 +1,6 @@
 /**
  * @author Rafael Passos Domingues
- * @lastUpdate 2025-12-08
+ * @lastUpdate 2025 December 10 (Wed)
  * @brief Security configuration class for authentication and authorization setup
  * @us US-1232 Login - Granularity: Security Configuration
  */
@@ -82,7 +82,11 @@ public class SecurityConfig {
                         .requestMatchers("/").permitAll()
                         .requestMatchers("/api/status").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
-                        .requestMatchers("/api/categories/public").permitAll()
+
+                        // Public API endpoints for e-commerce
+                        .requestMatchers("/api/products/**").permitAll()
+                        .requestMatchers("/api/categories/**").permitAll()
+                        .requestMatchers("/api/giftcards/**").permitAll()
 
                         // Authentication endpoints
                         .requestMatchers("/api/auth/**").permitAll()
@@ -109,7 +113,7 @@ public class SecurityConfig {
     @Bean
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
         org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
-        configuration.setAllowedOrigins(java.util.Arrays.asList("http://localhost:5173"));
+        configuration.setAllowedOrigins(java.util.Arrays.asList("http://localhost:3000", "http://localhost:5173"));
         configuration.setAllowedMethods(java.util.Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
         configuration.setAllowedHeaders(java.util.Arrays.asList("*"));
         configuration.setAllowCredentials(true);

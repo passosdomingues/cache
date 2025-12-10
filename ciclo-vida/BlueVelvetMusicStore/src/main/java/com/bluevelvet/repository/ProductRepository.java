@@ -25,4 +25,19 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      * @return A Page of enabled products in the specified category.
      */
     Page<Product> findByCategoryAndEnabledTrue(Category category, Pageable pageable);
+
+    /**
+     * @brief Finds enabled and in-stock products with pagination.
+     * @param pageable Pagination information.
+     * @return A Page of enabled and in-stock products.
+     */
+    Page<Product> findByEnabledTrueAndInStockTrue(Pageable pageable);
+
+    /**
+     * @brief Searches products by name (case-insensitive) with pagination.
+     * @param name     The name to search for.
+     * @param pageable Pagination information.
+     * @return A Page of products matching the name.
+     */
+    Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
 }
