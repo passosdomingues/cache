@@ -1,6 +1,6 @@
 /**
  * @author Rafael Passos Domingues
- * @lastUpdate 2025-12-08
+ * @lastUpdate 2025 December 10 (Wed)
  * @brief Enumeration of available role names.
  * @us US-1603 Register new users - Granularity: Role Definition
  */

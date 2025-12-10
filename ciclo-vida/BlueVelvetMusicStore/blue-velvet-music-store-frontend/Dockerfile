@@ -1,4 +1,8 @@
-FROM node:18-alpine AS build
+# @author Rafael Passos Domingues
+# @lastUpdate 2025 December 10 (Wed)
+# @brief Multi-stage Dockerfile for Frontend (Node Build -> Nginx).
+# @us US-0000 Project Configuration - Granularity: Containerization
+FROM node:20-alpine AS build
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci

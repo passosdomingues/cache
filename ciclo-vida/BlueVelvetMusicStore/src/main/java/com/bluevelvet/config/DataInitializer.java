@@ -1,6 +1,6 @@
 /**
  * @author Rafael Passos Domingues
- * @lastUpdate 2025-12-08
+ * @lastUpdate 2025 December 10 (Wed)
  * @brief Data initializer for pre-populating database with essential data
  * @us US-1306 Create category of products - Granularity: Database Seeding
  */
@@ -9,8 +9,8 @@ package com.bluevelvet.config;
 import com.bluevelvet.auth.Role;
 import com.bluevelvet.auth.RoleName;
 import com.bluevelvet.auth.RoleRepository;
-import com.bluevelvet.category.Category;
-import com.bluevelvet.category.CategoryRepository;
+import com.bluevelvet.entity.Category;
+import com.bluevelvet.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -98,6 +98,11 @@ public class DataInitializer implements CommandLineRunner {
             sheetMusicCategory.setParent(booksCategory);
             sheetMusicCategory.setEnabled(true);
             categoryRepository.save(sheetMusicCategory);
+
+            Category acousticGuitarCategory = new Category("Acoustic Guitar");
+            acousticGuitarCategory.setParent(musicCategory);
+            acousticGuitarCategory.setEnabled(true);
+            categoryRepository.save(acousticGuitarCategory);
 
             System.out.println("Initial categories created successfully");
         }

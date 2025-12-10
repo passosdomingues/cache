@@ -1,6 +1,6 @@
 /**
  * @author Rafael Passos Domingues
- * @lastUpdate 2025-12-08
+ * @lastUpdate 2025 December 10 (Wed)
  * @brief Service interface for file storage operations.
  * @us US-1306 Create category of products - Granularity: Service Interface
  */

@@ -1,0 +1,35 @@
+digraph UseCaseDiagram {
+    rankdir=LR;
+    node [shape=ellipse, style=filled, fillcolor=white];
+    
+    // Actors
+    Admin [shape=box, label="Administrator", fillcolor="#ffccbc"];
+    User [shape=box, label="Online Shopper / User", fillcolor="#fff9c4"];
+    
+    // Use Cases
+    subgraph cluster_system {
+        label = "Blue Velvet Music Store System";
+        fillcolor = "#e8eaf6";
+        style = filled;
+
+        US1306 [label="US-1306: Create Category\n(Manage Categories)"];
+        US1307 [label="US-1307: Edit Category"];
+        US0904 [label="US-0904: Delete Category"];
+        US0907 [label="US-0907: Gift Card Info / Balance"];
+        US2100 [label="US-2100: List Products in Category"];
+        ListCategories [label="List Categories"];
+    }
+    
+    // Relationships
+    Admin -> US1306;
+    Admin -> US1307;
+    Admin -> US0904;
+    Admin -> ListCategories;
+    
+    User -> US2100;
+    User -> US0907;
+    User -> ListCategories;
+    
+    US1306 -> ListCategories [style=dashed, label="<<extends>>"];
+    US2100 -> ListCategories [style=dashed, label="<<uses>>"];
+}

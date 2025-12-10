@@ -1,6 +1,6 @@
 /**
  * @author Rafael Passos Domingues
- * @lastUpdate 2025-12-08
+ * @lastUpdate 2025 December 10 (Wed)
  * @brief Service implementation for loading user details.
  * @us US-1232 Login - Granularity: Service Logic
  */

@@ -1,6 +1,6 @@
 /**
  * @author Rafael Passos Domingues
- * @lastUpdate 2025-12-08
+ * @lastUpdate 2025 December 10 (Wed)
  * @brief Represents a user in the system.
  * @us US-1603 Register new users - Granularity: User Entity
  * @us US-1232 Login - Granularity: User Entity

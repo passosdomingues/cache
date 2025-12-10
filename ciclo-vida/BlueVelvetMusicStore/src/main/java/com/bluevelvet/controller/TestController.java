@@ -1,6 +1,6 @@
 /**
  * @author Rafael Passos Domingues
- * @lastUpdate 2025-12-08
+ * @lastUpdate 2025 December 10 (Wed)
  * @brief Test controller for access level validation and endpoint testing
  * @us US-0000 Shared - Granularity: Testing Endpoint
  */

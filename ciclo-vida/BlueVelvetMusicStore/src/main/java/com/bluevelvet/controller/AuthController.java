@@ -1,6 +1,6 @@
 /**
  * @author Rafael Passos Domingues
- * @lastUpdate 2025-12-08
+ * @lastUpdate 2025 December 10 (Wed)
  * @brief Controller for authentication operations.
  * @us US-1232 Login - Granularity: Controller Endpoint
  * @us US-1603 Register new users - Granularity: Controller Endpoint

@@ -1,3 +1,7 @@
+# @author Rafael Passos Domingues
+# @lastUpdate 2025 December 10 (Wed)
+# @brief Docker Compose configuration for Backend and Frontend.
+# @us US-0000 Project Configuration - Granularity: Containerization
 version: '3.8'
 services:
   backend:
@@ -6,6 +10,8 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
+    volumes:
+      - uploads_data:/app/uploads
     networks:
       - app-network
 
@@ -21,3 +27,6 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  uploads_data:

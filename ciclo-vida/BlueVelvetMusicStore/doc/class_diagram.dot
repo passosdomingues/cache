@@ -1,0 +1,99 @@
+digraph ClassDiagram {
+    rankdir=BT;
+    node [shape=record, style=filled, fillcolor=white];
+    edge [arrowhead=open];
+
+    // Entities
+    subgraph cluster_entity {
+        label = "com.bluevelvet.entity";
+        fillcolor = "#e0f7fa";
+        style = filled;
+        
+        Category [label="{Category|+ id: Long\l+ name: String\l+ imageFileName: String\l+ enabled: Boolean\l|+ getParent()\l+ setParent()\l+ getChildren()\l}"];
+        Product [label="{Product|+ id: Long\l+ name: String\l+ description: String\l+ price: BigDecimal\l+ enabled: boolean\l+ inStock: boolean\l+ images: Set<String>\l|+ getCategory()\l}"];
+    }
+
+    // Repositories
+    subgraph cluster_repository {
+        label = "com.bluevelvet.repository";
+        fillcolor = "#f1f8e9";
+        style = filled;
+
+        CategoryRepository [label="{CategoryRepository|\<\<interface\>\>|+ findByName()\l+ existsByName()\l+ findByEnabledTrue()\l+ findByParentIsNull()\l+ findByParent()\l}"];
+        ProductRepository [label="{ProductRepository|\<\<interface\>\>|+ findByCategoryAndEnabledTrue()\l}"];
+    }
+
+    // Services
+    subgraph cluster_service {
+        label = "com.bluevelvet.service";
+        fillcolor = "#fff3e0";
+        style = filled;
+
+        CategoryService [label="{CategoryService|+ getAllCategories()\l+ getEnabledCategories()\l+ getRootCategories()\l+ getCategoryById()\l+ saveCategory()\l+ createCategory()\l+ updateCategory()\l+ deleteCategory()\l+ toggleCategoryStatus()\l}"];
+        ProductService [label="{ProductService|+ listProductsByCategory()\l}"];
+        FileStorageService [label="{FileStorageService|\<\<interface\>\>|+ saveFile()\l+ deleteFile()\l}"];
+    }
+
+    // Controllers
+    subgraph cluster_controller {
+        label = "com.bluevelvet.controller";
+        fillcolor = "#e1f5fe";
+        style = filled;
+
+        CategoryController [label="{CategoryController|+ getAllCategories()\l+ getEnabledCategories()\l+ getRootCategories()\l+ getCategoryById()\l+ getSubcategories()\l+ createCategory()\l+ updateCategory()\l+ deleteCategory()\l+ toggleCategoryStatus()\l}"];
+        ProductController [label="{ProductController|+ listProductsByCategory()\l}"];
+        GiftCardController [label="{GiftCardController|+ getBalance()\l+ validateGiftCard()\l}"];
+        AuthController [label="{AuthController|+ authenticateUser()\l+ registerUser()\l}"];
+        TestController [label="{TestController|+ publicAccess()\l+ userAccess()\l+ adminAccess()\l}"];
+        HomeController [label="{HomeController|+ home()\l}"];
+    }
+    
+    // Auth & Config (Simplified)
+    subgraph cluster_auth {
+        label = "com.bluevelvet.auth";
+        User [label="{User|+ id: Long\l+ email: String\l+ password: String\l}"];
+        Role [label="{Role|+ name: RoleName\l}"];
+    }
+
+    // GiftCard Components (Implicitly in respective packages on diagram, but drawn here for simplicity or added to clusters above)
+    // Actually, I should add them to the clusters above.
+
+    subgraph cluster_entity {
+        // ... existing ...
+        GiftCard [label="{GiftCard|+ code: String\l+ balance: BigDecimal\l+ isActive: boolean\l}"];
+    }
+    subgraph cluster_repository {
+         // ... existing ...
+         GiftCardRepository [label="{GiftCardRepository|+ findByCode()\l}"];
+    }
+    subgraph cluster_service {
+         // ... existing ...
+         GiftCardService [label="{GiftCardService|+ getBalance()\l+ getGiftCard()\l}"];
+    }
+
+    // Relationships
+    // Entity Relationships
+    Product -> Category [label="Many-to-One\n@category"];
+    Category -> Category [label="Many-to-One\n@parent"];
+
+    // Service -> Repository
+    CategoryService -> CategoryRepository [label="uses"];
+    CategoryService -> FileStorageService [label="uses"];
+    ProductService -> ProductRepository [label="uses"];
+    ProductService -> CategoryRepository [label="uses"];
+    GiftCardService -> GiftCardRepository [label="uses"];
+
+    // Controller -> Service
+    CategoryController -> CategoryService [label="uses"];
+    ProductController -> ProductService [label="uses"];
+    GiftCardController -> GiftCardService [label="uses"];
+    
+    // Repository -> Entity (Inheritance/Generics implicitly)
+    CategoryRepository -> Category [arrowhead=none, style=dashed, label="manages"];
+    ProductRepository -> Product [arrowhead=none, style=dashed, label="manages"];
+    GiftCardRepository -> GiftCard [arrowhead=none, style=dashed, label="manages"];
+
+    // Auth dependencies
+    User -> Role [label="Many-to-Many"];
+    AuthController -> User [label="uses"];
+}

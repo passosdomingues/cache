@@ -1,6 +1,6 @@
 /**
  * @author Rafael Passos Domingues
- * @lastUpdate 2025-12-08
+ * @lastUpdate 2025 December 10 (Wed)
  * @brief Implementation of FileStorageService for local file system.
  * @us US-1306 Create category of products - Granularity: Service Implementation
  */

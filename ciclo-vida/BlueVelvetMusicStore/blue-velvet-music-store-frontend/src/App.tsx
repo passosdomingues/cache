@@ -11,6 +11,8 @@ import HomePage from './pages/HomePage';
 import ProductListPage from './pages/ProductListPage';
 import ProductFormPage from './pages/ProductFormPage';
 import CategoryListPage from './pages/CategoryListPage';
+import CategoryFormPage from './pages/CategoryFormPage';
+import GiftCardPage from './pages/GiftCardPage';
 import LoginPage from './pages/LoginPage';
 import './styles/App.css';
 
@@ -27,6 +29,10 @@ function App() {
               <Route path="/products" element={<ProductListPage />} />
               <Route path="/products/new" element={<ProductFormPage />} />
               <Route path="/categories" element={<CategoryListPage />} />
+              <Route path="/categories/new" element={<CategoryFormPage />} />
+              <Route path="/categories/:id/edit" element={<CategoryFormPage />} />
+              <Route path="/categories/:categoryId/products" element={<ProductListPage />} />
+              <Route path="/giftcards" element={<GiftCardPage />} />
               <Route path="/login" element={<LoginPage />} />
             </Routes>
           </main>

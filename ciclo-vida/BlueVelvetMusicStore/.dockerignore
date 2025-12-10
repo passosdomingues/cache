@@ -1,0 +1,12 @@
+.git
+.gitignore
+.idea
+.vscode
+.gradle
+build
+out
+target
+blue-velvet-music-store-frontend
+node_modules
+*.DS_Store
+*.log
