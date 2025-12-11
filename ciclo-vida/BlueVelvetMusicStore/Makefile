@@ -14,8 +14,8 @@ all: clean-containers build up wait-backend open-browser
 	@echo "╔════════════════════════════════════════════════════════════╗"
 	@echo "║  Blue Velvet Music Store - Ready!                          ║"
 	@echo "╠════════════════════════════════════════════════════════════╣"
-	@echo "║  Frontend: $(FRONTEND_URL)                                 ║"
-	@echo "║  Backend:  $(BACKEND_URL)                                  ║"
+	@echo "║  Frontend: $(FRONTEND_URL)                           ║"
+	@echo "║  Backend:  $(BACKEND_URL)                           ║"
 	@echo "╚════════════════════════════════════════════════════════════╝"
 	@echo ""
 
