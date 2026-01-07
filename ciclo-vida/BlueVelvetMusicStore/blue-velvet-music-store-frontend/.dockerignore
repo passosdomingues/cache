@@ -1,9 +1,0 @@
-.git
-.gitignore
-.idea
-.vscode
-node_modules
-dist
-coverage
-*.DS_Store
-*.log

@@ -1,6 +1,0 @@
-Little's Law Validation Proof
-Scenario: rho_0.999
-Tolerance: 0.001000
-Status: VALIDATED
-Mean Absolute Error: 0.000123
-Validation: PASSED (error < tolerance)
