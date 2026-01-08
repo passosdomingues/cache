@@ -1,0 +1,86 @@
+\babel@toc {brazil}{}\relax 
+\babel@toc {brazil}{}\relax 
+\babel@toc {brazil}{}\relax 
+\babel@toc {brazil}{}\relax 
+\babel@toc {brazil}{}\relax 
+\babel@toc {brazil}{}\relax 
+\babel@toc {english}{}\relax 
+\babel@toc {brazil}{}\relax 
+\babel@toc {english}{}\relax 
+\babel@toc {brazil}{}\relax 
+\contentsline {chapter}{\numberline {1}Introdução}{7}{chapter.1}%
+\contentsline {chapter}{\numberline {2}Referencial Teórico}{9}{chapter.2}%
+\contentsline {section}{\numberline {2.1}PMBOK 7ª Edição}{9}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Métodos Ágeis de Gestão de Projetos}{10}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Scrum como Framework Ágil}{11}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Integração entre PMBOK 7 e Métodos Ágeis}{11}{section.2.4}%
+\contentsline {chapter}{\numberline {3}Aplicação dos Princípios do PMBOK}{13}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Entrega de Valor}{13}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Engajamento dos Stakeholders}{13}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Liderança}{14}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Colaboração da Equipe}{14}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Pensamento Sistêmico}{14}{section.3.5}%
+\contentsline {section}{\numberline {3.6}Qualidade}{15}{section.3.6}%
+\contentsline {section}{\numberline {3.7}Complexidade}{15}{section.3.7}%
+\contentsline {section}{\numberline {3.8}Risco}{16}{section.3.8}%
+\contentsline {section}{\numberline {3.9}Adaptabilidade e Resiliência}{16}{section.3.9}%
+\contentsline {section}{\numberline {3.10}Mudança}{16}{section.3.10}%
+\contentsline {section}{\numberline {3.11}Ética e Profissionalismo}{17}{section.3.11}%
+\contentsline {section}{\numberline {3.12}Aprendizado Contínuo}{17}{section.3.12}%
+\contentsline {chapter}{\numberline {4}Análise dos Domínios de Desempenho}{18}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Domínio dos Stakeholders}{18}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Domínio da Equipe}{18}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Domínio da Abordagem de Desenvolvimento e do Ciclo de Vida}{19}{section.4.3}%
+\contentsline {section}{\numberline {4.4}Domínio do Planejamento}{19}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Domínio do Trabalho do Projeto}{19}{section.4.5}%
+\contentsline {section}{\numberline {4.6}Domínio da Entrega}{20}{section.4.6}%
+\contentsline {section}{\numberline {4.7}Domínio da Medição}{20}{section.4.7}%
+\contentsline {section}{\numberline {4.8}Domínio da Incerteza}{20}{section.4.8}%
+\contentsline {chapter}{\numberline {5}Tailoring do Projeto}{22}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Justificativa da Abordagem Adotada}{22}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Adaptação dos Papéis do Scrum}{22}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Adaptação dos Eventos do Scrum}{23}{section.5.3}%
+\contentsline {section}{\numberline {5.4}Adaptação dos Artefatos}{23}{section.5.4}%
+\contentsline {section}{\numberline {5.5}Integração com Práticas Complementares}{24}{section.5.5}%
+\contentsline {section}{\numberline {5.6}Limites e Restrições do Tailoring}{24}{section.5.6}%
+\contentsline {chapter}{\numberline {6}Planejamento Ágil}{25}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Visão do Produto}{25}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Estrutura do Product Backlog}{25}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Planejamento das Sprints}{26}{section.6.3}%
+\contentsline {section}{\numberline {6.4}Roadmap do Projeto}{27}{section.6.4}%
+\contentsline {section}{\numberline {6.5}Métricas Ágeis e Acompanhamento}{27}{section.6.5}%
+\contentsline {section}{\numberline {6.6}Previsibilidade e Controle}{28}{section.6.6}%
+\contentsline {chapter}{\numberline {7}Análise de Riscos e Incertezas}{29}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Natureza da Incerteza no Projeto}{29}{section.7.1}%
+\contentsline {section}{\numberline {7.2}Identificação dos Principais Riscos}{29}{section.7.2}%
+\contentsline {section}{\numberline {7.3}Estratégias de Resposta aos Riscos}{30}{section.7.3}%
+\contentsline {section}{\numberline {7.4}Monitoramento Contínuo dos Riscos}{31}{section.7.4}%
+\contentsline {section}{\numberline {7.5}Riscos, Incerteza e Tomada de Decisão}{31}{section.7.5}%
+\contentsline {chapter}{\numberline {8}Considerações Finais}{32}{chapter.8}%
+\contentsline {chapter}{\numberline {A}Artefatos de Gestão do Projeto}{34}{appendix.A}%
+\contentsline {section}{\numberline {A.1}Visão do Produto}{34}{section.A.1}%
+\contentsline {section}{\numberline {A.2}Papéis e Responsabilidades}{34}{section.A.2}%
+\contentsline {section}{\numberline {A.3}Backlog Consolidado}{35}{section.A.3}%
+\contentsline {section}{\numberline {A.4}Definição de Pronto (Definition of Done)}{35}{section.A.4}%
+\contentsline {section}{\numberline {A.5}Métricas de Acompanhamento}{35}{section.A.5}%
+\contentsline {chapter}{\numberline {B}Visão Técnica e Estrutural do Sistema}{36}{appendix.B}%
+\contentsline {section}{\numberline {B.1}Arquitetura Conceitual}{36}{section.B.1}%
+\contentsline {section}{\numberline {B.2}Modelo de Dados Simplificado}{36}{section.B.2}%
+\contentsline {section}{\numberline {B.3}Georreferenciamento}{37}{section.B.3}%
+\contentsline {section}{\numberline {B.4}Segurança e Ética no Uso de Dados}{37}{section.B.4}%
+\contentsline {section}{\numberline {B.5}Evolução Futura}{37}{section.B.5}%
+\contentsline {chapter}{\numberline {C}Riscos, Decisões Críticas e Trade-offs do Projeto}{38}{appendix.C}%
+\contentsline {section}{\numberline {C.1}Principais Riscos Identificados}{38}{section.C.1}%
+\contentsline {subsection}{\numberline {C.1.1}Risco de Escopo Difuso}{38}{subsection.C.1.1}%
+\contentsline {subsection}{\numberline {C.1.2}Risco de Qualidade dos Dados}{38}{subsection.C.1.2}%
+\contentsline {subsection}{\numberline {C.1.3}Risco de Segurança e Privacidade}{39}{subsection.C.1.3}%
+\contentsline {subsection}{\numberline {C.1.4}Risco de Adoção pelos Usuários}{39}{subsection.C.1.4}%
+\contentsline {section}{\numberline {C.2}Decisões Difíceis Enfrentadas}{39}{section.C.2}%
+\contentsline {subsection}{\numberline {C.2.1}Simplicidade versus Funcionalidade}{39}{subsection.C.2.1}%
+\contentsline {subsection}{\numberline {C.2.2}Flexibilidade versus Padronização}{39}{subsection.C.2.2}%
+\contentsline {subsection}{\numberline {C.2.3}Planejamento versus Adaptação}{40}{subsection.C.2.3}%
+\contentsline {section}{\numberline {C.3}Trade-offs Assumidos}{40}{section.C.3}%
+\contentsline {subsection}{\numberline {C.3.1}Velocidade de Entrega versus Robustez Técnica}{40}{subsection.C.3.1}%
+\contentsline {subsection}{\numberline {C.3.2}Escalabilidade Futura versus Simplicidade Atual}{40}{subsection.C.3.2}%
+\contentsline {subsection}{\numberline {C.3.3}Controle Centralizado versus Autonomia do Time}{40}{subsection.C.3.3}%
+\contentsline {section}{\numberline {C.4}Síntese dos Aprendizados}{41}{section.C.4}%
