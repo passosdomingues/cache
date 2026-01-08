@@ -3,4 +3,7 @@
 [[3-Identificação e Engajamento]]
 [[4-Mudança Organizacional]]
 [[5-Aprendizado Contínuo]]
-
+[[6-Ética e Governança]]
+[[7-Escalabilidade]]
+[[8-Colaboração Multidisciplinar]]
+[[9-Fundamentos da Resiliência]]
