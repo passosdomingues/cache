@@ -7,3 +7,7 @@
 [[7-Escalabilidade]]
 [[8-Colaboração Multidisciplinar]]
 [[9-Fundamentos da Resiliência]]
+[[10-Valor para o Negócio]]
+[[11-Tendências Emergentes]]
+[[12-Aplicação Pessoal]]
+[[13-Gestão para Resultados]]
