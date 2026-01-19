@@ -1,0 +1,12 @@
+\babel@toc {brazil}{}\relax 
+\contentsline {section}{\numberline {1}Objetivos da Aula}{2}{section.1}%
+\contentsline {section}{\numberline {2}Visão Geral dos Componentes da Aula}{3}{section.2}%
+\contentsline {section}{\numberline {3}Planilha de Variedade de Modalidades}{4}{section.3}%
+\contentsline {section}{\numberline {4}Notas da Aula}{5}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Componente 1: O Desafio Corporativo (Problematização) - 3 min}{5}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Componente 2: O Planejamento Estratégico (Ação Inicial) - 10 min}{5}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Componente 3: A Apresentação Executiva (Compartilhamento) - 4 min}{6}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Componente 4: O Framework Conceitual (Mediação) - 5 min}{6}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Componente 5: O Roadmap para Próxima Aula (Síntese) - 8 min}{7}{subsection.4.5}%
+\contentsline {section}{\numberline {5}Tabela de Indicadores de Avaliação da Aula}{8}{section.5}%
+\contentsline {section}{\numberline {6}Planilha de Reflexão Qualitativa da Aula}{9}{section.6}%
