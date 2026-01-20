@@ -1,0 +1,367 @@
+% ========================================= %
+% Modelo de Planejamento de Aula em LaTeX
+%
+% Adaptado por: [Rafael Passos Domingues]
+%   Com base no template de Eliza Diggins
+%
+% Modifique o template abaixo para criar um
+% documento de planejamento de aula.
+% ========================================= %
+
+% ----------------------------------------- %
+% PREÂMBULO
+% ----------------------------------------- %
+\documentclass{lesson_plan}
+
+% --- Variáveis do Usuário --- %
+\renewcommand{\Institution}{Senac} % Nome da instituição.
+\renewcommand{\CourseTitle}{Técnico em Informática e Desenvolvimento de Sistemas} % Título do curso.
+\renewcommand{\LectureNumber}{0} % Número da aula.
+\renewcommand{\InstructorName}{Rafael Passos Domingues} % Nome do instrutor.
+\renewcommand{\TopicArea}{Algoritmos} % Área de assunto.
+\renewcommand{\TeachingDate}{\today} % Data da aula.
+\renewcommand{\TimeAllotted}{30 minutos} % Tempo alocado.
+\renewcommand{\CourseLevel}{Técnico Profissionalizante} % Nível do curso.
+\renewcommand{\DeliveryMode}{Presencial} % Modalidade de entrega.
+\renewcommand{\Materials}{Projetor; Slides; Lousa; Marcadores; Papel; Canetas} % Materiais necessários.
+\renewcommand{\Competencia}{Programação Funcional} % Nova variável: Competência
+\renewcommand{\MarcasFormativas}{Saúde Pública} % Nova variável: Marcas Formativas
+\renewcommand{\UnidadeCurricular}{Desenvolvimento de Algoritmos} % Nova variável: Unidade Curricular
+
+% ----------------------------------------- %
+% DOCUMENTO PRINCIPAL
+% ----------------------------------------- %
+\begin{document}
+
+% Imprime o cabeçalho da aula e a tabela de resumo.
+\PrintLessonHeader
+\PrintSummaryTable
+
+\tableofcontents
+\newpage
+
+% ----------------------------------------- %
+% TABELA DE OBJETIVOS DA AULA
+% ----------------------------------------- %
+\section{Objetivos da Aula}
+\textit{
+Esta seção descreve os principais objetivos de aprendizagem que os alunos devem alcançar ao final da aula. Cada objetivo está alinhado com componentes específicos da aula e, quando aplicável, inclui leituras sugeridas para apoiar a aprendizagem. Os objetivos são escritos da perspectiva do aluno para promover clareza e foco.}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|p{9cm}|p{6cm}|p{3cm}|}
+\hline
+\textbf{Objetivo da Aula} & \textbf{Leituras/Recursos} & \textbf{Comp. \#} \\
+\hline
+Posso elaborar um algoritmo passo a passo para otimizar o controle de estoque com base em prazos de validade. & Materiais fornecidos pelo instrutor. & 1, 2, 3 \\
+\hline
+Compreendo e aplico os conceitos básicos de sequência e decisão na construção de algoritmos para gestão de perecíveis. & Exemplos da lousa e discussão em grupo. & 4, 5 \\
+\hline
+Consigo colaborar em grupo para desenvolver e apresentar uma solução que considere variáveis críticas do mundo real. & Discussão das soluções dos grupos. & 2, 3 \\
+\hline
+\end{tabular}
+\end{center}
+
+\vspace{1cm}
+\newpage
+
+% ----------------------------------------- %
+% VISÃO GERAL DOS COMPONENTES DA AULA
+% ----------------------------------------- %
+\section{Visão Geral dos Componentes da Aula}
+\textit{
+Cada componente da aula representa uma parte distinta da sequência instrucional, como uma mini-aula, atividade em grupo, demonstração ou reflexão. Esta tabela permite organizar a aula em segmentos, estimando os tempos necessários, apontando modalidades apropriadas e relacionando cada componente com os objetivos da aula.}
+\vspace{1em}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.8}
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{|c|p{9cm}|c|c|c|}
+\hline
+\textbf{\#} & \textbf{Resumo} & \textbf{Obj. \#} & \textbf{Modalidade} & \textbf{Tempo} \\
+\hline
+\hline
+1 & \textbf{O Desafio Corporativo (Problematização)}: Apresentação do problema de controle de estoque em rede de supermercados com foco em prazos de validade. & 1 & Diálogo Socrático & 3 min \\
+\hline
+2 & \textbf{O Planejamento Estratégico (Ação Inicial)}: Dois grupos criam algoritmo para gerenciar produtos perecíveis, priorizando por validade e minimizando perdas. & 1, 3 & Trabalho em Grupo & 10 min \\
+\hline
+3 & \textbf{A Apresentação Executiva (Compartilhamento)}: Cada grupo apresenta sua solução em pitch de 1 minuto. Instrutor sintetiza termos técnicos na lousa. & 1, 3 & Apresentação & 4 min \\
+\hline
+4 & \textbf{O Framework Conceitual (Mediação)}: Introdução dos conceitos de sequência e decisão, usando os exemplos dos grupos. Conexão com variáveis e condições. & 2 & Aula Expositiva Interativa & 5 min \\
+\hline
+5 & \textbf{O Roadmap para Próxima Aula (Síntese)}: Validação das soluções e introdução dos conceitos de eficiência, eficácia e efetividade como gancho para próxima aula. & 2 & Discussão e Reflexão Guiada & 8 min \\
+\hline
+\end{tabular}
+\end{center}
+
+\vspace{1cm}
+\newpage
+
+% ----------------------------------------- %
+% PLANILHA DE VARIEDADE DE MODALIDADES
+% ----------------------------------------- %
+\section{Planilha de Variedade de Modalidades}
+\textit{
+Esta planilha serve como uma ferramenta de autoavaliação para verificar a diversidade e o equilíbrio das estratégias instrucionais usadas ao longo da aula. Uma aula bem planejada integra várias modalidades como: instrução direta, discussão e exploração interativa para atender a diferentes estilos de aprendizagem e manter o engajamento dos alunos. Este espaço é usado para rastrear quais modalidades foram incluídas, com que frequência e se a estrutura geral fornece variedade adequada para apoiar a aprendizagem profunda.}
+
+\vspace{0.5cm}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|p{6cm}|c|p{10cm}|}
+\hline
+\textbf{Modalidade de Ensino} & \textbf{Contagem} & \textbf{Observações} \\
+\hline
+Aula Expositiva / Apresentação & 1 & Componente 4 (Framework Conceitual). \\
+\hline
+Discussão / Diálogo Socrático & 2 & Componentes 1 e 5. \\
+\hline
+Atividade Prática / Demonstração & 1 & Componente 2 (Planejamento Estratégico). \\
+\hline
+Simulação / Software Interativo & 0 & Não utilizada nesta aula. \\
+\hline
+Trabalho em Grupo / Instrução por Pares & 2 & Componentes 2 e 3. \\
+\hline
+Avaliação Formativa (Quiz, Saída) & 0 & A avaliação é contínua, por observação. \\
+\hline
+Apresentação dos Alunos & 1 & Componente 3 (Apresentação Executiva). \\
+\hline
+\end{tabular}
+\end{center}
+
+\vspace{1cm}
+\newpage
+
+% ----------------------------------------- %
+% NOTAS DA AULA
+% ----------------------------------------- %
+\section{Notas da Aula}
+\textit{
+Esta seção é destinada a notas instrucionais detalhadas, incluindo esboços de conteúdo, perguntas conceituais, etapas de resolução de problemas e atividades dos alunos associadas a cada componente. Usada para roteirizar a aula, antecipar respostas dos alunos, anotar transições-chave ou documentar explicações alternativas.}
+
+\subsection{Componente 1: O Desafio Corporativo (Problematização) - 3 min}
+\begin{itemize}
+    \item \textbf{Contextualização Profissional}: "Imaginem que vocês são consultores de uma grande rede de supermercados. O problema: o controle de estoque de produtos perecíveis está causando prejuízos mensais de R\$ 120.000 devido a vencimentos."
+    \item \textbf{Dados do Caso}: 
+    \begin{itemize}
+        \item 3.000 itens perecíveis por loja
+        \item 5 categorias diferentes (laticínios, frios, hortifruti, açougue, padaria)
+        \item Prazos de validade variando de 2 dias a 1 mês
+        \item Rotatividade diferenciada por produto
+    \end{itemize}
+    \item \textbf{Desafio}: "Como criar um processo sistemático (algoritmo) para que os funcionários gerenciem o estoque, minimizando perdas e maximizando o giro?"
+    \item \textbf{Organização}: Dividir a turma em 2 grupos multietários (14 a 65 anos), garantindo diversidade de perspectivas.
+\end{itemize}
+
+\subsection{Componente 2: O Planejamento Estratégico (Ação Inicial) - 10 min}
+\begin{itemize}
+    \item \textbf{Tarefa do Grupo}: Cada grupo atuará como equipe de consultoria. Devem desenvolver um algoritmo em linguagem natural que:
+    \begin{enumerate}
+        \item Priorize produtos por prazo de validade
+        \item Defina ações para produtos próximos ao vencimento
+        \item Otimize o espaço físico do estoque
+        \item Considere diferentes taxas de rotatividade
+    \end{enumerate}
+    \item \textbf{Entrega}: Escrever em papel o passo a passo detalhado, incluindo decisões condicionais.
+    \item \textbf{Papel do Instrutor}: Circular entre os grupos, fazendo perguntas desafiadoras:
+    \begin{itemize}
+        \item "Como lidar com produtos que têm validade diferente mas ocupam o mesmo espaço?"
+        \item "O que fazer quando um produto tem alta rotatividade mas validade curta?"
+        \item "Como o algoritmo se adapta a variações sazonais?"
+    \end{itemize}
+    \item \textbf{Documentação}: Anotar mentalmente padrões interessantes para discussão posterior.
+\end{itemize}
+
+\newpage
+
+\subsection{Componente 3: A Apresentação Executiva (Compartilhamento) - 4 min}
+\begin{itemize}
+    \item \textbf{Formato Pitch}: Cada grupo tem 1 minuto para apresentar sua solução. Cronometrar.
+    \item \textbf{Foco na Lousa}: Enquanto ouvem, instrutor anota termos técnicos emergentes:
+    \begin{itemize}
+        \item Condições: "se", "caso", "quando", "dependendo"
+        \item Comparações: "mais próximo", "primeiro a vencer"
+        \item Ações: "reposicionar", "descontar", "repor"
+        \item Estruturas: "verificar", "comparar", "listar"
+    \end{itemize}
+    \item \textbf{Síntese Imediata}: "Percebam como ambos os grupos naturalmente criaram estruturas condicionais e sequências lógicas."
+    \item \textbf{Transição}: "Esses elementos que identificamos são exatamente os blocos de construção da programação."
+\end{itemize}
+
+\subsection{Componente 4: O Framework Conceitual (Mediação) - 5 min}
+\begin{itemize}
+    \item \textbf{Definição Formal}: "Algoritmo: sequência finita de instruções não ambíguas para resolver um problema específico." \textit{José Augusto N.G. Manzano}.
+    \item \textbf{Estruturas Identificadas} (baseado nas apresentações):
+    \begin{enumerate}
+        \item \textbf{Sequência Lógica}: Instruções em ordem específica
+        \begin{verbatim}
+        0. Verificar data de validade
+        1. Comparar com data atual
+        2. Calcular dias restantes
+        \end{verbatim}
+        \item \textbf{Decisão Condicional}: Escolhas baseadas em condições
+        \begin{verbatim}
+Algoritmo ControleDeValidade
+
+inicio
+    para cada produto do estoque faca
+        conferir dataDeValidade
+
+        se dataDeValidade esta proxima entao
+            colocar produto na frente da prateleira
+        senao
+            colocar produto na parte de tras da prateleira
+        fimse
+
+        se faltam poucos dias para vencer entao
+            separar produto para promocao
+            avisar responsavel
+        senao
+            nao fazer nada
+        fimse
+    fimpara
+fim
+\end{verbatim}
+
+    \end{enumerate}
+    \newpage
+    \item \textbf{Variáveis do Mundo Real}: 
+    \begin{itemize}
+        \item \texttt{data\_validade}: quando o produto vence
+        \item \texttt{rotatividade}: velocidade de venda
+        \item \texttt{estoque\_atual}: quantidade disponível
+    \end{itemize}
+    \item \textbf{Conexão com Sistemas}: "Isso que criaram manualmente é exatamente a lógica que rodaria em um sistema de gestão de estoque."
+\end{itemize}
+
+\subsection{Componente 5: O Roadmap para Próxima Aula (Síntese) - 8 min}
+\begin{itemize}
+    \item \textbf{Validação das Soluções}: 
+    \begin{itemize}
+        \item "Grupo A focou em priorização por validade - excelente para minimizar perdas"
+        \item "Grupo B incluiu rotatividade no cálculo - visão estratégica de giro"
+    \end{itemize}
+    \item \textbf{Ponto Crítico}: "Ambas as soluções resolvem o problema, mas com estratégias diferentes. Isso nos leva a três questões fundamentais para a próxima aula:"
+    \item \textbf{Preview Conceitual}:
+    \begin{enumerate}
+        \item \textbf{Eficiência}: Qual solução usa menos recursos (tempo, espaço, pessoal)?
+        \item \textbf{Eficácia}: Qual solução atinge melhor o objetivo de reduzir perdas?
+        \item \textbf{Efetividade}: Qual solução tem melhor impacto no negócio (lucro, satisfação do cliente, redução de stress da equipe)?
+    \end{enumerate}
+    \item \textbf{Marcas Formativas (Gancho)}: 
+    \begin{itemize}
+        \item "Como a colaboração entre grupos poderia gerar uma solução ainda melhor?"
+        \item "Como a empatia com os funcionários que executarão o algoritmo afeta seu design?"
+        \item "Quais considerações éticas surgem ao automatizar decisões que afetam questões de saúde pública?"
+    \end{itemize}
+    \item \textbf{Tarefa de Preparação}: "Na próxima aula, traga ideias sobre como medir a eficiência do seu algoritmo. Pense em métricas que uma grande rede de supermercados realmente usaria."
+    \item \textbf{Fechamento}: "Hoje demos o primeiro passo na modelagem de processos de negócio. Na próxima, evoluiremos para otimização sistêmica, pensando não apenas no 'como fazer', mas no 'como fazer melhor'."
+\end{itemize}
+
+\newpage
+
+% ----------------------------------------- %
+% TABELA DE INDICADORES DE AVALIAÇÃO DA AULA
+% ----------------------------------------- %
+\section{Tabela de Indicadores de Avaliação da Aula}
+\textit{
+Tabela para registrar observações específicas durante a condução da aula e atribuir notas de 1 a 5 para cada indicador observável. Ao final, um score pode ser calculado com base em uma média ponderada que reflete a importância relativa de cada aspecto para esta aula específica.}
+
+\vspace{0.5cm}
+
+\begin{center}
+{\scriptsize
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|p{10cm}|c|c|}
+\hline
+\textbf{Indicador (Observável durante a aula)} & \textbf{Peso} & \textbf{Nota (1-5)} \\
+\hline
+\hline
+\textbf{1. Problematização Inicial} & & \\
+\hspace{0.2cm} • Clareza na apresentação do contexto corporativo & 1.0 & \\
+\hspace{0.2cm} • Engajamento inicial dos alunos com o problema & 1.2 & \\
+\hline
+\textbf{2. Atividade em Grupo} & & \\
+\hspace{0.2cm} • Participação ativa de membros de diferentes faixas etárias & 1.5 & \\
+\hspace{0.2cm} • Qualidade das discussões internas (ouvir, argumentar) & 1.3 & \\
+\hspace{0.2cm} • Capacidade de transformar o problema em passos lógicos & 1.4 & \\
+\hline
+\textbf{3. Mediação do Instrutor} & & \\
+\hspace{0.2cm} • Circulação efetiva entre os grupos & 0.8 & \\
+\hspace{0.2cm} • Qualidade das perguntas desafiadoras feitas & 1.2 & \\
+\hspace{0.2cm} • Timing adequado de intervenção (não interferir cedo demais) & 1.0 & \\
+\hline
+\textbf{4. Apresentação dos Grupos} & & \\
+\hspace{0.2cm} • Clareza na comunicação do algoritmo criado & 1.1 & \\
+\hspace{0.2cm} • Respeito ao tempo limite (1 minuto) & 0.7 & \\
+\hspace{0.2cm} • Utilização de termos que evidenciam lógica (se, então, enquanto) & 1.3 & \\
+\hline
+\textbf{5. Síntese e Ponte Conceitual} & & \\
+\hspace{0.2cm} • Eficácia na identificação e registro dos termos-chave na lousa & 1.0 & \\
+\hspace{0.2cm} • Clareza na explicação dos conceitos de sequência e decisão & 1.4 & \\
+\hspace{0.2cm} • Conexão convincente entre exemplos dos alunos e teoria & 1.2 & \\
+\hline
+\textbf{6. Engajamento Geral} & & \\
+\hspace{0.2cm} • Percentual de alunos que contribuíram ativamente & 1.5 & \\
+\hspace{0.2cm} • Manutenção da atenção durante os 30 minutos & 1.3 & \\
+\hspace{0.2cm} • Ambiente de escuta ativa durante apresentações & 1.1 & \\
+\hline
+\textbf{7. Transição para Próxima Aula} & & \\
+\hspace{0.2cm} • Clareza no preview dos conceitos de eficiência/eficácia/efetividade & 1.2 & \\
+\hspace{0.2cm} • Geração de curiosidade/expectativa para próxima aula & 1.0 & \\
+\hline
+\end{tabular}
+}
+\end{center}
+
+\textbf{Cálculo do Score Final:}
+\begin{itemize}
+\item \textbf{Fórmula:} \( Score = \frac{\sum (Nota \times Peso)}{\sum Pesos} \)
+\item \textbf{Interpretação:}
+\begin{itemize}
+\item 4.5 - 5.0: Excelente (praticamente todos os objetivos atingidos)
+\item 4.0 - 4.4: Muito Bom (objetivos principais atingidos)
+\item 3.5 - 3.9: Bom (objetivos atingidos, mas com espaço para melhoria)
+\item 3.0 - 3.4: Satisfatório (objetivos mínimos atingidos)
+\item Abaixo de 3.0: Requer replanejamento significativo
+\end{itemize}
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Soma (Nota × Peso)} & \textbf{Soma dos Pesos} & \textbf{Score Final} \\
+\hline
+ & 20.7 & \\
+\hline
+\end{tabular}
+\end{center}
+
+\newpage
+
+% ----------------------------------------- %
+% PLANILHA DE REFLEXÃO QUALITATIVA DA AULA
+% ----------------------------------------- %
+\section{Planilha de Reflexão Qualitativa da Aula}
+\textit{
+Esta seção complementa a avaliação quantitativa, focando em aspectos contextuais, dinâmicas sociais e insights pedagógicos que emergiram durante a aula. As perguntas são estruturadas para extrair aprendizados estratégicos para o desenvolvimento profissional contínuo.}
+
+\vspace{0.5cm}
+
+\textbf{1. Momentos de Maior Densidade Cognitiva}
+\textit{Em quais momentos específicos você percebeu que os alunos estavam realmente "conectando os pontos" entre o problema real e a área temática proposta para a aula? Descreva as interações e o contexto.}
+\vspace{6em}
+
+\textbf{2. Dinâmica Intergeracional como Recurso Pedagógico}
+\textit{Como a variação etária (14-65 anos) se manifestou durante a atividade? Que contribuições específicas de diferentes faixas etárias você observou e como elas enriqueceram a solução?}
+\vspace{6em}
+
+\textbf{3. Ajustes em Tempo Real e Insights Improvisados}
+\textit{Qual foi a maior adaptação que você precisou fazer em relação ao planejado durante a condução da aula? Que insight não antecipado surgiu da mediação que poderia ser formalizado em futuros planejamentos?}
+\vspace{6em}
+
+\textbf{4. Ponte para a Próxima Aula: Dados para o Gancho}
+\textit{Com base nas soluções apresentadas pelos grupos, quais contradições, lacunas ou variações você identificou que servirão como material bruto para introduzir os "conceitos-ponte" na próxima aula?}
+\vspace{6em}
+
+\end{document}
