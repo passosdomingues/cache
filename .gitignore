@@ -17,6 +17,7 @@
 *.zip
 *.rar
 *.tar.gz
+*.tgz
 *.ear        # Enterprise Archive (Java)
 *.war        # Web Archive (Java)
 
@@ -46,4 +47,6 @@ build/
 dist/
 out/
 target/
-
+ollama/
+deepseek/
+llm/
