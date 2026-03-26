@@ -1,0 +1,405 @@
+
+--- PAGE 1 ---
+Agro-Secure: Segurança de 
+Informação HaaS para o 
+Agronegócio
+T ransformando infraestrutura de segurança física e digital em serviço 
+recorrente para proteger operações críticas do agronegócio durante a 
+colheita.
+
+--- PAGE 2 ---
+Business Model Canvas: Infraestrutura & InfoSec HaaS
+Segmentos de Clientes
+Produtores rurais de café especial, cooperativas 
+agrícolas, MMEs do agronegócio (laticínios, silos, 
+comércio)
+Proposta de Valor
+Segurança Enterprise em formato Plug & Play: 
+servidores, roteadores seguros, totens NFC e 
+monitoramento 24/7 sem compra de 
+equipamentos
+Canais
+Vendas consultivas in-loco, parcerias com 
+cooperativas (Minasul, Cooxupé), feiras 
+agropecuárias regionais
+Relacionamento
+SLA agressivo, suporte presencial, consultoria de infraestrutura, relatórios 
+mensais de ameaças bloqueadas
+Receitas
+Setup + Mensalidade HaaS (hardware + firmware) + Serviços de R&D sob 
+demanda
+Recursos Principais
+Estoque de hardware (servidores, roteadores, 
+NFC)
+Engenheiros de hardware e redes
+Software de monitoramento (SOC remoto)
+Atividades Principais
+Montagem e provisionamento de hardware
+Instalações em campo (cabeamento, fixação)
+Monitoramento de rede e R&D de firmware
+Parceiros
+Fornecedores OEMs (Ásia/Brasil)
+Provedores de internet regionais
+Escritório de contabilidade (Lucro Real/Lei do 
+Bem)
+
+--- PAGE 3 ---
+Economia Unitária: Payback 
+e Retorno
+$5.9k
+CAPEX por Kit
+Hardware completo 
+(servidor edge, 
+gateway, totem NFC, 
+nobreak)
+$850
+Mensalidade
+Receita recorrente 
+mensal por cliente
+5
+Payback (Meses)
+Retorno do 
+investimento inicial 
+no hardware
+Margem de Contribuição Alta: Do mês 6 ao mês 12, a 
+mensalidade é praticamente margem pura. Churn 
+virtualmente nulo durante pico da safra.
+
+--- PAGE 4 ---
+Arquitetura de Infraestrutura Segura HaaS
+Perímetro Seguro
+Roteadores customizados com firewall embarcado e controle de acesso via NFC em galpões e escritórios
+Processamento Local
+"Home Lab" de rack (Mini-servidores locais para backup off-grid garantindo operação mesmo com internet 
+caída)
+Interface Física
+Totens/Kiosks seguros para bater ponto, consultar dados de safra sem risco de pendrives infectados
+SOC Remoto
+Centro de Operações em Alfenas monitorando saúde do hardware e tentativas de invasão 24/7
+
+--- PAGE 5 ---
+Modelagem de Viabilidade: Cenários de Crescimento
+1
+Mês 1-4
+3 pilotos em fazendas da região: 100% conversão, R$ 2.550 MRR
+2
+Mês 5-8
+15 novos contratos via cooperativas: R$ 12.750 MRR
+3
+Mês 9- 12
+32 clientes totais: R$ 27 .200 MRR consolidado
+Métrica Cenário Realista Cenário Otimista
+Aquisição (Clientes) 20 clientes na região 50 cliente s via cooperativa
+CAPEX Hardware R$ 80.000 R$ 180.000
+MRR no Mês 12 R$ 16.000 R$ 45.000
+
+--- PAGE 6 ---
+Lei do Bem: Barreira de Entrada 
+Fiscal
+Protagonista da Estratégia
+Lei 11. 196/05 permite deduzir 60-80% dos 
+gastos com P&D da base de IRP J e CSLL. 
+Documentar desde Dia 1 para 
+enquadramento no Lucro Real.
+Barreira T ecnológica
+Firmware proprietário embarcado e 
+orquestração offline criam diferencial 
+contra concorrentes. Abatimento massivo 
+de impostos quando escalarmos.
+01
+Documentação Rigorosa
+Timesheets, backlog técnico, relatórios de 
+falhas e incertezas tecnológicas desde Dia 1
+02
+Enquadramento Lucro Real
+Migração no Ano 3 quando margens 
+permitirem abatimento fiscal de 60-80% 
+sobre P&D
+03
+Otimização Fiscal
+Redução drástica de carga tributária aumentando ROI do investimento e competitividade
+
+--- PAGE 7 ---
+Kit Agro-Secure V1: Arquitetura e Componentes
+Servidor Edge
+Mini PC industrial fanless 
+(Intel N100, 16GB RAM, 500GB 
+SSD ) - R$ 2. 100
+Gateway/Rede
+Roteador Mikro Tik hEX 
+RB750Gr3 - R$ 650
+T otem NFC
+Raspberry Pi 4 + T ela 7" + 
+Leitor NFC + Case 3D - R$ 
+1.500
+Energia Resiliente
+Nobreak senoidal puro 
+1200V A - R$ 1.200
+T otal CAPEX: ~R$ 5.900 por kit completo. Setup R$ 2.000 + Mensalidade R$ 850 = Payback no mês 5.
+
+--- PAGE 8 ---
+Use Case: Proteção Operacional em 
+Campo
+Gestor da Fazenda
+Autenticação via NFC no totem
+Validação Local
+Servidor edge valida dados offline
+Criptografia
+Dados enviados ao SOC remoto
+Dashboard
+Relatório em celular do gestor
+Edge Computing
+Processamento local 
+garante operação mesmo 
+com internet caída
+Firmware Proprietário
+Orquestração offline e 
+sincronização assíncrona
+Uptime Garantido
+100% operação durante 
+quedas semanais
+
+--- PAGE 9 ---
+Argumentos Matadores para 
+Investidores
+Risco de Mercado Zero
+Produtores rurais já pagam R$ 
+850/mês. Capital para comprar 
+hardware e atender fila de espera 
+gerada pela prospecção.
+Economia Unitária de Alta 
+Margem
+Hardware se paga no mês 5. Meses 
+6- 12: mensalidade é margem de 
+contribuição. Churn virtualmente 
+nulo no pico da safra.
+Barreira de Entrada Fiscal
+Firmware embarcado e R&D documentado desde Dia 1. Lei do Bem reduzirá 
+carga tributária no Lucro Real, aumentando ROI.
+
+--- PAGE 10 ---
+Próximos Passos: Implementação e Escalabilidade
+Validação de Pilotos
+Instalar 3 kits gratuitos por 30 dias. 
+Converter via dashboard mostrando 
+ameaças bloqueadas e uptime salvo.
+Captação de Capital
+R$ 350.000 para 50 kits = MRR R$ 
+42.500 em 4 meses. Demanda 
+comprovada, tecnologia validada, 
+clientes pagando.
+Escalabilidade
+Parcerias com cooperativas (Cooxupé, 
+Minasul), SLA agressivo, onboarding 
+profissional garantindo adoção.
+Diferencial Competitivo
+Hardware + Firmware proprietário
+Edge Computing para resiliência
+Lei do Bem como barreira fiscal
+Meta de Longo Prazo
+Domínio regional Sul de Minas
+Expansão para agronegócio nacional
+Equipe de SOC 24/7 em Alfenas
+"Quem vem com a gente blindar o agronegócio?"
+--- PAGE 1 ---
+Agro-Secure: Segurança de 
+Informação HaaS para o 
+Agronegócio
+T ransformando infraestrutura de segurança física e digital em serviço 
+recorrente para proteger operações críticas do agronegócio durante a 
+colheita.
+
+--- PAGE 2 ---
+Business Model Canvas: Infraestrutura & InfoSec HaaS
+Segmentos de Clientes
+Produtores rurais de café especial, cooperativas 
+agrícolas, MMEs do agronegócio (laticínios, silos, 
+comércio)
+Proposta de Valor
+Segurança Enterprise em formato Plug & Play: 
+servidores, roteadores seguros, totens NFC e 
+monitoramento 24/7 sem compra de 
+equipamentos
+Canais
+Vendas consultivas in-loco, parcerias com 
+cooperativas (Minasul, Cooxupé), feiras 
+agropecuárias regionais
+Relacionamento
+SLA agressivo, suporte presencial, consultoria de infraestrutura, relatórios 
+mensais de ameaças bloqueadas
+Receitas
+Setup + Mensalidade HaaS (hardware + firmware) + Serviços de R&D sob 
+demanda
+Recursos Principais
+Estoque de hardware (servidores, roteadores, 
+NFC)
+Engenheiros de hardware e redes
+Software de monitoramento (SOC remoto)
+Atividades Principais
+Montagem e provisionamento de hardware
+Instalações em campo (cabeamento, fixação)
+Monitoramento de rede e R&D de firmware
+Parceiros
+Fornecedores OEMs (Ásia/Brasil)
+Provedores de internet regionais
+Escritório de contabilidade (Lucro Real/Lei do 
+Bem)
+
+--- PAGE 3 ---
+Economia Unitária: Payback 
+e Retorno
+$5.9k
+CAPEX por Kit
+Hardware completo 
+(servidor edge, 
+gateway, totem NFC, 
+nobreak)
+$850
+Mensalidade
+Receita recorrente 
+mensal por cliente
+5
+Payback (Meses)
+Retorno do 
+investimento inicial 
+no hardware
+Margem de Contribuição Alta: Do mês 6 ao mês 12, a 
+mensalidade é praticamente margem pura. Churn 
+virtualmente nulo durante pico da safra.
+
+--- PAGE 4 ---
+Arquitetura de Infraestrutura Segura HaaS
+Perímetro Seguro
+Roteadores customizados com firewall embarcado e controle de acesso via NFC em galpões e escritórios
+Processamento Local
+"Home Lab" de rack (Mini-servidores locais para backup off-grid garantindo operação mesmo com internet 
+caída)
+Interface Física
+Totens/Kiosks seguros para bater ponto, consultar dados de safra sem risco de pendrives infectados
+SOC Remoto
+Centro de Operações em Alfenas monitorando saúde do hardware e tentativas de invasão 24/7
+
+--- PAGE 5 ---
+Modelagem de Viabilidade: Cenários de Crescimento
+1
+Mês 1-4
+3 pilotos em fazendas da região: 100% conversão, R$ 2.550 MRR
+2
+Mês 5-8
+15 novos contratos via cooperativas: R$ 12.750 MRR
+3
+Mês 9- 12
+32 clientes totais: R$ 27 .200 MRR consolidado
+Métrica Cenário Realista Cenário Otimista
+Aquisição (Clientes) 20 clientes na região 50 cliente s via cooperativa
+CAPEX Hardware R$ 80.000 R$ 180.000
+MRR no Mês 12 R$ 16.000 R$ 45.000
+
+--- PAGE 6 ---
+Lei do Bem: Barreira de Entrada 
+Fiscal
+Protagonista da Estratégia
+Lei 11. 196/05 permite deduzir 60-80% dos 
+gastos com P&D da base de IRP J e CSLL. 
+Documentar desde Dia 1 para 
+enquadramento no Lucro Real.
+Barreira T ecnológica
+Firmware proprietário embarcado e 
+orquestração offline criam diferencial 
+contra concorrentes. Abatimento massivo 
+de impostos quando escalarmos.
+01
+Documentação Rigorosa
+Timesheets, backlog técnico, relatórios de 
+falhas e incertezas tecnológicas desde Dia 1
+02
+Enquadramento Lucro Real
+Migração no Ano 3 quando margens 
+permitirem abatimento fiscal de 60-80% 
+sobre P&D
+03
+Otimização Fiscal
+Redução drástica de carga tributária aumentando ROI do investimento e competitividade
+
+--- PAGE 7 ---
+Kit Agro-Secure V1: Arquitetura e Componentes
+Servidor Edge
+Mini PC industrial fanless 
+(Intel N100, 16GB RAM, 500GB 
+SSD ) - R$ 2. 100
+Gateway/Rede
+Roteador Mikro Tik hEX 
+RB750Gr3 - R$ 650
+T otem NFC
+Raspberry Pi 4 + T ela 7" + 
+Leitor NFC + Case 3D - R$ 
+1.500
+Energia Resiliente
+Nobreak senoidal puro 
+1200V A - R$ 1.200
+T otal CAPEX: ~R$ 5.900 por kit completo. Setup R$ 2.000 + Mensalidade R$ 850 = Payback no mês 5.
+
+--- PAGE 8 ---
+Use Case: Proteção Operacional em 
+Campo
+Gestor da Fazenda
+Autenticação via NFC no totem
+Validação Local
+Servidor edge valida dados offline
+Criptografia
+Dados enviados ao SOC remoto
+Dashboard
+Relatório em celular do gestor
+Edge Computing
+Processamento local 
+garante operação mesmo 
+com internet caída
+Firmware Proprietário
+Orquestração offline e 
+sincronização assíncrona
+Uptime Garantido
+100% operação durante 
+quedas semanais
+
+--- PAGE 9 ---
+Argumentos Matadores para 
+Investidores
+Risco de Mercado Zero
+Produtores rurais já pagam R$ 
+850/mês. Capital para comprar 
+hardware e atender fila de espera 
+gerada pela prospecção.
+Economia Unitária de Alta 
+Margem
+Hardware se paga no mês 5. Meses 
+6- 12: mensalidade é margem de 
+contribuição. Churn virtualmente 
+nulo no pico da safra.
+Barreira de Entrada Fiscal
+Firmware embarcado e R&D documentado desde Dia 1. Lei do Bem reduzirá 
+carga tributária no Lucro Real, aumentando ROI.
+
+--- PAGE 10 ---
+Próximos Passos: Implementação e Escalabilidade
+Validação de Pilotos
+Instalar 3 kits gratuitos por 30 dias. 
+Converter via dashboard mostrando 
+ameaças bloqueadas e uptime salvo.
+Captação de Capital
+R$ 350.000 para 50 kits = MRR R$ 
+42.500 em 4 meses. Demanda 
+comprovada, tecnologia validada, 
+clientes pagando.
+Escalabilidade
+Parcerias com cooperativas (Cooxupé, 
+Minasul), SLA agressivo, onboarding 
+profissional garantindo adoção.
+Diferencial Competitivo
+Hardware + Firmware proprietário
+Edge Computing para resiliência
+Lei do Bem como barreira fiscal
+Meta de Longo Prazo
+Domínio regional Sul de Minas
+Expansão para agronegócio nacional
+Equipe de SOC 24/7 em Alfenas
+"Quem vem com a gente blindar o agronegócio?"
