@@ -1,0 +1,194 @@
+/* =========================================================================
+   AULA ELASTICSEARCH – 23 DE MARÇO DE 2026
+   ROTEIRO DE REVISÃO PRÁTICA E DIDÁTICA
+   =========================================================================
+*/
+
+/* PASSO 1: CRIAÇÃO DO ÍNDICE (STRUCTURE & ANALYSIS)
+   A intenção aqui é preparar o "terreno". Definimos como o texto será 
+   tratado (analyzer) e quais são as regras dos campos (mappings).
+*/
+PUT /wikipedia
+{
+  "settings": {
+    "number_of_shards": 4,     /* Divide os dados em 4 partes para performance. */
+    "number_of_replicas": 1,   /* Cria 1 cópia de segurança para cada shard. */
+    "index.mapping.coerce": false, /* Exige que os tipos de dados sejam exatos. */
+    "analysis": {
+      "analyzer": {
+        "analyzer_for_content": {
+          "type": "custom",
+          "char_filter": [],
+          "tokenizer": "standard", /* Quebra o texto em palavras. */
+          "filter": [
+            "asciifolding", /* Remove acentos (ex: 'í' vira 'i'). */
+            "lowercase",    /* Padroniza tudo em minúsculo. */
+            "snowball"      /* Reduz palavras ao radical (ex: 'roots' vira 'root'). */
+          ]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "dynamic": "strict", /* Impede a criação de campos não planejados. */
+    "properties": {
+      "title": {
+        "type": "text",
+        "analyzer": "analyzer_for_content"
+      },
+      "url": {
+        "type": "keyword", /* Texto exato, sem análise, ideal para links. */
+        "doc_values": false,
+        "index": false /* Não buscável, economiza espaço em disco. */
+      },
+      "content": {
+        "type": "text",
+        "analyzer": "analyzer_for_content"
+      },
+      "dt_creation": {
+        "type": "date"
+      },
+      "reading_time": {
+        "type": "integer"
+      }
+    }
+  }
+}
+
+/* PASSO 2: IMPORTAÇÃO DE DADOS (TERMINAL)
+   Atenção: Este comando deve ser executado no seu terminal Linux/Bash, 
+   na pasta onde o arquivo 'wiki.json' foi baixado.
+
+   curl -H "Content-Type: application/x-ndjson" -XPOST https://localhost:9200/wikipedia/_bulk --data-binary "@wiki.json" --user "elastic:user123" --insecure
+*/
+
+/* PASSO 3: BUSCA SIMPLES (OPERADOR PADRÃO OR)
+   Intenção: Ver a abrangência máxima.
+   Retorna documentos que contenham 'square' OU 'root'.
+*/
+GET /wikipedia/_search
+{
+  "query": {
+    "match": {
+      "content": "square root"
+    }
+  }
+}
+
+/* PASSO 4: BUSCA RESTRITIVA (OPERADOR AND)
+   Intenção: Aumentar a precisão.
+   Retorna apenas documentos que contenham AMBOS os termos, em qualquer ordem.
+*/
+GET /wikipedia/_search
+{
+  "query": {
+    "match": {
+      "content": {
+        "query": "square root",
+        "operator": "and"
+      }
+    }
+  }
+}
+
+/* PASSO 5: BUSCA POR FRASE (MATCH PHRASE)
+   Intenção: Especificidade total.
+   Retorna apenas se os termos estiverem na ordem exata: 'square' seguido de 'root'.
+*/
+GET /wikipedia/_search
+{
+  "query": {
+    "match_phrase": {
+      "content": "square root"
+    }
+  }
+}
+
+/* PASSO 6: BUSCA EM MÚLTIPLOS CAMPOS (MULTI_MATCH)
+   Intenção: Expandir o alcance da busca.
+   Procura 'square root' tanto no título quanto no conteúdo.
+*/
+GET /wikipedia/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "square root",
+      "fields": [ "content", "title" ]
+    }
+  }
+}
+
+/* PASSO 7: COMPARAÇÃO DE RELEVÂNCIA E COBERTURA
+   Intenção: Entender como o acréscimo de campos altera o volume de resultados.
+*/
+
+/* 7.1 Busca abrangente (Multi-campo) */
+GET /wikipedia/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "normalized google distance",
+      "fields": [ "content", "title" ]
+    }
+  }
+}
+
+/* 7.2 Busca limitada (Apenas conteúdo) 
+   Note que este pode retornar menos resultados que o anterior.
+*/
+GET /wikipedia/_search
+{
+  "query": {
+    "match": {
+      "content": "normalized google distance"
+    }
+  }
+}
+
+/* GET /wikipedia/_search
+   Utilizamos a query 'bool' para combinar múltiplas condições de busca.
+*/
+GET /wikipedia/_search
+{
+  "query": {
+    "bool": {
+      /* 'must': O documento PRECISA atender a estas condições para ser retornado.
+         Funciona como um filtro obrigatório que impacta no score.
+      */
+      "must": [
+        {
+          "match": {
+            "content": {
+              "query": "square root",
+              "operator": "and"
+            }
+          }
+        },
+        {
+          /* 'match_phrase': Garante que os termos apareçam na ordem exata.
+             Corrigido de 'match_prase' e removido o 'operator', que não existe aqui.
+          */
+          "match_phrase": {
+            "content": "square root of"
+          }
+        }
+      ],
+      /* 'should': Funciona como um sinalizador de 'seria bom se tivesse'.
+         Documentos que atendem ao 'should' ganham uma pontuação (score) maior 
+         e aparecem primeiro nos resultados, mas não são excluídos se não tiverem.
+      */
+      "should": [
+        {
+          "match": {
+            "title": {
+              "query": "functional square root",
+              "boost": 2.0 
+              /* O 'boost' dobra a importância deste termo quando encontrado no título. */
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
