@@ -16,7 +16,7 @@ dados_dp = defaultdict(list)
 dados_guloso = defaultdict(list)
 
 try:
-    with open('resultados.csv', 'r') as f:
+    with open('benchmarks.csv', 'r') as f:
         reader = csv.reader(f)
         next(reader) # Salta o cabeçalho
         for row in reader:
@@ -24,7 +24,7 @@ try:
             dados_dp[tamanho].append(float(row[1]))
             dados_guloso[tamanho].append(float(row[2]))
 except FileNotFoundError:
-    print("Erro: O arquivo resultados.csv não foi encontrado. Rode o testador primeiro.")
+    print("Erro: O arquivo benchmarks.csv não foi encontrado. Rode o testador primeiro.")
     exit(1)
 
 # Processamento das médias e memória

@@ -1,19 +1,33 @@
 #!/bin/bash
 
+# ==============================================================================
+# Cores ANSI para Terminal
+# ==============================================================================
+C_CYAN='\033[1;36m'
+C_GREEN='\033[1;32m'
+C_YELLOW='\033[1;33m'
+C_RED='\033[1;31m'
+C_RESET='\033[0m'
+
 # Garante que o script está a ser executado a partir da pasta 'data'
 cd "$(dirname "$0")" || exit
 
-# Verifica se a pasta codigo_base e o Makefile existem um nível acima
 if [ ! -f "../codigo_base/Makefile" ]; then
-    echo "Erro: Execute este script a partir da pasta 'data' (ex: tp_02/data)!"
+    echo -e "${C_RED}[ERRO CRITICO] Execute este script a partir da pasta 'data'!${C_RESET}"
     exit 1
 fi
 
-# Diretórios importantes relativos à pasta 'data'
 CODIGO_DIR="../codigo_base"
 INSTANCIAS_DIR="../instancias"
 
-# Compila o código remotamente na pasta codigo_base
+# Define o caminho do interpretador Python (usa o VENV se existir)
+if [ -f "venv/bin/python" ]; then
+    PYTHON_CMD="venv/bin/python"
+else
+    PYTHON_CMD="python3"
+fi
+
+# Compila o código remotamente na pasta codigo_base usando o Makefile SAGRADO
 make -C $CODIGO_DIR --quiet
 
 arquivos=($(ls -v $INSTANCIAS_DIR))
@@ -21,77 +35,76 @@ total=${#arquivos[@]}
 
 while true; do
     clear
-    echo "=========================================="
-    echo " [AEDs 3] Testador e Orquestrador - tp_02 "
-    echo "=========================================="
-    echo "  1 a $total) Testar instância específica"
-    echo "  99) RODAR TUDO E GERAR GRÁFICOS (CSV + Python)"
-    echo "  0) Sair"
-    echo "=========================================="
+    echo -e "${C_CYAN}==========================================${C_RESET}"
+    echo -e "${C_CYAN} [AEDs 3] ORQUESTRADOR TÁTICO - tp_02     ${C_RESET}"
+    echo -e "${C_CYAN}==========================================${C_RESET}"
+    echo -e "  ${C_YELLOW}1 a $total)${C_RESET} Testar instância cirurgicamente"
+    echo -e "  ${C_GREEN}99)${C_RESET} RODAR BATERIA COMPLETA (Extração + Gráficos)"
+    echo -e "  ${C_RED}0)${C_RESET} Abortar e limpar rastros"
+    echo -e "${C_CYAN}==========================================${C_RESET}"
     
-    read -p "Escolha uma opção: " opt
+    read -p "Aguardando comando: " opt
 
     if [ "$opt" = "0" ]; then
-        echo "Limpando atalhos e saindo..."
+        echo -e "${C_YELLOW}Limpando atalhos dinâmicos (symlinks)...${C_RESET}"
         rm -f ../bla
+        echo -e "${C_GREEN}Sistema limpo. Saindo.${C_RESET}"
         break
     
-    # Opção 99: Orquestrador Automático
+    # Orquestrador Automático
     elif [ "$opt" = "99" ]; then
         clear
-        echo "Iniciando bateria de testes globais. Isto pode demorar alguns segundos..."
-        # O CSV será gerado dentro da pasta data
+        echo -e "${C_CYAN}[SISTEMA] Iniciando varredura global. Processando...${C_RESET}"
         echo "Tamanho,TempoDP,TempoGuloso" > resultados.csv
         
         for arquivo in "${arquivos[@]}"; do
-            # Extrai o tamanho N a partir do nome do arquivo
             tamanho=$(echo "$arquivo" | cut -d'-' -f1)
+            echo -ne "Processando lote ${C_YELLOW}$arquivo${C_RESET}... "
             
-            echo -n "Processando $arquivo... "
-            
-            # Cria o link 'bla' na raiz da tp_02 (um nível acima da pasta data)
+            # Symlink injetado nas sombras
             ln -sf "$PWD/$INSTANCIAS_DIR/$arquivo" ../bla
             
-            # Executa o make run remotamente, silenciando os avisos
+            # Compilação e execução cega do professor
             saida=$(make -C $CODIGO_DIR run 2>/dev/null)
             
-            # Extração dos tempos usando AWK
+            # Parsing via AWK
             t_dp=$(echo "$saida" | awk '/Programação Dinâmica/{flag=1} flag && /Tempo:/{print $2; flag=0}')
             t_guloso=$(echo "$saida" | awk '/Guloso/{flag=1} flag && /Tempo:/{print $2; flag=0}')
             
-            # Se conseguiu ler os valores, guarda no CSV
             if [ -n "$t_dp" ] && [ -n "$t_guloso" ]; then
                 echo "$tamanho,$t_dp,$t_guloso" >> resultados.csv
-                echo "Concluído (DP: ${t_dp}s, Guloso: ${t_guloso}s)"
+                echo -e "${C_GREEN}Sucesso${C_RESET} (DP: ${t_dp}s | Gul: ${t_guloso}s)"
             else
-                echo "Erro ao extrair tempos!"
+                echo -e "${C_RED}Falha de extração!${C_RESET}"
             fi
         done
         
-        echo "------------------------------------------"
-        echo "Testes concluídos! Gerando gráficos..."
-        # Chama o script Python localmente na pasta data
-        python3 gerador_graficos.py
+        echo -e "${C_CYAN}------------------------------------------${C_RESET}"
+        echo -e "${C_CYAN}[SISTEMA] Extração concluída. Invocando renderização visual...${C_RESET}"
         
-        read -p "Dê [Enter] para voltar ao menu..."
+        # Chama o Python usando o VENV
+        $PYTHON_CMD gerador_graficos.py
+        
+        echo ""
+        read -p "Pressione [Enter] para retornar ao terminal base..."
     
-    # Teste de uma instância singular
+    # Instância Singular
     elif [[ "$opt" =~ ^[0-9]+$ ]] && [ "$opt" -ge 1 ] && [ "$opt" -le "$total" ]; then
         idx=$((opt-1))
         arquivo_escolhido="${arquivos[$idx]}"
         
         clear
-        echo "=========================================="
-        echo " Executando: $arquivo_escolhido"
-        echo "=========================================="
+        echo -e "${C_CYAN}==========================================${C_RESET}"
+        echo -e " Alvo selecionado: ${C_YELLOW}$arquivo_escolhido${C_RESET}"
+        echo -e "${C_CYAN}==========================================${C_RESET}"
         
         ln -sf "$PWD/$INSTANCIAS_DIR/$arquivo_escolhido" ../bla
         make -C $CODIGO_DIR run
         
         echo ""
-        read -p "Dê [Enter] para voltar ao menu..."
+        read -p "Pressione [Enter] para retornar ao terminal base..."
     else
-        echo "❌ Opção inválida."
+        echo -e "${C_RED}[ERRO] Comando não reconhecido.${C_RESET}"
         sleep 1
     fi
 done
