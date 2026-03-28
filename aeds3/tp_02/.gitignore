@@ -1,0 +1,7 @@
+data/venv/
+data/resultados.csv
+data/graficos/
+data/__pycache__/
+bla
+codigo_base/base
+codigo_base/*.o

@@ -55,7 +55,7 @@ while true; do
     elif [ "$opt" = "99" ]; then
         clear
         echo -e "${C_CYAN}[SISTEMA] Iniciando varredura global. Processando...${C_RESET}"
-        echo "Tamanho,TempoDP,TempoGuloso" > resultados.csv
+        echo "Tamanho,TempoDP,TempoGuloso" > benchmarks.csv
         
         for arquivo in "${arquivos[@]}"; do
             tamanho=$(echo "$arquivo" | cut -d'-' -f1)
@@ -72,7 +72,7 @@ while true; do
             t_guloso=$(echo "$saida" | awk '/Guloso/{flag=1} flag && /Tempo:/{print $2; flag=0}')
             
             if [ -n "$t_dp" ] && [ -n "$t_guloso" ]; then
-                echo "$tamanho,$t_dp,$t_guloso" >> resultados.csv
+                echo "$tamanho,$t_dp,$t_guloso" >> benchmarks.csv
                 echo -e "${C_GREEN}Sucesso${C_RESET} (DP: ${t_dp}s | Gul: ${t_guloso}s)"
             else
                 echo -e "${C_RED}Falha de extração!${C_RESET}"
