@@ -41,9 +41,9 @@ setup: create_gitignore $(VENV_DIR)/touchfile
 $(VENV_DIR)/touchfile:
 	@echo "$(CYAN)[SISTEMA] Iniciando protocolo de contencao (Construindo VENV)...$(RESET)"
 	@python3 -m venv $(VENV_DIR)
-	@echo "$(YELLOW)[SISTEMA] Instalando dependencias analiticas silenciosamente...$(RESET)"
+	@echo "$(YELLOW)[SISTEMA] Instalando dependencias analiticas e motores de video silenciosamente...$(RESET)"
 	@$(PIP) install --upgrade pip --quiet
-	@$(PIP) install numpy matplotlib seaborn --quiet
+	@$(PIP) install numpy matplotlib seaborn pandas imageio imageio-ffmpeg --quiet
 	@touch $(VENV_DIR)/touchfile
 
 # Camuflagem: Injeta regras de ofuscação no .gitignore da raiz do projeto
@@ -53,7 +53,9 @@ create_gitignore:
 		echo "Criando .gitignore na raiz da operacao..."; \
 		echo "data/venv/" > ../.gitignore; \
 		echo "data/resultados.csv" >> ../.gitignore; \
+		echo "data/tabela_scores.csv" >> ../.gitignore; \
 		echo "data/graficos/" >> ../.gitignore; \
+		echo "*.mp4" >> ../.gitignore; \
 		echo "data/__pycache__/" >> ../.gitignore; \
 		echo "bla" >> ../.gitignore; \
 		echo "codigo_base/base" >> ../.gitignore; \
@@ -61,8 +63,10 @@ create_gitignore:
 		echo "$(GREEN)[OK] .gitignore forjado com sucesso.$(RESET)"; \
 	else \
 		grep -q "data/venv/" ../.gitignore || echo "data/venv/" >> ../.gitignore; \
+		grep -q "tabela_scores" ../.gitignore || echo "data/tabela_scores.csv" >> ../.gitignore; \
+		grep -q "\*.mp4" ../.gitignore || echo "*.mp4" >> ../.gitignore; \
 		grep -q "bla" ../.gitignore || echo "bla" >> ../.gitignore; \
-		echo "$(GREEN)[OK] .gitignore ativo e atualizado.$(RESET)"; \
+		echo "$(GREEN)[OK] .gitignore ativo e atualizado para outputs de video e tabelas.$(RESET)"; \
 	fi
 
 # Aciona o Orquestrador Bash

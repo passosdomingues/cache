@@ -55,7 +55,9 @@ while true; do
     elif [ "$opt" = "99" ]; then
         clear
         echo -e "${C_CYAN}[SISTEMA] Iniciando varredura global. Processando...${C_RESET}"
-        echo "Tamanho,TempoDP,TempoGuloso" > benchmarks.csv
+        
+        # Cabeçalho do CSV
+        echo "Tamanho,TempoDP,TempoGuloso,ScoreDP,ScoreGuloso" > benchmarks.csv
         
         for arquivo in "${arquivos[@]}"; do
             tamanho=$(echo "$arquivo" | cut -d'-' -f1)
@@ -67,13 +69,17 @@ while true; do
             # Compilação e execução cega do professor
             saida=$(make -C $CODIGO_DIR run 2>/dev/null)
             
-            # Parsing via AWK
-            t_dp=$(echo "$saida" | awk '/Programação Dinâmica/{flag=1} flag && /Tempo:/{print $2; flag=0}')
-            t_guloso=$(echo "$saida" | awk '/Guloso/{flag=1} flag && /Tempo:/{print $2; flag=0}')
+            # Nova extração à prova de balas (ignorando acentos e pegando as próximas linhas com grep)
+            t_dp=$(echo "$saida" | grep -A 2 "Din" | grep "Tempo:" | awk '{print $2}')
+            score_dp=$(echo "$saida" | grep -A 2 "Din" | grep "Resultado:" | awk '{print $2}')
             
-            if [ -n "$t_dp" ] && [ -n "$t_guloso" ]; then
-                echo "$tamanho,$t_dp,$t_guloso" >> benchmarks.csv
-                echo -e "${C_GREEN}Sucesso${C_RESET} (DP: ${t_dp}s | Gul: ${t_guloso}s)"
+            t_guloso=$(echo "$saida" | grep -A 2 "Guloso" | grep "Tempo:" | awk '{print $2}')
+            score_guloso=$(echo "$saida" | grep -A 2 "Guloso" | grep "Resultado:" | awk '{print $2}')
+            
+            # Verifica se todas as 4 variáveis foram extraídas com sucesso
+            if [ -n "$t_dp" ] && [ -n "$t_guloso" ] && [ -n "$score_dp" ] && [ -n "$score_guloso" ]; then
+                echo "$tamanho,$t_dp,$t_guloso,$score_dp,$score_guloso" >> benchmarks.csv
+                echo -e "${C_GREEN}Sucesso${C_RESET} (DP: ${t_dp}s [Sc: ${score_dp}] | Gul: ${t_guloso}s [Sc: ${score_guloso}])"
             else
                 echo -e "${C_RED}Falha de extração!${C_RESET}"
             fi
