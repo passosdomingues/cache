@@ -1,0 +1,7 @@
+<article th:fragment="result-item(result)" class="result-card">
+    <a th:href="${result.url}" target="_blank" class="result-url" th:text="${result.url}">https://example.com</a>
+    <a th:href="${result.url}" target="_blank" class="result-title" th:text="${result.title}">Document Title</a>
+    
+    <!-- Renderiza abstract (conteúdo com highlight <strong> ou fallback) -->
+    <p class="result-abs" th:utext="${result.abs}">Document abstract...</p>
+</article>

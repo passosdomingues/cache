@@ -1,0 +1,19 @@
+<div th:fragment="pagination" class="pagination" th:if="${totalPages > 1}">
+    <div class="pagination-info">
+        Página <strong th:text="${page}">1</strong> de <strong th:text="${totalPages}">10</strong>
+    </div>
+    <div class="pagination-controls">
+        <a th:href="@{/(query=${query}, page=${page - 1})}" 
+           class="page-btn" 
+           th:classappend="${page <= 1} ? 'disabled' : ''"
+           aria-label="Página anterior">
+            Anterior
+        </a>
+        <a th:href="@{/(query=${query}, page=${page + 1})}" 
+           class="page-btn" 
+           th:classappend="${page >= totalPages} ? 'disabled' : ''"
+           aria-label="Próxima página">
+            Próxima
+        </a>
+    </div>
+</div>

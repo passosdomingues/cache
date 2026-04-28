@@ -1,0 +1,116 @@
+.results-header {
+  margin-bottom: 24px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.spell-check {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: var(--accent-glow);
+  border-left: 3px solid var(--accent-blue);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  display: inline-block;
+}
+
+.spell-check a {
+  color: var(--text-link);
+  font-weight: 600;
+  text-decoration: none;
+  font-style: italic;
+}
+
+.spell-check a:hover { text-decoration: underline; }
+
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.result-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  text-align: left;
+  transition:
+    background   var(--dur-fast) var(--ease-snap),
+    border-color var(--dur-fast) var(--ease-snap),
+    transform    var(--dur-fast) var(--ease-out);
+  
+  /* Stagger animation setup */
+  opacity: 0;
+  animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Delay staggered dynamically by inline style or nth-child */
+.result-card:nth-child(1) { animation-delay: 50ms; }
+.result-card:nth-child(2) { animation-delay: 100ms; }
+.result-card:nth-child(3) { animation-delay: 150ms; }
+.result-card:nth-child(4) { animation-delay: 200ms; }
+.result-card:nth-child(5) { animation-delay: 250ms; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.result-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(255,255,255,0.12);
+}
+
+.result-url {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-link);
+  text-decoration: none;
+  margin-bottom: 8px;
+  display: inline-block;
+  line-height: 1.3;
+}
+
+.result-title:hover { text-decoration: underline; }
+
+.result-abs {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.result-abs strong {
+  color: var(--text-primary);
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0 3px;
+  border-radius: 3px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.empty-state svg {
+  color: rgba(255,255,255,0.1);
+  margin-bottom: 16px;
+}

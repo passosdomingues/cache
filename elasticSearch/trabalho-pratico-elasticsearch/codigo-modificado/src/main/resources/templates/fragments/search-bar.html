@@ -1,0 +1,30 @@
+<div th:fragment="search-bar" class="search-container" id="search-component">
+    <form th:action="@{/}" method="GET" class="search-form" id="search-form">
+        <div class="search-input-wrapper">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" 
+                   name="query" 
+                   id="search-input"
+                   class="search-input" 
+                   placeholder="O que você está procurando?" 
+                   th:value="${query}"
+                   autocomplete="off"
+                   role="combobox"
+                   aria-expanded="false"
+                   aria-controls="autocomplete-list"
+                   aria-autocomplete="list"
+                   autofocus>
+                   
+            <!-- Autocomplete Container (Populato via Vanilla JS) -->
+            <div id="autocomplete-list" class="autocomplete-dropdown" style="display: none;" role="listbox">
+                <!-- Itens serão injetados aqui via JS -->
+            </div>
+        </div>
+        
+        <button type="submit" class="search-btn" id="search-btn" aria-label="Buscar">
+            <span class="btn-text">Buscar</span>
+            <i data-lucide="arrow-right" class="btn-icon"></i>
+            <div class="spinner"></div>
+        </button>
+    </form>
+</div>

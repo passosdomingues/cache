@@ -1,0 +1,202 @@
+digraph WikiSearchArchitecture {
+    // ── Configurações globais ─────────────────────────────────────
+    graph [
+        rankdir = LR,
+        bgcolor = "#0d1117",
+        pad     = 0.6,
+        nodesep = 0.7,
+        ranksep = 1.0,
+        fontname = "Inter, Helvetica, sans-serif",
+        fontsize = 11,
+        fontcolor = "#e6edf3",
+        label = "WikiSearch — Arquitetura do Sistema\nElasticsearch + Spring Boot + Thymeleaf",
+        labelloc = top,
+        labeljust = center
+    ]
+
+    node [
+        shape    = box,
+        style    = "filled,rounded",
+        fontname = "Inter, Helvetica, sans-serif",
+        fontsize = 10,
+        fontcolor = "#e6edf3",
+        penwidth = 1.5
+    ]
+
+    edge [
+        fontname = "Inter, Helvetica, sans-serif",
+        fontsize = 9,
+        fontcolor = "#8b949e",
+        color    = "#3b78e7",
+        penwidth = 1.5
+    ]
+
+    // ── Subgraph: Usuário ─────────────────────────────────────────
+    subgraph cluster_user {
+        label     = "Usuário"
+        style     = "rounded,dashed"
+        color     = "#3fb950"
+        fontcolor = "#3fb950"
+        fontsize  = 10
+
+        Browser [
+            label     = "🌐  Browser\n(Chrome / Firefox)",
+            fillcolor = "#161b22",
+            color     = "#3fb950"
+        ]
+    }
+
+    // ── Subgraph: Spring Boot Application ─────────────────────────
+    subgraph cluster_app {
+        label     = "Spring Boot 3.1 — porta 8080"
+        style     = "rounded,filled"
+        fillcolor = "#161b22"
+        color     = "#4f8ef7"
+        fontcolor = "#4f8ef7"
+        fontsize  = 10
+
+        subgraph cluster_controllers {
+            label     = "Controllers (REST + MVC)"
+            style     = "rounded,dashed"
+            color     = "#bc8cff"
+            fontcolor = "#bc8cff"
+            fontsize  = 9
+
+            SearchViewController [
+                label     = "SearchViewController\n(GET /)\nThymeleaf MVC",
+                fillcolor = "#21262d",
+                color     = "#bc8cff"
+            ]
+
+            SearchController [
+                label     = "SearchController\n(GET /v1/search)\nREST + Headers Paginação",
+                fillcolor = "#21262d",
+                color     = "#4f8ef7"
+            ]
+
+            SuggestController [
+                label     = "SuggestController\n(GET /v1/suggest)\nTerm Suggest",
+                fillcolor = "#21262d",
+                color     = "#4f8ef7"
+            ]
+        }
+
+        subgraph cluster_services {
+            label     = "Service Layer"
+            style     = "rounded,dashed"
+            color     = "#f0883e"
+            fontcolor = "#f0883e"
+            fontsize  = 9
+
+            SearchService [
+                label     = "SearchService\n• submitQuery()\n• getTotalHits()\n• getSuggestions()",
+                fillcolor = "#21262d",
+                color     = "#f0883e"
+            ]
+        }
+
+        subgraph cluster_domain {
+            label     = "Domain"
+            style     = "rounded,dashed"
+            color     = "#56d364"
+            fontcolor = "#56d364"
+            fontsize  = 9
+
+            EsClient [
+                label     = "EsClient\n• search() — bool+fuzzy+highlight\n• suggest() — Term Suggest",
+                fillcolor = "#21262d",
+                color     = "#56d364"
+            ]
+        }
+
+        subgraph cluster_generated {
+            label     = "OpenAPI Generated (api.yml)"
+            style     = "rounded,dashed"
+            color     = "#8b949e"
+            fontcolor = "#8b949e"
+            fontsize  = 9
+
+            SearchApi    [ label = "SearchApi\n(interface)", fillcolor="#21262d", color="#8b949e" ]
+            SuggestApi   [ label = "SuggestApi\n(interface)", fillcolor="#21262d", color="#8b949e" ]
+            ResultModel  [ label = "Result\n(model)",         fillcolor="#21262d", color="#8b949e" ]
+            SuggestModel [ label = "SuggestResponse\n(model)",fillcolor="#21262d", color="#8b949e" ]
+        }
+
+        subgraph cluster_templates {
+            label     = "Thymeleaf Templates"
+            style     = "rounded,dashed"
+            color     = "#58a6ff"
+            fontcolor = "#58a6ff"
+            fontsize  = 9
+
+            SearchTemplate [
+                label     = "search.html\n+ search.css\n+ search.js",
+                fillcolor = "#21262d",
+                color     = "#58a6ff"
+            ]
+        }
+    }
+
+    // ── Subgraph: Elasticsearch ─────────────────────────────────────
+    subgraph cluster_es {
+        label     = "Elasticsearch 8 — porta 9200 (HTTPS)"
+        style     = "rounded,filled"
+        fillcolor = "#1a1508"
+        color     = "#f0883e"
+        fontcolor = "#f0883e"
+        fontsize  = 10
+
+        ESIndex [
+            label     = "Índice: wikipedia\n• title  (text + analyzer)\n• url    (keyword)\n• content(text + analyzer)\n• dt_creation (date)\n• reading_time(integer)",
+            fillcolor = "#21262d",
+            color     = "#f0883e",
+            shape     = cylinder
+        ]
+    }
+
+    // ── Subgraph: Docker ─────────────────────────────────────────
+    subgraph cluster_docker {
+        label     = "Docker Compose"
+        style     = "rounded,dashed"
+        color     = "#1e6a9e"
+        fontcolor = "#58a6ff"
+        fontsize  = 10
+
+        Kibana [
+            label     = "Kibana 8\nporta 5601",
+            fillcolor = "#161b22",
+            color     = "#1e6a9e"
+        ]
+    }
+
+    // ── Arestas: Fluxo de busca ───────────────────────────────────
+    Browser -> SearchViewController  [ label = "GET /\n?query=&page=", color = "#3fb950" ]
+    Browser -> SearchController      [ label = "GET /v1/search\n?query=&page=&size=", style = dashed ]
+    Browser -> SuggestController     [ label = "GET /v1/suggest\n?query= (autocomplete)", style = dashed ]
+
+    SearchViewController -> SearchService [ label = "submitQuery()\ngetTotalHits()\ngetSuggestions()" ]
+    SearchController     -> SearchService [ label = "submitQuery()\ngetTotalHits()" ]
+    SuggestController    -> SearchService [ label = "getSuggestions()" ]
+
+    SearchService -> EsClient [ label = "search()\nsuggest()" ]
+    EsClient      -> ESIndex  [ label = "bool query\nfuzzy+highlight\nterm suggest", color = "#f0883e" ]
+    ESIndex       -> EsClient [ label = "hits + total\n+ highlights\n+ suggestions", color = "#56d364", dir = back ]
+
+    SearchViewController -> SearchTemplate [ label = "Model →\nresults, totalCount\ntotalPages, suggestion", color = "#58a6ff" ]
+    SearchTemplate -> Browser              [ label = "HTML renderizado", color = "#3fb950", dir = back ]
+
+    SearchController -> SearchApi    [ label = "implements", style = dotted, color = "#8b949e" ]
+    SuggestController -> SuggestApi  [ label = "implements", style = dotted, color = "#8b949e" ]
+
+    Kibana -> ESIndex [ label = "Dev Tools\nAdmin", style = dotted, color = "#1e6a9e" ]
+
+    // ── Headers HTTP de paginação ─────────────────────────────────
+    Headers [
+        label     = "HTTP Response Headers\nX-Total-Count\nX-Total-Pages\nX-Current-Page\nX-Page-Size",
+        fillcolor = "#161b22",
+        color     = "#8b949e",
+        fontsize  = 9,
+        shape     = note
+    ]
+    SearchController -> Headers [ label = "injeta", style = dotted, color = "#8b949e" ]
+}

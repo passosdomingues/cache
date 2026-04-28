@@ -1,0 +1,8 @@
+<header th:fragment="header" class="header" th:if="${hasQuery}">
+    <a href="/" class="header-logo" aria-label="Voltar para o início">WikiSearch</a>
+    <div class="header-meta">
+        <span th:if="${totalCount > 0}">
+            <span th:text="${totalCount}">0</span> resultados encontrados
+        </span>
+    </div>
+</header>
