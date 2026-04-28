@@ -1,8 +1,20 @@
-<header th:fragment="header" class="header" th:if="${hasQuery}">
-    <a href="/" class="header-logo" aria-label="Voltar para o início">WikiSearch</a>
-    <div class="header-meta">
-        <span th:if="${totalCount > 0}">
-            <span th:text="${totalCount}">0</span> resultados encontrados
+<!-- ===============================================================
+     Pinakes -- Header Fragment
+     Always-visible sticky top bar with hamburger and accessibility.
+     =============================================================== -->
+<header th:fragment="header" class="header" id="main-header">
+    <div class="header-left">
+        <button id="hamburger-btn" class="header-icon-btn" aria-label="Open menu">
+            <i data-lucide="menu"></i>
+        </button>
+        <a th:href="@{/}" class="header-logo" aria-label="Pinakes home">Pinakes</a>
+    </div>
+    <div class="header-right">
+        <span th:if="${hasQuery != null && hasQuery && totalCount != null && totalCount > 0}" class="header-meta">
+            <span th:text="${totalCount}">0</span> results
         </span>
+        <button id="a11y-toggle-btn" class="header-icon-btn" aria-label="Accessibility settings">
+            <i data-lucide="settings"></i>
+        </button>
     </div>
 </header>

@@ -15,7 +15,7 @@ C_CYAN    := \033[0;36m
 # ─── Caminhos ─────────────────────────────────────────────────
 PROJECT_DIR := $(shell pwd)
 DEPS_DIR    := $(shell dirname $(PROJECT_DIR))/deps
-DOCKER_DIR  := $(shell dirname $(PROJECT_DIR))/docker
+DOCKER_DIR  := $(shell dirname $(PROJECT_DIR))/deps/docker
 
 # JDK 17 — armazenado em ~/java com symlink ~/java/current
 JDK_TARBALL  := $(DEPS_DIR)/jdk-17.0.12_linux-x64_bin.tar.gz
@@ -48,7 +48,7 @@ CURL := $(shell which curl 2>/dev/null)
 # ─── Ajuda ────────────────────────────────────────────────────
 help:  ## Mostra este menu de ajuda
 	@echo -e "\n$(C_BOLD)╔══════════════════════════════════════════════╗$(C_RESET)"
-	@echo -e "$(C_BOLD)║       WikiSearch — Comandos Makefile         ║$(C_RESET)"
+	@echo -e "$(C_BOLD)║       Pinakes — Comandos Makefile         ║$(C_RESET)"
 	@echo -e "$(C_BOLD)╚══════════════════════════════════════════════╝$(C_RESET)\n"
 	@echo -e "$(C_CYAN)── Projeto ──────────────────────────────────$(C_RESET)"
 	@printf "  ${C_GREEN}%-18s${C_RESET}  %s\n" "make deps"          "Prepara JDK 17 e Maven Wrapper"
@@ -183,7 +183,7 @@ compile: deps
 run: infra-up compile  ## Inicia a aplicação e abre no navegador automaticamente
 	@echo -e "$(C_MAGENTA)"
 	@echo "  ╔═══════════════════════════════════════╗"
-	@echo "  ║   WikiSearch iniciando...             ║"
+	@echo "  ║   Pinakes iniciando...             ║"
 	@echo "  ║   http://localhost:8080/v1/           ║"
 	@echo "  ║   API: http://localhost:8080/v1/search║"
 	@echo "  ║   CTRL+C para parar                   ║"
@@ -223,7 +223,7 @@ docs:  ## Gera diagrama de arquitetura PNG e HTML da API
 	@# HTML interativo da API via Redocly (Node.js)
 	@if command -v npx &>/dev/null; then \
 		npx --yes @redocly/cli@latest build-docs src/main/resources/api.yml \
-			--output doc/api.html --title "WikiSearch API" 2>/dev/null && \
+			--output doc/api.html --title "Pinakes API" 2>/dev/null && \
 		echo -e "$(C_GREEN)  ✓ doc/api.html gerado$(C_RESET)"; \
 	else \
 		echo -e "$(C_YELLOW)  ⚠ npx não encontrado. A documentação HTML não foi gerada.$(C_RESET)"; \
@@ -243,7 +243,7 @@ seed:  ## Popula o Elasticsearch com o dataset Wikipedia
 
 # ─── Testes via curl ──────────────────────────────────────────
 test-api:  ## Testa os endpoints da API (requer 'make run' ativo)
-	@echo -e "\n$(C_BOLD)=== Testando WikiSearch API ===$(C_RESET)\n"
+	@echo -e "\n$(C_BOLD)=== Testando Pinakes API ===$(C_RESET)\n"
 	@echo -e "$(C_CYAN)[1] GET /v1/search?query=computador$(C_RESET)"
 	@curl -s -w "\n  HTTP: %{http_code} | Tempo: %{time_total}s\n" \
 		"http://localhost:8080/v1/search?query=computador&page=1" \
@@ -270,7 +270,7 @@ test-api:  ## Testa os endpoints da API (requer 'make run' ativo)
 	@echo -e "$(C_GREEN)=== Testes concluídos ===$(C_RESET)\n"
 
 postman-import:  ## Exibe instruções para importar a API no Postman
-	@echo -e "\n$(C_BOLD)=== Importando WikiSearch API no Postman ===$(C_RESET)\n"
+	@echo -e "\n$(C_BOLD)=== Importando Pinakes API no Postman ===$(C_RESET)\n"
 	@echo -e "$(C_BLUE)Opção 1 — Swagger UI (requer app rodando):$(C_RESET)"
 	@echo "  http://localhost:8080/v1/swagger-ui.html"
 	@echo ""

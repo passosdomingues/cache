@@ -1,11 +1,13 @@
 /**
- * Hook utilitário para debounce de funções.
- * Retarda a execução da função até que `delay` ms tenham se passado
- * desde a última vez que ela foi chamada.
- * 
- * @param {Function} func A função a ser envelopada
- * @param {number} delay O tempo de debounce em milissegundos
- * @returns {Function} Função debounced
+ * @brief Utility hook that creates a debounced version of a function.
+ *
+ * Delays execution of the wrapped function until the specified delay
+ * has elapsed since the last invocation. Useful for rate-limiting
+ * expensive operations triggered by rapid user input.
+ *
+ * @param {Function} func - The function to debounce.
+ * @param {number} delay - The debounce interval in milliseconds.
+ * @returns {Function} A debounced wrapper function.
  */
 export function useDebounce(func, delay) {
     let timeoutId;

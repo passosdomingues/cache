@@ -5,11 +5,11 @@
 # Variáveis de Conexão
 USER=elastic
 PASS=user123
-ES_URL=http://localhost:9200
+ES_URL=https://localhost:9200
 KIBANA_URL=http://localhost:5601
 
-# Flag do Curl para ignorar mensagens de progresso e incluir usuário/senha
-CURL_OPTS=-s -u $(USER):$(PASS)
+# Flag do Curl para ignorar mensagens de progresso, certificados ssl e incluir usuário/senha
+CURL_OPTS=-k -s -u $(USER):$(PASS)
 
 .PHONY: help up down clean nodes health indices-v
 

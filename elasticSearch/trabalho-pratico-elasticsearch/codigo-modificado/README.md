@@ -1,92 +1,124 @@
-# Wikipedia Search Engine
+# Pinakes -- Full-text Search Engine
 
-Sistema de busca full-text distribuído utilizando Elasticsearch, Spring Boot e Thymeleaf. O projeto implementa técnicas avançadas de recuperação de informação, incluindo busca booleana, fuzzy matching, destaque de termos (highlighting) e sugestões ortográficas (did you mean).
+Full-text search engine built on Elasticsearch 8, Spring Boot 3, and Thymeleaf.
+Implements distributed search techniques including boolean queries, fuzzy matching,
+term highlighting, spelling suggestions, and paginated results over a Wikipedia dataset.
 
-## Arquitetura do Sistema
+## Architecture
 
-O sistema é composto por três camadas principais:
-1. **Infraestrutura**: Cluster Elasticsearch 8.x orquestrado via Docker Compose.
-2. **Backend**: Aplicação Spring Boot 3.x utilizando o Elasticsearch Java API Client para comunicação via HTTPS.
-3. **Frontend**: Interface modular baseada em Thymeleaf e Vanilla JavaScript, seguindo princípios de Atomic Design.
-
-### Tecnologias Utilizadas
-
-| Componente | Tecnologia |
+| Layer | Technology |
 |---|---|
-| Engine de Busca | Elasticsearch 8.17 |
-| Framework Backend | Spring Boot 3.1.0 |
-| SDK de Busca | Elasticsearch Java API Client 8.8.0 |
-| Definição de API | OpenAPI 3.0 (OAS) |
-| Renderização | Thymeleaf |
-| Gerenciamento de Infra | Docker Compose |
-| Build Tool | Maven |
+| Search Engine | Elasticsearch 8.17 (2-node cluster) |
+| Backend | Spring Boot 3.1.0 / Java 17 |
+| ES Client | Elasticsearch Java API Client 8.8.0 |
+| API Contract | OpenAPI 3.0 (`api.yml`) + Generator Plugin |
+| Frontend | Thymeleaf + Vanilla JS (ES Modules) |
+| Infrastructure | Docker Compose (Elasticsearch + Kibana) |
 
-## Instalação e Configuração
+## Prerequisites
 
-### Pré-requisitos
-* Docker e Docker Compose
-* JDK 17 (configurado via Makefile)
-* Maven 3.x (via Maven Wrapper)
+- Docker and Docker Compose
+- JDK 17 (configured automatically via `make java-install`)
 
-### Inicialização Rápida
+## Quick Start
 
-1. **Infraestrutura**:
-   Inicie o cluster Elasticsearch e Kibana:
-   ```bash
-   cd ../docker
-   make up
-   ```
+```bash
+# 1. Build and compile
+make all
 
-2. **Build e Execução**:
-   Prepare o ambiente e inicie a aplicação:
-   ```bash
-   cd ../elasticsearch_example-main
-   make all
-   make run
-   ```
+# 2. Seed the index with Wikipedia data
+make seed
 
-3. **Carga de Dados**:
-   Popule o índice com o dataset fornecido:
-   ```bash
-   cd ../datasets
-   ./importWiki.sh
-   ```
+# 3. Run the application
+make run
+```
 
-A aplicação estará disponível em `http://localhost:8080/v1/`.
+The application will be available at `http://localhost:8080/v1/`.
 
-## Funcionalidades Implementadas
+## Makefile Commands
 
-### Mecanismo de Busca (Elasticsearch)
-* **Busca Booleana**: Combinação de `must` (match compulsório) e `should` (impulsionamento de relevância).
-* **Fuzzy Matching**: Tolerância a erros de digitação via `fuzziness: AUTO`.
-* **Phrase Boost**: Aumento de score para correspondências exatas de frases.
-* **Highlighting**: Geração de fragmentos de conteúdo com marcação HTML para os termos encontrados.
-* **Term Suggest**: Motor de sugestão para correção ortográfica em tempo real.
+| Command | Description |
+|---|---|
+| `make all` | Infrastructure + JDK setup + compile |
+| `make run` | Start the application and open the browser |
+| `make compile` | Compile the project with JDK 17 |
+| `make seed` | Load the Wikipedia dataset into Elasticsearch |
+| `make clean` | Remove build artifacts |
+| `make test-api` | Run functional endpoint tests via curl |
+| `make docs` | Generate architecture diagram and API docs |
+| `make infra-up` | Start Elasticsearch and Kibana containers |
+| `make infra-down` | Stop containers gracefully |
 
-### Interface do Usuário (Frontend)
-* **Autocomplete**: Sistema de sugestão assíncrono com debounce para otimização de requisições.
-* **Navegação por Teclado**: Suporte completo a atalhos de teclado para seleção de sugestões.
-* **Layout Responsivo**: Design adaptável para diferentes resoluções.
-* **Acessibilidade**: Implementação de ARIA roles e labels para compatibilidade com leitores de tela.
+## API Endpoints
 
-## Desenvolvimento e Manutenção
+Base path: `http://localhost:8080/v1`
 
-### Comandos de Automação (Makefile)
-* `make all`: Executa a instalação de dependências e compilação do projeto.
-* `make run`: Inicia o servidor Spring Boot.
-* `make clean`: Remove artefatos de build e temporários.
-* `make test-api`: Executa bateria de testes funcionais via curl.
-* `make docs`: Gera documentação técnica e diagramas de arquitetura.
+### GET /search
 
-### Documentação da API
-O contrato da API está definido em `src/main/resources/api.yml`. A documentação interativa (Swagger UI) pode ser acessada em `/v1/swagger-ui.html` com a aplicação em execução.
+Full-text search with fuzzy matching, highlighting, and pagination.
 
-## Estrutura de Diretórios
-```text
-.
-├── Makefile                # Orquestração de comandos
-├── pom.xml                 # Gerenciamento de dependências Maven
-├── src/main/java           # Código-fonte Java (MVC, Services, Domain)
-├── src/main/resources      # Configurações, API schema e Templates
-└── static/                 # Ativos de frontend (CSS, JS)
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `query` | string | yes | -- | Search terms |
+| `page` | integer | no | 1 | Page number (1-indexed) |
+| `size` | integer | no | 10 | Results per page |
+
+### GET /suggest
+
+Spelling correction via Elasticsearch Term Suggest.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `query` | string | yes | -- | Text with potential misspellings |
+| `size` | integer | no | 3 | Suggestions per token |
+
+## Frontend Features
+
+- Dark / Light theme toggle with system preference detection
+- Accessibility controls: font scaling and high contrast mode
+- Sidebar menu with Elasticsearch course concepts reference
+- Autocomplete with debounced suggestions from the suggest API
+- Keyboard navigation for autocomplete dropdown
+- Staggered card animations on search results
+- "Did you mean?" banner for spelling corrections
+
+## Elasticsearch Techniques Implemented
+
+- Boolean query with `must` + `should` clauses
+- Fuzzy matching via `fuzziness: AUTO` (Levenshtein distance)
+- Match phrase with boost for exact sequence promotion
+- Title field boost for multi-field relevance
+- Highlighting with `<strong>` tags and configurable fragment size
+- Source filtering to reduce response payload
+- Pagination via `from`/`size` with total page computation
+- Term Suggest for spelling correction
+- Custom analyzers (asciifolding, lowercase, snowball)
+- Bulk import via NDJSON format
+- Metric aggregations (sum, avg, max, min, cardinality, stats)
+- Reindex with ingest pipelines for computed fields
+
+## Project Structure
+
+```
+src/main/java/com/elasticsearch/search/
+  controller/
+    SearchController.java       # REST /search (implements SearchApi)
+    SuggestController.java      # REST /suggest (implements SuggestApi)
+    SearchViewController.java   # MVC / (Thymeleaf)
+  service/
+    SearchService.java          # Business logic and ES response mapping
+  domain/
+    EsClient.java               # Low-level Elasticsearch client
+
+src/main/resources/
+  api.yml                       # OpenAPI 3.0 contract (source of truth)
+  application.yml               # Spring Boot configuration
+  templates/
+    layout/base.html            # Root layout with header, footer, sidebar
+    fragments/                  # Atomic Thymeleaf components
+    search/index.html           # Main search page
+  static/
+    css/                        # Modular CSS (tokens, base, components)
+    js/                         # ES Modules (services, components, hooks)
+    favicon.svg                 # Application icon
 ```

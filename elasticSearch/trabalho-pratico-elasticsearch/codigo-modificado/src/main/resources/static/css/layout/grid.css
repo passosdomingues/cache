@@ -1,3 +1,7 @@
+/* ===================================================================
+   Pinakes -- Grid Layout
+   =================================================================== */
+
 .page {
   position: relative;
   z-index: 1;
@@ -6,6 +10,7 @@
   flex-direction: column;
 }
 
+/* ── Hero Section ──────────────────────────────────────────────── */
 .hero {
   flex: 1;
   display: flex;
@@ -23,7 +28,7 @@
   letter-spacing: -2px;
   line-height: 1.1;
   margin-bottom: 12px;
-  background: linear-gradient(135deg, #e6edf3 30%, #8b949e 100%);
+  background: linear-gradient(135deg, var(--text-primary) 30%, var(--text-muted) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -34,21 +39,26 @@
   color: var(--text-muted);
   margin-bottom: 40px;
   font-weight: 400;
-  max-width: 400px;
+  max-width: 420px;
 }
 
+/* ── Compact Layout (when results are displayed) ───────────────── */
+.hero-compact,
 .layout-compact .hero {
   flex: 0;
-  padding: 20px 24px 0;
+  padding: 24px 24px 0;
   align-items: flex-start;
   text-align: left;
 }
 
+.hero-compact .hero-title,
+.hero-compact .hero-subtitle,
 .layout-compact .hero-title,
 .layout-compact .hero-subtitle {
   display: none;
 }
 
+/* ── Results Section ───────────────────────────────────────────── */
 .results-section {
   max-width: var(--max-width);
   width: 100%;

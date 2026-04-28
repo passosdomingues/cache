@@ -1,12 +1,16 @@
+<!-- ===============================================================
+     Pinakes -- Search Bar Fragment
+     Main search input with autocomplete support.
+     =============================================================== -->
 <div th:fragment="search-bar" class="search-container" id="search-component">
     <form th:action="@{/}" method="GET" class="search-form" id="search-form">
         <div class="search-input-wrapper">
             <i data-lucide="search" class="search-icon"></i>
-            <input type="text" 
-                   name="query" 
+            <input type="text"
+                   name="query"
                    id="search-input"
-                   class="search-input" 
-                   placeholder="O que você está procurando?" 
+                   class="search-input"
+                   placeholder="Search Wikipedia articles..."
                    th:value="${query}"
                    autocomplete="off"
                    role="combobox"
@@ -15,14 +19,21 @@
                    aria-autocomplete="list"
                    autofocus>
                    
-            <!-- Autocomplete Container (Populato via Vanilla JS) -->
+            <!-- Hidden inputs to persist tuning parameters across searches -->
+            <input type="hidden" name="fuzziness" th:value="${fuzziness}">
+            <input type="hidden" name="phraseBoost" th:value="${phraseBoost}">
+            <input type="hidden" name="titleBoost" th:value="${titleBoost}">
+            <input type="hidden" name="slop" th:value="${slop}">
+            <input type="hidden" name="highlight" th:value="${highlight}">
+            <input type="hidden" name="spellCheck" th:value="${spellCheck}">
+
+            <!-- Autocomplete dropdown (populated via JS) -->
             <div id="autocomplete-list" class="autocomplete-dropdown" style="display: none;" role="listbox">
-                <!-- Itens serão injetados aqui via JS -->
             </div>
         </div>
-        
-        <button type="submit" class="search-btn" id="search-btn" aria-label="Buscar">
-            <span class="btn-text">Buscar</span>
+
+        <button type="submit" class="search-btn" id="search-btn" aria-label="Search">
+            <span class="btn-text">Search</span>
             <i data-lucide="arrow-right" class="btn-icon"></i>
             <div class="spinner"></div>
         </button>

@@ -18,13 +18,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Serviço de busca que processa resultados do Elasticsearch e constrói
- * os modelos de resposta da API.
+ * @brief Core search service that processes Elasticsearch responses
+ *        into API model objects.
  *
- * Responsabilidades:
- * - Mapear hits do ES para objetos Result (com highlight e fallback para abs)
- * - Expor metadados de paginação (totalHits, totalPages)
- * - Processar Term Suggest e construir SuggestResponse
+ * Responsibilities:
+ * - Maps raw ES hits to {@link Result} objects with highlight extraction
+ * - Computes pagination metadata (totalHits, totalPages) in a single query
+ * - Processes Term Suggest responses into {@link SuggestResponse} objects
  */
 @Service
 public class SearchService {
@@ -35,21 +35,23 @@ public class SearchService {
         this.esClient = esClient;
     }
 
-    /**
-     * Realiza a busca no Elasticsearch e retorna um wrapper completo com resultados e metadados.
-     * Centraliza a lógica de busca para evitar múltiplas chamadas ao cluster (aula 31/03).
-     */
-    public com.elasticsearch.search.api.model.SearchResponse search(String query, Integer page, Integer pageSize) {
-        SearchResponse<ObjectNode> esResponse = esClient.search(query, page, pageSize);
-        
+    public com.elasticsearch.search.api.model.SearchResponse search(
+            String query, Integer page, Integer pageSize,
+            String fuzziness, Float phraseBoost, Float titleBoost,
+            Integer slop, Boolean highlight) {
+        SearchResponse<ObjectNode> esResponse = esClient.search(
+            query, page, pageSize, fuzziness, phraseBoost, titleBoost, slop, highlight
+        );
+
         List<Result> results = esResponse.hits().hits().stream().map(h -> {
             String title   = getField(h, "title");
             String url     = getField(h, "url");
             String content = getField(h, "content");
 
+            /* Prioritize highlighted fragments; fall back to sanitized content */
             String abs = extractHighlight(h, "content");
             if (abs == null || abs.isBlank()) {
-                abs = treatContent(content);
+                abs = sanitizeContent(content);
             }
 
             return new Result()
@@ -76,7 +78,15 @@ public class SearchService {
     }
 
     /**
-     * Gera sugestões de correção ortográfica usando Term Suggest — aula 13/04.
+     * @brief Generates spelling correction suggestions using Elasticsearch Term Suggest.
+     *
+     * For each token in the query, the suggest API returns correction options
+     * ordered by similarity score. Only the top suggestion per token is collected
+     * to build the "Did you mean?" feature.
+     *
+     * @param query The user input potentially containing misspelled words.
+     * @param size  Maximum number of suggestions per token.
+     * @return A {@link SuggestResponse} with the original text and suggested corrections.
      */
     public SuggestResponse getSuggestions(String query, Integer size) {
         SearchResponse<ObjectNode> response = esClient.suggest(query, size);
@@ -86,10 +96,8 @@ public class SearchService {
 
         if (suggestMap != null && suggestMap.containsKey("spell_check")) {
             for (Suggestion<ObjectNode> suggestion : suggestMap.get("spell_check")) {
-                // Cada token da query tem suas opções de correção
                 List<TermSuggestOption> options = suggestion.term().options();
                 if (options != null && !options.isEmpty()) {
-                    // Pega a melhor sugestão (primeira, maior score) para cada token
                     options.stream()
                         .findFirst()
                         .ifPresent(opt -> suggestions.add(opt.text()));
@@ -107,16 +115,29 @@ public class SearchService {
         return resp;
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // ── Private Helpers ─────────────────────────────────────────────────────
 
+    /**
+     * @brief Safely extracts a string field from an Elasticsearch hit source.
+     *
+     * @param hit   The search hit containing the source document.
+     * @param field The field name to extract.
+     * @return The field value as a string, or an empty string if absent.
+     */
     private String getField(Hit<ObjectNode> hit, String field) {
         if (hit.source() == null || !hit.source().has(field)) return "";
         return hit.source().get(field).asText("");
     }
 
     /**
-     * Extrai o primeiro fragmento de highlight do campo especificado.
-     * O highlight usa tags <strong> conforme configurado no EsClient.
+     * @brief Extracts the first highlight fragment for a given field.
+     *
+     * Highlight fragments contain matched terms wrapped in {@code <strong>} tags,
+     * as configured in the EsClient query builder.
+     *
+     * @param hit   The search hit potentially containing highlight data.
+     * @param field The field name to extract highlights from.
+     * @return The first highlight fragment, or null if none available.
      */
     private String extractHighlight(Hit<ObjectNode> hit, String field) {
         if (hit.highlight() == null) return null;
@@ -128,13 +149,17 @@ public class SearchService {
     }
 
     /**
-     * Remove tags HTML e caracteres especiais do conteúdo bruto.
-     * Usado como fallback quando não há highlight disponível.
+     * @brief Sanitizes raw content by stripping HTML tags and special characters.
+     *
+     * Used as a fallback when no highlight fragment is available for a hit.
+     *
+     * @param content The raw content string from the document source.
+     * @return A cleaned string safe for display.
      */
-    private String treatContent(String content) {
+    private String sanitizeContent(String content) {
         if (content == null) return "";
         content = content.replaceAll("</?\\w[^>]*>", "");
-        content = content.replaceAll("[^A-Za-zÀ-ÿ\\s.,;:!?()-]+", " ");
+        content = content.replaceAll("[^A-Za-z\u00C0-\u00FF\\s.,;:!?()-]+", " ");
         content = content.replaceAll("\\s+", " ");
         return content.trim();
     }

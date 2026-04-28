@@ -1,9 +1,15 @@
+/* ===================================================================
+   Pinakes -- Result Cards and Empty States
+   =================================================================== */
+
+/* ── Results Header ──────────────────────────────────────────── */
 .results-header {
   margin-bottom: 24px;
   font-size: 0.85rem;
   color: var(--text-muted);
 }
 
+/* ── Spell Check (Did you mean?) ─────────────────────────────── */
 .spell-check {
   margin-bottom: 20px;
   padding: 12px 16px;
@@ -11,7 +17,7 @@
   border-left: 3px solid var(--accent-blue);
   border-radius: 4px;
   color: var(--text-primary);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   display: inline-block;
 }
 
@@ -24,12 +30,14 @@
 
 .spell-check a:hover { text-decoration: underline; }
 
+/* ── Results List ────────────────────────────────────────────── */
 .results-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
+/* ── Result Card ─────────────────────────────────────────────── */
 .result-card {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
@@ -40,18 +48,22 @@
     background   var(--dur-fast) var(--ease-snap),
     border-color var(--dur-fast) var(--ease-snap),
     transform    var(--dur-fast) var(--ease-out);
-  
-  /* Stagger animation setup */
+
+  /* Stagger animation */
   opacity: 0;
-  animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeUp 0.5s var(--ease-out) forwards;
 }
 
-/* Delay staggered dynamically by inline style or nth-child */
 .result-card:nth-child(1) { animation-delay: 50ms; }
 .result-card:nth-child(2) { animation-delay: 100ms; }
 .result-card:nth-child(3) { animation-delay: 150ms; }
 .result-card:nth-child(4) { animation-delay: 200ms; }
 .result-card:nth-child(5) { animation-delay: 250ms; }
+.result-card:nth-child(6) { animation-delay: 300ms; }
+.result-card:nth-child(7) { animation-delay: 350ms; }
+.result-card:nth-child(8) { animation-delay: 400ms; }
+.result-card:nth-child(9) { animation-delay: 450ms; }
+.result-card:nth-child(10) { animation-delay: 500ms; }
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }
@@ -60,7 +72,11 @@
 
 .result-card:hover {
   background: var(--bg-card-hover);
-  border-color: rgba(255,255,255,0.12);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="light"] .result-card:hover {
+  border-color: rgba(0, 0, 0, 0.12);
 }
 
 .result-url {
@@ -75,7 +91,7 @@
 }
 
 .result-title {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 600;
   color: var(--text-link);
   text-decoration: none;
@@ -87,9 +103,9 @@
 .result-title:hover { text-decoration: underline; }
 
 .result-abs {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: 1.55;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -97,20 +113,36 @@
 }
 
 .result-abs strong {
-  color: var(--text-primary);
+  color: var(--text-highlight);
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--highlight-bg);
   padding: 0 3px;
   border-radius: 3px;
 }
 
+/* ── Empty State ─────────────────────────────────────────────── */
 .empty-state {
   text-align: center;
   padding: 60px 20px;
   color: var(--text-muted);
 }
 
-.empty-state svg {
-  color: rgba(255,255,255,0.1);
+.empty-state-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--text-muted);
+  opacity: 0.4;
   margin-bottom: 16px;
+}
+
+.empty-state-icon--error {
+  color: var(--accent-red);
+  opacity: 0.7;
+}
+
+.empty-state-title {
+  font-size: 1.15rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
 }

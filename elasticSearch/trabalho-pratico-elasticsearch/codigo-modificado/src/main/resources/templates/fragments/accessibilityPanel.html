@@ -1,0 +1,45 @@
+<!-- ===============================================================
+     Pinakes -- Accessibility Panel Fragment
+     Floating panel for theme, font size, and contrast controls.
+     =============================================================== -->
+<div th:fragment="accessibilityPanel" id="a11y-panel" class="a11y-panel" role="dialog" aria-label="Accessibility settings" aria-hidden="true">
+    <div class="a11y-panel-header">
+        <span>Settings</span>
+        <button id="a11y-panel-close" class="a11y-panel-close" aria-label="Close settings">
+            <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+        </button>
+    </div>
+
+    <!-- Theme toggle -->
+    <div class="a11y-group">
+        <span class="a11y-label">Theme</span>
+        <div class="a11y-controls">
+            <button id="theme-toggle-btn" class="a11y-btn" aria-label="Toggle theme">
+                <i data-lucide="moon" id="theme-icon-dark" class="a11y-icon"></i>
+                <i data-lucide="sun" id="theme-icon-light" class="a11y-icon" style="display:none;"></i>
+                <span id="theme-label-text">Dark</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Font size -->
+    <div class="a11y-group">
+        <span class="a11y-label">Font size</span>
+        <div class="a11y-controls a11y-btn-group">
+            <button class="a11y-btn font-scale-btn" data-scale="small" aria-label="Small font">A-</button>
+            <button class="a11y-btn font-scale-btn active" data-scale="medium" aria-label="Medium font">A</button>
+            <button class="a11y-btn font-scale-btn" data-scale="large" aria-label="Large font">A+</button>
+        </div>
+    </div>
+
+    <!-- High contrast -->
+    <div class="a11y-group">
+        <span class="a11y-label">Contrast</span>
+        <div class="a11y-controls">
+            <button id="contrast-toggle-btn" class="a11y-btn" aria-label="Toggle high contrast">
+                <i data-lucide="contrast" class="a11y-icon"></i>
+                <span id="contrast-label-text">Normal</span>
+            </button>
+        </div>
+    </div>
+</div>

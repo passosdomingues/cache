@@ -1,59 +1,55 @@
 <!DOCTYPE html>
-<html th:replace="~{layout/base :: html(title='WikiSearch', content=~{::main})}">
+<html th:replace="~{layout/base :: html(title='Pinakes', content=~{::main})}">
 <head>
-    <title>WikiSearch</title>
+    <title>Pinakes</title>
 </head>
 <body>
 <main>
-    <!-- Header (Oculto na tela inicial) -->
-    <th:block th:replace="~{fragments/header :: header}"></th:block>
-
-    <!-- Área Hero / Formulário de Busca -->
+    <!-- Hero / Search Form -->
     <section class="hero" th:classappend="${hasQuery} ? 'hero-compact' : ''">
-        <h1 class="hero-title" th:if="${!hasQuery}">WikiSearch</h1>
-        <p class="hero-subtitle" th:if="${!hasQuery}">Busca ultrarrápida usando Elasticsearch e Spring Boot.</p>
-        
-        <!-- Componente Search Bar -->
+        <h1 class="hero-title" th:if="${!hasQuery}">Pinakes</h1>
+        <p class="hero-subtitle" th:if="${!hasQuery}">Full-text search engine powered by Elasticsearch.</p>
+
+        <!-- Search Bar Component -->
         <th:block th:replace="~{fragments/search-bar :: search-bar}"></th:block>
     </section>
 
-    <!-- Seção de Resultados -->
+    <!-- Results Section -->
     <section th:if="${hasQuery}" class="results-section">
-        
-        <!-- Estado de erro -->
+
+        <!-- Error state -->
         <div th:if="${error != null}" class="empty-state">
-            <i data-lucide="alert-circle" style="width: 48px; height: 48px; color: var(--accent-red);"></i>
-            <h2 style="font-size: 1.25rem; font-weight: 500; margin-bottom: 8px;">Erro na busca</h2>
+            <i data-lucide="alert-circle" class="empty-state-icon empty-state-icon--error"></i>
+            <h2 class="empty-state-title">Search error</h2>
             <p th:text="${error}"></p>
         </div>
 
         <div th:if="${error == null}">
-            <!-- Estado: Sem Resultados -->
+            <!-- No results state -->
             <div th:if="${!hasResults}" class="empty-state">
-                <i data-lucide="search-x" style="width: 48px; height: 48px;"></i>
-                <h2 style="font-size: 1.25rem; font-weight: 500; margin-bottom: 8px;">Nenhum resultado encontrado</h2>
-                <p>Não encontramos documentos para a sua busca.</p>
+                <i data-lucide="search-x" class="empty-state-icon"></i>
+                <h2 class="empty-state-title">No results found</h2>
+                <p>No documents matched your query. Try different keywords.</p>
             </div>
 
-            <!-- Estado: Com Resultados -->
+            <!-- Results -->
             <div th:if="${hasResults}">
                 <div class="results-header">
-                    <!-- Term Suggest (Spell Check) -->
+                    <!-- Spell check suggestion -->
                     <div th:if="${suggestion != null && suggestion.hasSuggestion}" class="spell-check">
-                        Você quis dizer: 
-                        <a th:href="@{/(query=${suggestion.suggestions[0]})}" th:text="${suggestion.suggestions[0]}">termo</a>?
+                        Did you mean:
+                        <a th:href="@{/(query=${suggestion.suggestions[0]})}" th:text="${suggestion.suggestions[0]}">term</a>?
                     </div>
                 </div>
 
-                <!-- Lista de Resultados -->
+                <!-- Result cards -->
                 <div class="results-list">
                     <th:block th:each="result : ${results}">
-                        <!-- Renderiza o card passando o result -->
                         <th:block th:replace="~{fragments/result-item :: result-item(${result})}"></th:block>
                     </th:block>
                 </div>
 
-                <!-- Paginação -->
+                <!-- Pagination -->
                 <th:block th:replace="~{fragments/pagination :: pagination}"></th:block>
             </div>
         </div>
