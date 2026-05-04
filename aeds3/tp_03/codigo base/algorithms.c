@@ -15,6 +15,9 @@ HeapNode* novo_no_heap(int v, double dist) {
 MinHeap* criar_min_heap(int capacity) {
     MinHeap* minHeap = (MinHeap*)malloc(sizeof(MinHeap));
     minHeap->pos = (int*)malloc(capacity * sizeof(int));
+    for (int i = 0; i < capacity; i++) {
+        minHeap->pos[i] = capacity;
+    }
     minHeap->size = 0;
     minHeap->capacity = capacity;
     minHeap->array = (HeapNode**)malloc(capacity * sizeof(HeapNode*));

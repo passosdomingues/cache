@@ -86,6 +86,15 @@ O algoritmo itera $|V| - 1$ vezes, relaxando todas as arestas do grafo repetidam
 
 O projeto e análise comparativa dos três algoritmos evidenciam o clássico compromisso entre complexidade assintótica teórica e eficiência prática impulsionada pelas restrições do \textit{hardware}.
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{desempenho_algoritmos_pb.png}
+    \caption{Desempenho dos algoritmos Dijkstra, BMSSP (Duan) e Bellman-Ford (Outro) em relação ao número de vértices $N$.}
+    \label{fig:desempenho}
+\end{figure}
+
+\input{tabela_estatistica.tex}
+
 \begin{itemize}
     \item \textbf{Dijkstra:} É garantido como o algoritmo de melhor tempo de execução nas instâncias computadas neste trabalho. A estrutura de \textit{Min-Heap} construída linearmente possui constantes computacionais extremamente baixas e um padrão favorável à localidade espacial de memória cache.
     \item \textbf{BMSSP (Duan):} Embora apresente a menor complexidade assintótica em teoria para contornar gargalos de ordenação ($O(m \log^{2/3} n)$), sua performance empírica em matrizes de tamanho moderado costuma ser severamente penalizada pela sobrecarga (overhead) das chamadas recursivas e da alocação de subconjuntos. Esta técnica sobressai-se teoricamente, mas exige otimizações estruturais monumentais (como enfileiramento em blocos) para efetivamente sobrepujar Dijkstra no mundo real.
