@@ -1,0 +1,42 @@
+\begin{thebibliography}{}
+
+\bibitem[Watson e Crick 1953]{watson:53}
+Watson, J.~D. and Crick, F. H.~C. (1953).
+\newblock Molecular structure of nucleic acids: a structure for deoxyribose
+  nucleic acid.
+\newblock {\em Nature}, 171(4356):737--738.
+
+\bibitem[Needleman e Wunsch 1970]{needleman:70}
+Needleman, S.~B. and Wunsch, C.~D. (1970).
+\newblock A general method applicable to the search for similarities in the
+  amino acid sequence of two proteins.
+\newblock {\em Journal of Molecular Biology}, 48(3):443--453.
+
+\bibitem[Tarjan 1983]{tarjan:83}
+Tarjan, R.~E. (1983).
+\newblock {\em Data Structures and Network Algorithms}.
+\newblock CBMS-NSF Regional Conference Series in Applied Mathematics. SIAM,
+  Philadelphia, PA.
+
+\bibitem[Kernighan e Ritchie 1989]{kernighan:89}
+Kernighan, B.~W. and Ritchie, D.~M. (1989).
+\newblock {\em C: a linguagem de programa{\c{c}}{\~a}o}.
+\newblock Campus, Rio de Janeiro, 2nd edition.
+
+\bibitem[Sedgewick 2000]{sedgewick:2000}
+Sedgewick, R. (2000).
+\newblock {\em Algorithms in C Part 5: Graph Algorithms}.
+\newblock Addison-Wesley, 3rd edition.
+
+\bibitem[Ziviani 2007]{ziviani:2007}
+Ziviani, N. (2007).
+\newblock {\em Projeto e Algoritmos com implementa{\c{c}}{\~o}es em Java e
+  C++}.
+\newblock Editora Thomson, S{\~a}o Paulo.
+
+\bibitem[Cormen et~al. 2012]{cormen:2012}
+Cormen, T.~H., Leiserson, C.~E., Rivest, R.~L., and Stein, C. (2012).
+\newblock {\em Algoritmos: teoria e pr{\'a}tica}.
+\newblock Elsevier, Rio de Janeiro, 3rd edition.
+
+\end{thebibliography}

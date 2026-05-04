@@ -1,0 +1,9 @@
+foco aqui
+
+C:\Users\inove-p153643\Downloads\nemo\bcc\aeds3\trabalhos\tp_03
+
+preciso que resolva este trabalho para mim, com base na referencia
+
+C:\Users\inove-p153643\Downloads\nemo\bcc\aeds3\trabalhos\referencia.md
+
+faça tudo por mim, roda o código, gera as instancias com o gerador de instancias, plota os graficos que precisar em preto e branco e com resolução de 300 dpi, e já insere no relatório e já gera o relatório em pdf para mim, prepara um Makefile que se adapte ao existente, mas que seja só focado em não alterar nada do que já existe, apenas fazer todo esse pipeline.

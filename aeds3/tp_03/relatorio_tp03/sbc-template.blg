@@ -1,0 +1,108 @@
+This is BibTeX, Version 0.99d (TeX Live 2023/Debian)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: sbc-template.aux
+The style file: sbc.bst
+Database file #1: sbc-template.bib
+e is an unknown function---line 924 of file sbc.bst
+0 is an integer literal, not a string, for entry watson:53
+while executing---line 1021 of file sbc.bst
+1 is an integer literal, not a string, for entry watson:53
+while executing---line 1021 of file sbc.bst
+ptr=2, stack=
+
+watson e crick 1953    
+---the literal stack isn't empty for entry watson:53
+while executing---line 1021 of file sbc.bst
+0 is an integer literal, not a string, for entry needleman:70
+while executing---line 1021 of file sbc.bst
+1 is an integer literal, not a string, for entry needleman:70
+while executing---line 1021 of file sbc.bst
+ptr=2, stack=
+
+needleman e wunsch 1970    
+---the literal stack isn't empty for entry needleman:70
+while executing---line 1021 of file sbc.bst
+0 is an integer literal, not a string, for entry cormen:2012
+while executing---line 1021 of file sbc.bst
+0 is an integer literal, not a string, for entry cormen:2012
+while executing---line 1021 of file sbc.bst
+0 is an integer literal, not a string, for entry cormen:2012
+while executing---line 1021 of file sbc.bst
+1 is an integer literal, not a string, for entry cormen:2012
+while executing---line 1021 of file sbc.bst
+ptr=4, stack=
+   
+   
+
+cormen et al 2012    
+---the literal stack isn't empty for entry cormen:2012
+while executing---line 1021 of file sbc.bst
+1 is an integer literal, not a string, for entry ziviani:2007
+while executing---line 1021 of file sbc.bst
+ptr=1, stack=
+ziviani 2007    
+---the literal stack isn't empty for entry ziviani:2007
+while executing---line 1021 of file sbc.bst
+0 is an integer literal, not a string, for entry kernighan:89
+while executing---line 1021 of file sbc.bst
+1 is an integer literal, not a string, for entry kernighan:89
+while executing---line 1021 of file sbc.bst
+ptr=2, stack=
+
+kernighan e ritchie 1989    
+---the literal stack isn't empty for entry kernighan:89
+while executing---line 1021 of file sbc.bst
+1 is an integer literal, not a string, for entry tarjan:83
+while executing---line 1021 of file sbc.bst
+ptr=1, stack=
+tarjan 1983    
+---the literal stack isn't empty for entry tarjan:83
+while executing---line 1021 of file sbc.bst
+1 is an integer literal, not a string, for entry sedgewick:2000
+while executing---line 1021 of file sbc.bst
+ptr=1, stack=
+sedgewick 2000    
+---the literal stack isn't empty for entry sedgewick:2000
+while executing---line 1021 of file sbc.bst
+You've used 7 entries,
+            1934 wiz_defined-function locations,
+            519 strings with 4611 characters,
+and the built_in function-call counts, 2368 in all, are:
+= -- 234
+> -- 83
+< -- 6
++ -- 28
+- -- 26
+* -- 190
+:= -- 432
+add.period$ -- 22
+call.type$ -- 7
+change.case$ -- 46
+chr.to.int$ -- 7
+cite$ -- 7
+duplicate$ -- 98
+empty$ -- 176
+format.name$ -- 39
+if$ -- 454
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 12
+newline$ -- 38
+num.names$ -- 21
+pop$ -- 31
+preamble$ -- 1
+purify$ -- 48
+quote$ -- 0
+skip$ -- 72
+stack$ -- 0
+substring$ -- 136
+swap$ -- 7
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 32
+warning$ -- 0
+while$ -- 18
+width$ -- 0
+write$ -- 96
+(There were 21 error messages)
