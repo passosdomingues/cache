@@ -1,0 +1,259 @@
+/* ===================================================================
+   Pinakes -- Result Cards, Empty States, Meta Bar
+   =================================================================== */
+
+/* ── Results meta bar ────────────────────────────────────────── */
+.results-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.results-took {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.75;
+}
+
+.results-meta__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.results-meta__badge--exact {
+  background: rgba(124, 108, 247, 0.1);
+  border: 1px solid rgba(124, 108, 247, 0.3);
+  color: var(--accent-purple);
+}
+
+.results-meta__badge svg,
+.results-meta__badge i { width: 11px; height: 11px; }
+
+/* ── Results list ─────────────────────────────────────────────── */
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Result card ──────────────────────────────────────────────── */
+.result-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  text-align: left;
+  transition:
+    background    var(--dur-fast) var(--ease-snap),
+    border-color  var(--dur-fast) var(--ease-snap),
+    transform     var(--dur-fast) var(--ease-out),
+    box-shadow    var(--dur-fast) var(--ease-out);
+
+  /* Stagger fade-in animation */
+  opacity: 0;
+  animation: fadeUp 0.45s var(--ease-out) forwards;
+}
+
+/* Stagger delays for first 10 cards */
+.result-card:nth-child(1)  { animation-delay:  40ms; }
+.result-card:nth-child(2)  { animation-delay:  80ms; }
+.result-card:nth-child(3)  { animation-delay: 120ms; }
+.result-card:nth-child(4)  { animation-delay: 160ms; }
+.result-card:nth-child(5)  { animation-delay: 200ms; }
+.result-card:nth-child(6)  { animation-delay: 240ms; }
+.result-card:nth-child(7)  { animation-delay: 280ms; }
+.result-card:nth-child(8)  { animation-delay: 320ms; }
+.result-card:nth-child(9)  { animation-delay: 360ms; }
+.result-card:nth-child(10) { animation-delay: 400ms; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.result-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme="light"] .result-card:hover {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.result-url {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-title {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-link);
+  text-decoration: none;
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+
+.result-title:hover { text-decoration: underline; }
+
+.result-abs {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ES highlight fragments */
+.result-abs strong {
+  color: var(--text-highlight);
+  font-weight: 600;
+  background: var(--highlight-bg);
+  padding: 0 3px;
+  border-radius: 3px;
+}
+
+/* ── Result metadata row ──────────────────────────────────────── */
+.result-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.result-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-card);
+  border-radius: 20px;
+  padding: 2px 9px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.result-badge svg,
+.result-badge i { flex-shrink: 0; }
+
+/* ── Empty states ─────────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 64px 24px;
+  color: var(--text-muted);
+}
+
+.empty-state-icon-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.empty-state-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--text-muted);
+  opacity: 0.4;
+}
+
+.empty-state-icon--error {
+  color: var(--accent-red);
+  opacity: 0.75;
+}
+
+.empty-state-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
+
+.empty-state-desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.empty-state-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+
+.empty-state-hint code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.78rem;
+  color: var(--accent-blue);
+}
+
+/* Spell-check "Did you mean?" banner */
+.spell-check {
+  margin-bottom: 20px;
+  padding: 10px 16px;
+  background: var(--accent-glow);
+  border-left: 3px solid var(--accent-blue);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+.spell-check a,
+.spell-correction-link {
+  color: var(--text-link);
+  font-weight: 500;
+  text-decoration: none;
+  font-style: italic;
+}
+
+.spell-check a:hover,
+.spell-correction-link:hover { text-decoration: underline; }
+
+.spell-check a strong.correction,
+.spell-correction-link strong.correction {
+  font-weight: 700;
+  color: var(--accent-blue);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  font-style: normal;
+}
+
+.spell-check .exact-phrase,
+.spell-correction-link .exact-phrase {
+  font-style: normal;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-card);
+  border-radius: 4px;
+  padding: 0 4px;
+  font-size: 0.88em;
+}

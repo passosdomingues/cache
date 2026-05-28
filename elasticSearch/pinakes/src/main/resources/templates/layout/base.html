@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="html(title, content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
+    <meta name="description" content="Pinakes -- Full-text search engine over Wikipedia articles, powered by Elasticsearch 8 and Spring Boot 3.">
+    <title th:text="${title}">Pinakes</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+
+    <!-- Design System -->
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+
+    <!-- Lucide Icons (deferred) -->
+    <script src="https://unpkg.com/lucide@latest" defer></script>
+</head>
+<body>
+
+    <!-- Sidebar (hamburger menu) -->
+    <th:block th:replace="~{fragments/sidebar :: sidebar}"></th:block>
+
+    <!-- Accessibility panel -->
+    <th:block th:replace="~{fragments/accessibilityPanel :: accessibilityPanel}"></th:block>
+
+    <div class="page">
+        <!-- Header (always visible) -->
+        <th:block th:replace="~{fragments/header :: header}"></th:block>
+
+        <!-- Page content injected here -->
+        <th:block th:replace="${content}"></th:block>
+
+        <!-- Footer -->
+        <th:block th:replace="~{fragments/footer :: footer}"></th:block>
+    </div>
+
+    <!-- Initialize icons after deferred script loads -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        if (window.lucide) lucide.createIcons();
+      });
+    </script>
+
+    <!-- ES Modules Entry Point -->
+    <script type="module" th:src="@{/js/app.js}"></script>
+</body>
+</html>

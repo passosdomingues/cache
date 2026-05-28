@@ -1,0 +1,140 @@
+version: "3.9"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Pinakes — Full-Stack Docker Orchestration
+#
+# Services:
+#   elasticsearch  — ES 8 single-node (security disabled for dev/test)
+#   app            — Spring Boot Pinakes application
+#   kibana         — optional, for data exploration (profile: debug)
+#   test-runner    — Python performance/quality test suite
+#
+# Usage:
+#   make up          → start ES + app
+#   make test        → run unit tests (Maven)
+#   make integration → run integration tests (Maven + Testcontainers)
+#   make perf        → start all + run Python performance suite
+#   make down        → stop and remove containers
+# ──────────────────────────────────────────────────────────────────────────────
+
+networks:
+  pinakes-net:
+    driver: bridge
+
+volumes:
+  es-data:
+    driver: local
+
+services:
+
+  # ── Elasticsearch ────────────────────────────────────────────────────────
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+    container_name: pinakes-es
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - cluster.name=pinakes-cluster
+      - node.name=pinakes-node-1
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+      - ./docker/es-mapping.json:/usr/share/elasticsearch/config/es-mapping.json:ro
+      - ./docker/es-init.sh:/usr/share/elasticsearch/bin/es-init.sh:ro
+    ports:
+      - "9200:9200"
+    networks:
+      - pinakes-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\\|yellow\"'"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # ── Index initialisation ──────────────────────────────────────────────────
+  # Runs once to create the index with the correct mapping (including the
+  # 'content.raw_suggest' sub-field that fixes the Snowball/suggest bug §2.5)
+  es-init:
+    image: curlimages/curl:8.7.1
+    container_name: pinakes-es-init
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      - ./docker/es-mapping.json:/tmp/es-mapping.json:ro
+      - ./docker/es-init.sh:/tmp/es-init.sh:ro
+    entrypoint: ["sh", "/tmp/es-init.sh"]
+    networks:
+      - pinakes-net
+    restart: "no"
+
+  # ── Spring Boot Application ───────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pinakes-app
+    depends_on:
+      es-init:
+        condition: service_completed_successfully
+    environment:
+      ES_HOST: elasticsearch
+      ES_PORT: "9200"
+      ES_SCHEME: http
+      ES_INDEX: wikipedia_v2
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: "8080"
+    ports:
+      - "8080:8080"
+    networks:
+      - pinakes-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 60s
+    restart: unless-stopped
+
+  # ── Python Performance & Quality Tests ───────────────────────────────────
+  test-runner:
+    image: python:3.11-slim
+    container_name: pinakes-test-runner
+    depends_on:
+      app:
+        condition: service_healthy
+    volumes:
+      - ./tests/performance:/tests
+      - ./results:/results
+    working_dir: /tests
+    entrypoint: >
+      sh -c "pip install -q -r requirements.txt &&
+             python performance_tests.py
+               --base-url http://app:8080
+               --output-dir /results
+               --iterations 5
+               --warmup 3"
+    networks:
+      - pinakes-net
+    restart: "no"
+
+  # ── Kibana (debug profile only) ───────────────────────────────────────────
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.0
+    container_name: pinakes-kibana
+    profiles: ["debug"]
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - pinakes-net

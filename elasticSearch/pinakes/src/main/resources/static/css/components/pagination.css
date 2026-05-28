@@ -1,0 +1,66 @@
+/* ===================================================================
+   Pinakes -- Pagination Controls
+   =================================================================== */
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 36px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-card);
+  gap: 12px;
+}
+
+.pagination-info {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.page-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    background    var(--dur-fast) var(--ease-snap),
+    border-color  var(--dur-fast) var(--ease-snap),
+    box-shadow    var(--dur-fast) var(--ease-snap);
+  white-space: nowrap;
+}
+
+.page-btn svg,
+.page-btn i {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.page-btn:hover:not(.disabled) {
+  background: var(--bg-card-hover);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.page-btn:active:not(.disabled) {
+  box-shadow: none;
+}
+
+.page-btn.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+  cursor: default;
+}

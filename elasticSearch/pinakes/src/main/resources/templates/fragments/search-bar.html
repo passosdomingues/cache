@@ -1,0 +1,141 @@
+<!-- ===============================================================
+     Pinakes -- Search Bar Fragment
+     Supports:
+       - Regular fuzzy search
+       - Exact phrase search using "quotes"
+       - Autocomplete dropdown (populated via JS)
+       - Example query suggestion chips (click to populate, not auto-submit)
+     =============================================================== -->
+<div th:fragment="search-bar" class="search-container" id="search-component">
+    <form th:action="@{/}" method="GET" class="search-form" id="search-form">
+        <div class="search-input-wrapper">
+            <i data-lucide="search" class="search-icon" aria-hidden="true"></i>
+            <input type="text"
+                   name="query"
+                   id="search-input"
+                   class="search-input"
+                   placeholder='Search... use "quotes" for exact phrases'
+                   th:value="${query}"
+                   autocomplete="off"
+                   role="combobox"
+                   aria-expanded="false"
+                   aria-controls="autocomplete-list"
+                   aria-autocomplete="list"
+                   autofocus>
+
+            <!-- Clear button — visible only when input has value -->
+            <button type="button"
+                    id="search-clear-btn"
+                    class="search-clear-btn"
+                    aria-label="Clear search"
+                    th:classappend="${query != null and !query.isEmpty()} ? 'is-visible' : ''">
+                <i data-lucide="x" aria-hidden="true"></i>
+            </button>
+
+            <!-- Persist tuning parameters across searches -->
+            <input type="hidden" name="fuzziness"   th:value="${fuzziness}">
+            <input type="hidden" name="phraseBoost" th:value="${phraseBoost}">
+            <input type="hidden" name="titleBoost"  th:value="${titleBoost}">
+            <input type="hidden" name="slop"        th:value="${slop}">
+            <input type="hidden" name="highlight"   th:value="${highlight}">
+            <input type="hidden" name="spellCheck"  th:value="${spellCheck}">
+
+            <!-- Autocomplete dropdown -->
+            <div id="autocomplete-list"
+                 class="autocomplete-dropdown"
+                 style="display: none;"
+                 role="listbox"
+                 aria-label="Search suggestions">
+            </div>
+        </div>
+
+        <button type="submit" class="search-btn" id="search-btn" aria-label="Run search">
+            <span class="btn-text">Search</span>
+            <i data-lucide="arrow-right" class="btn-icon" aria-hidden="true"></i>
+            <div class="spinner" aria-hidden="true"></div>
+        </button>
+    </form>
+
+    <!--
+        Example query suggestions — shown only on the home page (no active query).
+
+        Clicking a chip POPULATES the search bar (does NOT auto-submit).
+        The user can review and edit the query, then press Enter or click Search.
+
+        Tooltip via title= shows the search type (fuzzy / exact / spell-check).
+    -->
+    <div th:if="${!hasQuery}"
+         class="query-suggestions"
+         id="query-suggestions"
+         role="group"
+         aria-label="Example searches — click to populate the search bar">
+
+        <span class="query-suggestions__label" aria-hidden="true">Try:</span>
+
+        <!-- Fuzzy searches -->
+        <button type="button"
+                class="query-chip query-chip--fuzzy"
+                data-query="black hole"
+                title="Click to try: fuzzy full-text search">
+            <i data-lucide="zap" class="chip-icon" aria-hidden="true"></i>black hole
+        </button>
+        <button type="button"
+                class="query-chip query-chip--fuzzy"
+                data-query="quantum mechanics"
+                title="Click to try: fuzzy full-text search">
+            <i data-lucide="zap" class="chip-icon" aria-hidden="true"></i>quantum mechanics
+        </button>
+        <button type="button"
+                class="query-chip query-chip--fuzzy"
+                data-query="artificial intelligence"
+                title="Click to try: fuzzy full-text search">
+            <i data-lucide="zap" class="chip-icon" aria-hidden="true"></i>artificial intelligence
+        </button>
+
+        <!-- Exact phrase searches -->
+        <button type="button"
+                class="query-chip query-chip--exact"
+                data-query='"binary search"'
+                title='Click to try: exact phrase search — uses match_phrase'>
+            <i data-lucide="quote" class="chip-icon" aria-hidden="true"></i>"binary search"
+        </button>
+        <button type="button"
+                class="query-chip query-chip--exact"
+                data-query='"machine learning"'
+                title='Click to try: exact phrase search — uses match_phrase'>
+            <i data-lucide="quote" class="chip-icon" aria-hidden="true"></i>"machine learning"
+        </button>
+        <button type="button"
+                class="query-chip query-chip--exact"
+                data-query='"solar system" planet'
+                title='Click to try: exact phrase + fuzzy remainder'>
+            <i data-lucide="quote" class="chip-icon" aria-hidden="true"></i>"solar system" planet
+        </button>
+
+        <!-- Intentional typos — trigger spell-check / Did you mean? -->
+        <button type="button"
+                class="query-chip query-chip--typo"
+                data-query="Kolmogorv equatons"
+                title="Click to try: intentional typos — triggers 'Did you mean?'">
+            <i data-lucide="wand-2" class="chip-icon" aria-hidden="true"></i>Kolmogorv equatons
+        </button>
+        <button type="button"
+                class="query-chip query-chip--typo"
+                data-query="Einstien relativity"
+                title="Click to try: intentional typos — triggers 'Did you mean?'">
+            <i data-lucide="wand-2" class="chip-icon" aria-hidden="true"></i>Einstien relativity
+        </button>
+        <button type="button"
+                class="query-chip query-chip--typo"
+                data-query="quantom phisics"
+                title="Click to try: intentional typos — triggers 'Did you mean?'">
+            <i data-lucide="wand-2" class="chip-icon" aria-hidden="true"></i>quantom phisics
+        </button>
+    </div>
+
+    <!-- Exact-phrase hint (only shown on home page) -->
+    <p th:if="${!hasQuery}" class="search-hint">
+        Tip: wrap terms in <kbd>"quotes"</kbd> for exact-phrase matching &nbsp;·&nbsp;
+        fuzzy matching is always on for unquoted terms
+    </p>
+</div>
