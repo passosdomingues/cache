@@ -9,47 +9,61 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
+import org.apache.http.impl.conn.SystemDefaultDnsResolver;
+import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
+import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
+import org.apache.http.impl.nio.reactor.IOReactorConfig;
+import org.apache.http.nio.conn.NoopIOSessionStrategy;
+import org.apache.http.nio.conn.SchemeIOSessionStrategy;
+import org.apache.http.nio.reactor.IOReactorException;
 import org.elasticsearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
+import java.util.concurrent.TimeUnit;
+
 /**
- * Elasticsearch client configuration.
+ * Elasticsearch connection configuration.
  *
- * ── FIX: org.apache.http.ConnectionClosedException: Connection is closed ──
+ * ══ ROOT CAUSE: "Connection is closed" (ConnectionClosedException) ════════
  *
- * ROOT CAUSE:
- *   Elasticsearch closes idle HTTP keep-alive connections server-side after
- *   ~75 seconds. The Apache HttpAsyncClient pools those connections and tries
- *   to reuse them, resulting in ConnectionClosedException.
+ * org.apache.http.ConnectionClosedException extends IllegalStateException
+ * (not IOException), so the original retry-exceptions config did not cover it.
+ * Additionally, the Apache NIO connection pool retained connections after
+ * Elasticsearch closed them server-side (~60–75 s idle timeout), and the next
+ * request received EOF on the stale channel → ConnectionClosedException.
  *
- *   NOTE: evictIdleConnections() and evictExpiredConnections() exist only on
- *   the *synchronous* HttpClientBuilder — they are NOT available on
- *   HttpAsyncClientBuilder (httpasyncclient-4.1.5). Using them causes a
- *   compilation error.
+ * ══ FIX: PoolingNHttpClientConnectionManager with timeToLive = 50 s ════════
  *
- * SOLUTION (two layers, both available in HttpAsyncClientBuilder 4.1.5):
+ * When leasing a connection for a new request, the manager checks:
+ *   if (connection_age > timeToLive) → close it, open a fresh one
  *
- *   1. setConnectionReuseStrategy(→ false)
- *      Disables HTTP keep-alive connection reuse entirely. Each request gets
- *      a fresh connection that is closed after the response. This eliminates
- *      the stale-connection problem at the cost of a TCP handshake per
- *      request — acceptable for low-to-medium search volumes.
+ * timeToLive = 50 s  <  ES keep-alive timeout (~60–75 s)
+ * → stale connections are always evicted before ES closes them.
  *
- *   2. setKeepAliveStrategy(→ 55_000 ms)
- *      Belt-and-suspenders: even if keep-alive is somehow negotiated, the
- *      client will not hold the connection beyond 55 s (well under ES's ~75 s
- *      server-side timeout).
+ * ══ PREVIOUS CRASH: "I/O session factory registry may not be null" ═════════
  *
- *   3. Resilience4j @Retry(name="esClient") on every EsClient method retries
- *      up to 3× on IOException — catches any transient connection error that
- *      slips through.
- *      (see application.properties: resilience4j.retry.instances.esClient.*)
+ * The 6-parameter constructor signature is:
+ *   PoolingNHttpClientConnectionManager(
+ *       ConnectingIOReactor,
+ *       NHttpConnectionFactory,
+ *       Lookup<SchemeIOSessionStrategy>,   ← NOT SchemeIOSessionStrategy
+ *       DnsResolver, long, TimeUnit)
+ *
+ * Passing null for the third parameter triggers Args.notNull() → IAE.
+ * Fix: build an explicit Registry<SchemeIOSessionStrategy> for HTTP.
+ *
+ * ══ RESILIENCE4J ═════════════════════════════════════════════════════════
+ * ConnectionClosedException (RuntimeException) added explicitly to
+ * retry-exceptions in application.properties (single line, no continuation).
  */
 @Slf4j
 @Configuration
@@ -73,58 +87,104 @@ public class ElasticsearchConfig {
     @Value("${elasticsearch.connection-timeout-ms:3000}")
     private int connectionTimeoutMs;
 
-    @Value("${elasticsearch.socket-timeout-ms:15000}")
+    @Value("${elasticsearch.socket-timeout-ms:10000}")
     private int socketTimeoutMs;
+
+    @Value("${elasticsearch.max-connections:25}")
+    private int maxConnections;
+
+    @Value("${elasticsearch.max-connections-per-route:5}")
+    private int maxConnectionsPerRoute;
+
+    /** Connection TTL in seconds — must be less than ES keep-alive timeout. */
+    public static final long CONNECTION_TTL_SECONDS = 50L;
 
     @Bean
     public RestClient restClient() {
         log.info("Connecting to Elasticsearch at {}://{}:{}", scheme, host, port);
-
         return RestClient.builder(new HttpHost(host, port, scheme))
-            .setRequestConfigCallback(cfg -> cfg
-                .setConnectTimeout(connectionTimeoutMs)
-                .setSocketTimeout(socketTimeoutMs))
-            .setHttpClientConfigCallback(this::configureHttpClient)
-            .build();
-    }
-
-    /**
-     * Configures HttpAsyncClientBuilder (httpasyncclient-4.1.5) to avoid
-     * stale-connection errors.
-     *
-     * Only methods actually present in HttpAsyncClientBuilder are used here.
-     * Do NOT call evictIdleConnections() or evictExpiredConnections() — those
-     * belong to the synchronous HttpClientBuilder and will not compile.
-     */
-    private HttpAsyncClientBuilder configureHttpClient(HttpAsyncClientBuilder hc) {
-
-        // Layer 1: disable keep-alive reuse — prevents stale connections entirely.
-        // (response, context) -> false  ≡  NoConnectionReuseStrategy.INSTANCE
-        hc.setConnectionReuseStrategy((response, context) -> false);
-
-        // Layer 2: even if layer 1 is somehow bypassed, cap keep-alive to 55 s.
-        hc.setKeepAliveStrategy((response, context) -> 55_000L);
-
-        // Optional Basic Auth
-        if (StringUtils.hasText(username)) {
-            var cp = new BasicCredentialsProvider();
-            cp.setCredentials(AuthScope.ANY,
-                new UsernamePasswordCredentials(username, password));
-            hc.setDefaultCredentialsProvider(cp);
-            log.info("Elasticsearch basic auth enabled for user '{}'", username);
-        }
-
-        return hc;
+                .setRequestConfigCallback(this::customizeRequestConfig)
+                .setHttpClientConfigCallback(this::customizeHttpClient)
+                .build();
     }
 
     @Bean
     public ElasticsearchTransport elasticsearchTransport(RestClient restClient) {
-        var mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
         return new RestClientTransport(restClient, new JacksonJsonpMapper(mapper));
     }
 
     @Bean
     public ElasticsearchClient elasticsearchClient(ElasticsearchTransport transport) {
         return new ElasticsearchClient(transport);
+    }
+
+    // ── private helpers ───────────────────────────────────────────────────
+
+    private org.apache.http.client.config.RequestConfig.Builder customizeRequestConfig(
+            org.apache.http.client.config.RequestConfig.Builder cfg) {
+        return cfg
+                .setConnectTimeout(connectionTimeoutMs)
+                .setSocketTimeout(socketTimeoutMs);
+    }
+
+    /**
+     * Configures the Apache HttpAsyncClient:
+     *   1. PoolingNHttpClientConnectionManager with timeToLive = 50 s
+     *      Fixes the "Connection is closed" stale-connection bug.
+     *   2. Optional Basic Auth.
+     *
+     * The session strategy registry MUST be provided explicitly (not null).
+     * We register only "http" → NoopIOSessionStrategy because this app
+     * connects to Elasticsearch without TLS in development.
+     */
+    HttpAsyncClientBuilder customizeHttpClient(HttpAsyncClientBuilder hc) {
+        try {
+            IOReactorConfig ioConfig = IOReactorConfig.custom()
+                    .setConnectTimeout(connectionTimeoutMs)
+                    .setSoTimeout(socketTimeoutMs)
+                    .build();
+
+            DefaultConnectingIOReactor ioReactor = new DefaultConnectingIOReactor(ioConfig);
+
+            // Build session strategy registry explicitly — passing null would cause
+            // "I/O session factory registry may not be null" at startup.
+            Registry<SchemeIOSessionStrategy> sessionRegistry =
+                    RegistryBuilder.<SchemeIOSessionStrategy>create()
+                            .register("http", NoopIOSessionStrategy.INSTANCE)
+                            .build();
+
+            PoolingNHttpClientConnectionManager cm =
+                    new PoolingNHttpClientConnectionManager(
+                            ioReactor,
+                            null,                               // 2. connFactory
+                            sessionRegistry,                    // 3. sessionRegistry
+                            DefaultSchemePortResolver.INSTANCE, // 4. schemePortResolver (NOVO)
+                            SystemDefaultDnsResolver.INSTANCE,  // 5. dnsResolver
+                            CONNECTION_TTL_SECONDS, 
+                            TimeUnit.SECONDS);
+
+            cm.setMaxTotal(maxConnections);
+            cm.setDefaultMaxPerRoute(maxConnectionsPerRoute);
+            hc.setConnectionManager(cm);
+
+            log.info("ES connection pool configured (maxTotal={}, perRoute={}, ttl={}s)",
+                    maxConnections, maxConnectionsPerRoute, CONNECTION_TTL_SECONDS);
+
+        } catch (IOReactorException e) {
+            log.warn("Could not create pooling connection manager ({}). " +
+                    "Falling back to keep-alive strategy cap.", e.getMessage());
+            hc.setKeepAliveStrategy((response, context) -> CONNECTION_TTL_SECONDS * 1_000L);
+        }
+
+        if (StringUtils.hasText(username)) {
+            BasicCredentialsProvider cp = new BasicCredentialsProvider();
+            cp.setCredentials(AuthScope.ANY,
+                    new UsernamePasswordCredentials(username, password));
+            hc.setDefaultCredentialsProvider(cp);
+            log.info("Elasticsearch basic auth configured for user '{}'", username);
+        }
+
+        return hc;
     }
 }

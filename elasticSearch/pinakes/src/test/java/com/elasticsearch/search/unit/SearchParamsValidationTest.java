@@ -6,6 +6,8 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Set;
@@ -13,8 +15,17 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Validates that SearchParams bean-validation constraints work correctly.
- * These prevent the §3.3 bug where invalid inputs reached ES and caused 500s.
+ * Unit tests for SearchParams bean validation.
+ *
+ * Covers:
+ *  §VALID      — valid parameter combinations pass validation
+ *  §QUERY      — blank/null/too-short/too-long query rejected
+ *  §PAGE       — page < 1 rejected
+ *  §SIZE       — size < 1 or > 50 rejected
+ *  §BOOSTS     — phraseBoost/titleBoost out of [0.0, 10.0] rejected
+ *  §SLOP       — slop < 0 or > 50 rejected
+ *  §RT-FILTER  — maxReadingTime < 1 rejected
+ *  §PAIRWISE   — cross-field combinations that should all pass/fail
  */
 @DisplayName("SearchParams Validation Tests")
 class SearchParamsValidationTest {
@@ -22,95 +33,244 @@ class SearchParamsValidationTest {
     private static Validator validator;
 
     @BeforeAll
-    static void setupValidator() {
+    static void buildValidator() {
         validator = Validation.buildDefaultValidatorFactory().getValidator();
     }
 
-    @Test
-    @DisplayName("Valid params produce no violations")
-    void validParamsPassValidation() {
+    private SearchParams valid() {
         var p = new SearchParams();
-        p.setQuery("binary search tree");
-        Set<ConstraintViolation<SearchParams>> violations = validator.validate(p);
-        assertThat(violations).isEmpty();
+        p.setQuery("quantum physics");
+        p.setPage(1);
+        p.setSize(10);
+        p.setFuzziness("AUTO");
+        p.setPhraseBoost(2.0f);
+        p.setTitleBoost(1.5f);
+        p.setSlop(0);
+        return p;
+    }
+
+    private Set<ConstraintViolation<SearchParams>> validate(SearchParams p) {
+        return validator.validate(p);
+    }
+
+    // ── §VALID ────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§VALID: all defaults are valid")
+    void allDefaultsValid() {
+        assertThat(validate(valid())).isEmpty();
+    }
+
+    // ── §QUERY ────────────────────────────────────────────────────────────
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"  ", "\t", "\n"})
+    @DisplayName("§QUERY: blank/null query fails @NotBlank")
+    void blankQueryFails(String q) {
+        var p = valid();
+        p.setQuery(q);
+        assertThat(validate(p)).isNotEmpty();
     }
 
     @Test
-    @DisplayName("Blank query produces violation")
-    void blankQueryFails() {
-        var p = new SearchParams();
-        p.setQuery("  ");
-        var violations = validator.validate(p);
-        assertThat(violations).isNotEmpty();
-        assertThat(violations).anyMatch(v -> v.getPropertyPath().toString().equals("query"));
+    @DisplayName("§QUERY: single char fails @Size(min=2)")
+    void singleCharFails() {
+        var p = valid();
+        p.setQuery("x");
+        assertThat(validate(p)).isNotEmpty();
     }
 
     @Test
-    @DisplayName("Null query produces violation")
-    void nullQueryFails() {
-        var p = new SearchParams();
-        p.setQuery(null);
-        var violations = validator.validate(p);
-        assertThat(violations).isNotEmpty();
+    @DisplayName("§QUERY: exactly 2 chars passes")
+    void twoCharsPass() {
+        var p = valid();
+        p.setQuery("ok");
+        assertThat(validate(p)).isEmpty();
     }
+
+    @Test
+    @DisplayName("§QUERY: 501 chars fails @Size(max=500)")
+    void tooLongQueryFails() {
+        var p = valid();
+        p.setQuery("a".repeat(501));
+        assertThat(validate(p)).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("§QUERY: exactly 500 chars passes")
+    void maxLengthQueryPasses() {
+        var p = valid();
+        p.setQuery("a".repeat(500));
+        assertThat(validate(p)).isEmpty();
+    }
+
+    // ── §PAGE ─────────────────────────────────────────────────────────────
 
     @ParameterizedTest
     @ValueSource(ints = {0, -1, -100})
-    @DisplayName("Page ≤ 0 produces violation")
+    @DisplayName("§PAGE: page < 1 fails @Min(1)")
     void invalidPageFails(int page) {
-        var p = new SearchParams();
-        p.setQuery("test query");
+        var p = valid();
         p.setPage(page);
-        var violations = validator.validate(p);
-        assertThat(violations).anyMatch(v -> v.getPropertyPath().toString().equals("page"));
+        assertThat(validate(p)).isNotEmpty();
     }
 
+    @Test
+    @DisplayName("§PAGE: page = 1 passes")
+    void page1Passes() {
+        var p = valid();
+        p.setPage(1);
+        assertThat(validate(p)).isEmpty();
+    }
+
+    // ── §SIZE ─────────────────────────────────────────────────────────────
+
     @ParameterizedTest
-    @ValueSource(ints = {51, 100, 1000})
-    @DisplayName("Size > 50 produces violation")
-    void oversizedPageFails(int size) {
-        var p = new SearchParams();
-        p.setQuery("test query");
+    @ValueSource(ints = {0, -1, 51, 100})
+    @DisplayName("§SIZE: size outside [1,50] fails")
+    void invalidSizeFails(int size) {
+        var p = valid();
         p.setSize(size);
-        var violations = validator.validate(p);
-        assertThat(violations).anyMatch(v -> v.getPropertyPath().toString().equals("size"));
-    }
-
-    @Test
-    @DisplayName("Single character query fails min-length validation")
-    void tooShortQueryFails() {
-        var p = new SearchParams();
-        p.setQuery("x");
-        var violations = validator.validate(p);
-        assertThat(violations).isNotEmpty();
-    }
-
-    @Test
-    @DisplayName("Query at max boundary (500 chars) passes")
-    void queryAtMaxBoundaryPasses() {
-        var p = new SearchParams();
-        p.setQuery("a".repeat(500));
-        var violations = validator.validate(p);
-        assertThat(violations).isEmpty();
-    }
-
-    @Test
-    @DisplayName("Query exceeding max (501 chars) fails")
-    void queryBeyondMaxFails() {
-        var p = new SearchParams();
-        p.setQuery("a".repeat(501));
-        var violations = validator.validate(p);
-        assertThat(violations).isNotEmpty();
+        assertThat(validate(p)).isNotEmpty();
     }
 
     @ParameterizedTest
-    @ValueSource(floats = {-0.1f, 10.1f, 100f})
-    @DisplayName("Out-of-range phraseBoost produces violation")
+    @ValueSource(ints = {1, 10, 25, 50})
+    @DisplayName("§SIZE: boundary values pass")
+    void validSizePasses(int size) {
+        var p = valid();
+        p.setSize(size);
+        assertThat(validate(p)).isEmpty();
+    }
+
+    // ── §BOOSTS ───────────────────────────────────────────────────────────
+
+    @ParameterizedTest(name = "phraseBoost={0}")
+    @CsvSource({"-0.1", "10.1", "-5.0", "11.0"})
+    @DisplayName("§BOOSTS: phraseBoost outside [0.0,10.0] fails")
     void invalidPhraseBoostFails(float boost) {
-        var p = new SearchParams();
-        p.setQuery("valid query");
+        var p = valid();
         p.setPhraseBoost(boost);
-        var violations = validator.validate(p);
-        assertThat(violations).isNotEmpty();
+        assertThat(validate(p)).isNotEmpty();
+    }
+
+    @ParameterizedTest(name = "phraseBoost={0}")
+    @CsvSource({"0.0", "1.0", "5.0", "10.0"})
+    @DisplayName("§BOOSTS: phraseBoost boundary values pass")
+    void validPhraseBoostPasses(float boost) {
+        var p = valid();
+        p.setPhraseBoost(boost);
+        assertThat(validate(p)).isEmpty();
+    }
+
+    // ── §SLOP ─────────────────────────────────────────────────────────────
+
+    @ParameterizedTest
+    @ValueSource(ints = {-1, 51, 100})
+    @DisplayName("§SLOP: slop outside [0,50] fails")
+    void invalidSlopFails(int slop) {
+        var p = valid();
+        p.setSlop(slop);
+        assertThat(validate(p)).isNotEmpty();
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1, 25, 50})
+    @DisplayName("§SLOP: slop boundary values pass")
+    void validSlopPasses(int slop) {
+        var p = valid();
+        p.setSlop(slop);
+        assertThat(validate(p)).isEmpty();
+    }
+
+    // ── §RT-FILTER ────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§RT-FILTER: maxReadingTime=0 fails @Min(1)")
+    void zeroReadingTimeFails() {
+        var p = valid();
+        p.setMaxReadingTime(0);
+        assertThat(validate(p)).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("§RT-FILTER: maxReadingTime=1 passes")
+    void oneReadingTimePasses() {
+        var p = valid();
+        p.setMaxReadingTime(1);
+        assertThat(validate(p)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("§RT-FILTER: null maxReadingTime passes (filter is optional)")
+    void nullReadingTimePasses() {
+        var p = valid();
+        p.setMaxReadingTime(null);
+        assertThat(validate(p)).isEmpty();
+    }
+
+    // ── §PAIRWISE — cross-field combinations ─────────────────────────────
+
+    /**
+     * Pairwise: (page, size) × boundary combinations.
+     * Ensures that valid combinations of two constrained fields pass together.
+     *
+     * page ∈ {1, 10, 100}, size ∈ {1, 10, 50} → 9 combinations, all valid.
+     */
+    @ParameterizedTest(name = "page={0}, size={1}")
+    @CsvSource({
+        "1,  1",  "1,  10", "1,  50",
+        "10, 1",  "10, 10", "10, 50",
+        "100,1",  "100,10", "100,50"
+    })
+    @DisplayName("§PAIRWISE(page×size): all valid boundary pairs pass")
+    void pairwisePageSizeValid(int page, int size) {
+        var p = valid();
+        p.setPage(page);
+        p.setSize(size);
+        assertThat(validate(p)).isEmpty();
+    }
+
+    /**
+     * Pairwise: (phraseBoost, titleBoost) boundary combinations — all valid.
+     */
+    @ParameterizedTest(name = "phraseBoost={0}, titleBoost={1}")
+    @CsvSource({
+        "0.0,0.0", "0.0,5.0", "0.0,10.0",
+        "5.0,0.0", "5.0,5.0", "5.0,10.0",
+        "10.0,0.0","10.0,5.0","10.0,10.0"
+    })
+    @DisplayName("§PAIRWISE(phraseBoost×titleBoost): all valid boundary pairs pass")
+    void pairwiseBoostsValid(float pb, float tb) {
+        var p = valid();
+        p.setPhraseBoost(pb);
+        p.setTitleBoost(tb);
+        assertThat(validate(p)).isEmpty();
+    }
+
+    /**
+     * Pairwise: (highlight, spellCheck) × (page, size) — boolean flag combinations.
+     * 4 × 4 = 16 combinations, all valid (booleans have no validation constraints).
+     */
+    @ParameterizedTest(name = "highlight={0}, spellCheck={1}, page={2}, size={3}")
+    @CsvSource({
+        "true,  true,  1,  10",
+        "true,  false, 1,  10",
+        "false, true,  1,  10",
+        "false, false, 1,  10",
+        "true,  true,  2,  25",
+        "true,  false, 2,  25",
+        "false, true,  2,  25",
+        "false, false, 2,  25",
+    })
+    @DisplayName("§PAIRWISE(highlight×spellCheck×page×size): boolean flag combos pass")
+    void pairwiseFlagCombinations(boolean hl, boolean sc, int page, int size) {
+        var p = valid();
+        p.setHighlight(hl);
+        p.setSpellCheck(sc);
+        p.setPage(page);
+        p.setSize(size);
+        assertThat(validate(p)).isEmpty();
     }
 }

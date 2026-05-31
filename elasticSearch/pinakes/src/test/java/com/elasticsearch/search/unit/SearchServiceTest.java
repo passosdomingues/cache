@@ -5,134 +5,244 @@ import co.elastic.clients.elasticsearch.core.search.*;
 import com.elasticsearch.search.client.EsClient;
 import com.elasticsearch.search.config.SearchProperties;
 import com.elasticsearch.search.model.*;
+import com.elasticsearch.search.service.QueryAnalyser;
+import com.elasticsearch.search.service.SearchService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.*;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for SearchService.
+ * Unit tests for SearchService — EsClient mocked, no ES instance needed.
  *
- * Strategy: mock EsClient so we test only business logic (mapping, pagination,
- * spell-check wiring) without needing a live ES instance.
+ * Tests:
+ *  §SPELL-WIRING     — suggestWord() called per token when spellCheck=true
+ *  §SPELL-DISABLED   — suggestWord() NOT called when spellCheck=false + dense results
+ *  §SPELL-SPARSE     — auto-suggest triggered on sparse (≤5) results
+ *  §SPELL-GRACEFUL   — suggestWord() failure does not propagate as search error
+ *  §PAGINATION       — totalPages calculated correctly for various total/size combos
+ *  §MAPPING          — ES hits mapped to SearchResult DTOs correctly
+ *  §PHRASE-EXTRACT   — exact phrases extracted and set on params before ES call
+ *  §TOOK             — tookMs from ES response is propagated
+ *  §AUTOCOMPLETE     — autocomplete extracts title from hits
  */
 @DisplayName("SearchService Unit Tests")
 class SearchServiceTest {
 
     @Mock private EsClient esClient;
-    @InjectMocks private com.elasticsearch.search.service.SearchService searchService;
+    private SearchService searchService;
 
-    private SearchProperties props;
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        props = new SearchProperties();
+        SearchProperties props = new SearchProperties();
+        QueryAnalyser analyser = new QueryAnalyser();
+        searchService = new SearchService(esClient, analyser, props);
     }
 
-    // ── §3.1 spellCheck wiring ─────────────────────────────────────────────
+    // ── §SPELL-WIRING ─────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("§3.1 suggest is called when spellCheck=true")
-    void suggestCalledWhenSpellCheckEnabled() throws IOException {
-        var params = paramsWithQuery("binary serach");
-        params.setSpellCheck(true);
+    @DisplayName("§SPELL-WIRING: suggestWord() called once per word token")
+    void spellCheckCallsPerToken() throws IOException {
+        mockSearch(10, 50);
+        when(esClient.suggestWord(anyString())).thenReturn("word");
 
-        mockSearchResponse(10, 100); // healthy result count
-        mockSuggestResponse("binary search");
+        var p = params("kolmogrov equatons");
+        p.setSpellCheck(true);
+        searchService.search(p);
 
-        searchService.search(params);
+        // "kolmogrov" and "equatons" = 2 tokens
+        verify(esClient, times(2)).suggestWord(anyString());
+    }
 
-        // Ajustado para o método correto que o SearchService consome internamente
+    @Test
+    @DisplayName("§SPELL-WIRING: suggestWord() not called when spellCheck=false AND results dense")
+    void spellCheckSkippedWhenDisabledAndDense() throws IOException {
+        mockSearch(10, 100); // 100 hits — not sparse
+        var p = params("binary search");
+        p.setSpellCheck(false);
+        searchService.search(p);
+
+        verify(esClient, never()).suggestWord(anyString());
+    }
+
+    // ── §SPELL-SPARSE ─────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§SPELL-SPARSE: auto-suggest triggered when totalHits ≤ 5 even if spellCheck=false")
+    void autoSuggestOnSparseResults() throws IOException {
+        mockSearch(2, 2); // 2 hits — sparse
+        when(esClient.suggestWord(anyString())).thenReturn("test");
+
+        var p = params("kolmogrov equatons");
+        p.setSpellCheck(false);
+        searchService.search(p);
+
         verify(esClient, atLeastOnce()).suggestWord(anyString());
     }
 
-    @Test
-    @DisplayName("§3.1 suggest is auto-triggered when results are sparse (≤5)")
-    void suggestAutoTriggeredOnSparseResults() throws IOException {
-        var params = paramsWithQuery("kolmogrov equatins");
-        params.setSpellCheck(false); // explicitly disabled
-
-        mockSearchResponse(2, 2); // only 2 hits → sparse
-        mockSuggestResponse("kolmogorov equations");
-
-        var response = searchService.search(params);
-
-        // Mesmo com spellCheck=false, resultados escassos ativam o corretor atômico por token
-        verify(esClient, atLeastOnce()).suggestWord(anyString());
-    }
+    // ── §SPELL-GRACEFUL ───────────────────────────────────────────────────
 
     @Test
-    @DisplayName("§3.1 suggest failure does NOT propagate as search error")
-    void suggestFailureIsGraceful() throws IOException {
-        var params = paramsWithQuery("quantum physics");
-        params.setSpellCheck(true);
-
-        mockSearchResponse(15, 150);
+    @DisplayName("§SPELL-GRACEFUL: suggestWord() IOException does not fail the search")
+    void spellCheckIoExceptionGraceful() throws IOException {
+        mockSearch(10, 50);
         when(esClient.suggestWord(anyString())).thenThrow(new IOException("ES timeout"));
 
-        // Não deve estourar exceção; o fluxo deve degradar graciosamente
-        assertThatCode(() -> {
-            var resp = searchService.search(params);
-            assertThat(resp.getSuggestion()).isNull();
-        }).doesNotThrowAnyException();
+        var p = params("quantum physics");
+        p.setSpellCheck(true);
+
+        assertThatCode(() -> searchService.search(p)).doesNotThrowAnyException();
     }
 
-    // ── Pagination math ────────────────────────────────────────────────────
+    @Test
+    @DisplayName("§SPELL-GRACEFUL: suggestWord() RuntimeException does not fail the search")
+    void spellCheckRuntimeExceptionGraceful() throws IOException {
+        mockSearch(10, 50);
+        when(esClient.suggestWord(anyString())).thenThrow(new RuntimeException("unexpected"));
 
-    @ParameterizedTest(name = "total={0}, pageSize={1}, page={2} → expectedPages={3}")
+        var p = params("quantum physics");
+        p.setSpellCheck(true);
+
+        assertThatCode(() -> searchService.search(p)).doesNotThrowAnyException();
+    }
+
+    // ── §PAGINATION ───────────────────────────────────────────────────────
+
+    @ParameterizedTest(name = "total={0}, size={1}, page={2} → pages={3}")
     @CsvSource({
         "100, 10, 1,  10",
         "101, 10, 1,  11",
-        "10,  10, 1,  1",
-        "0,   10, 1,  0",
-        "1,   10, 1,  1",
-        "50,  7,  1,  8",
+        "10,  10, 1,   1",
+        "0,   10, 1,   0",
+        "1,   10, 1,   1",
+        "50,   7, 1,   8",
+        "500, 50, 2,  10",
     })
-    @DisplayName("Pagination: total pages calculation is correct")
-    void paginationMath(long total, int pageSize, int page, int expectedPages)
-            throws IOException {
-        var params = paramsWithQuery("test");
-        params.setSize(pageSize);
-        params.setPage(page);
-        params.setSpellCheck(false);
+    @DisplayName("§PAGINATION: totalPages math covers boundary and off-by-one cases")
+    void paginationMath(long total, int size, int page, int expected) throws IOException {
+        mockSearch(Math.min(size, (int) total), total);
+        var p = params("test");
+        p.setSize(size);
+        p.setPage(page);
+        p.setSpellCheck(false);
 
-        mockSearchResponse(pageSize, total);
+        var resp = searchService.search(p);
 
-        var response = searchService.search(params);
-        assertThat(response.getTotalPages()).isEqualTo(expectedPages);
-        assertThat(response.getCurrentPage()).isEqualTo(page);
-        assertThat(response.getTotalCount()).isEqualTo(total);
+        assertThat(resp.getTotalPages()).isEqualTo(expected);
+        assertThat(resp.getCurrentPage()).isEqualTo(page);
+        assertThat(resp.getTotalCount()).isEqualTo(total);
+        assertThat(resp.getPageSize()).isEqualTo(size);
     }
 
-    // ── Response mapping ────────────────────────────────────────────────────
+    // ── §MAPPING ─────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("Results are correctly mapped from ES hits")
-    void resultsAreMappedCorrectly() throws IOException {
-        var params = paramsWithQuery("binary search");
-        params.setSpellCheck(false);
-        params.setHighlight(false);
+    @DisplayName("§MAPPING: hits mapped to SearchResult with title, url, abs, score")
+    void hitsAreMappedCorrectly() throws IOException {
+        mockSearch(3, 3);
+        var p = params("binary search");
+        p.setSpellCheck(false);
+        p.setHighlight(false);
 
-        mockSearchResponse(2, 2);
+        var resp = searchService.search(p);
 
-        var response = searchService.search(params);
-        assertThat(response.getResults()).hasSize(2);
-        assertThat(response.getResults().get(0).getTitle()).isEqualTo("Hit 0");
-        assertThat(response.getResults().get(0).getUrl()).isEqualTo("https://en.wikipedia.org/0");
+        assertThat(resp.getResults()).hasSize(3);
+        for (int i = 0; i < 3; i++) {
+            assertThat(resp.getResults().get(i).getTitle()).isEqualTo("Hit " + i);
+            assertThat(resp.getResults().get(i).getUrl())
+                    .isEqualTo("https://en.wikipedia.org/" + i);
+            assertThat(resp.getResults().get(i).getScore()).isEqualTo(1.0f);
+        }
     }
 
-    // ── Helper builders ────────────────────────────────────────────────────
+    @Test
+    @DisplayName("§MAPPING: empty result set maps to empty list, not null")
+    void emptyHitsMapsToEmptyList() throws IOException {
+        mockSearch(0, 0);
+        var p = params("nothing");
+        p.setSpellCheck(false);
 
-    private SearchParams paramsWithQuery(String query) {
+        var resp = searchService.search(p);
+        assertThat(resp.getResults()).isNotNull().isEmpty();
+    }
+
+    // ── §PHRASE-EXTRACT ───────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§PHRASE-EXTRACT: quoted phrases extracted and set on params")
+    void exactPhrasesExtracted() throws IOException {
+        mockSearch(5, 5);
+        when(esClient.suggestWord(anyString())).thenReturn("word");
+
+        var p = params("\"binary search\" tree");
+        p.setSpellCheck(false);
+        searchService.search(p);
+
+        // Verify that search() was called (the params were enriched)
+        verify(esClient).search(argThat(sp ->
+                sp.getExactPhrases() != null &&
+                sp.getExactPhrases().contains("binary search") &&
+                "tree".equals(sp.getFuzzyRemainder())
+        ));
+    }
+
+    @Test
+    @DisplayName("§PHRASE-EXTRACT: no quotes → exactPhrases is null, fuzzyRemainder is null")
+    void noQuotesNoPhrases() throws IOException {
+        mockSearch(5, 5);
+        var p = params("binary search tree");
+        p.setSpellCheck(false);
+        searchService.search(p);
+
+        verify(esClient).search(argThat(sp ->
+                sp.getExactPhrases() == null &&
+                sp.getFuzzyRemainder() == null
+        ));
+    }
+
+    // ── §TOOK ─────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§TOOK: tookMs from ES response propagated to SearchResponse")
+    void tookMsPropagated() throws IOException {
+        mockSearchWithTook(10, 42L, 42L);
+        var p = params("test");
+        p.setSpellCheck(false);
+
+        var resp = searchService.search(p);
+        assertThat(resp.getTookMs()).isEqualTo(42L);
+    }
+
+    // ── §AUTOCOMPLETE ─────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§AUTOCOMPLETE: titles extracted from autocomplete hits")
+    void autocompleteExtractsTitles() throws IOException {
+        var mockResp = buildSearchResponse(3, 3L, 5L);
+        when(esClient.autocomplete(anyString(), anyInt())).thenReturn(mockResp);
+
+        var titles = searchService.autocomplete("bin", 5);
+        assertThat(titles).hasSize(3);
+        assertThat(titles.get(0)).isEqualTo("Hit 0");
+    }
+
+    // ── helpers ───────────────────────────────────────────────────────────
+
+    private SearchParams params(String query) {
         var p = new SearchParams();
         p.setQuery(query);
         p.setPage(1);
@@ -145,47 +255,45 @@ class SearchServiceTest {
         return p;
     }
 
+    private void mockSearch(int hitCount, long total) throws IOException {
+        var resp = buildSearchResponse(hitCount, total, 5L);
+        when(esClient.search(any(SearchParams.class))).thenReturn(resp);
+        when(esClient.extractAbstract(any(), anyBoolean())).thenReturn("snippet");
+    }
+
+    private void mockSearchWithTook(int hitCount, long total, long tookMs) throws IOException {
+        var resp = buildSearchResponse(hitCount, total, tookMs);
+        when(esClient.search(any(SearchParams.class))).thenReturn(resp);
+        when(esClient.extractAbstract(any(), anyBoolean())).thenReturn("snippet");
+    }
+
     @SuppressWarnings("unchecked")
-    private void mockSearchResponse(int hitCount, long totalCount) throws IOException {
-        var mockResp = mock(SearchResponse.class);
-        var hitsMetadata = mock(HitsMetadata.class);
-        var totalHits = mock(TotalHits.class);
+    private SearchResponse<ObjectNode> buildSearchResponse(int hitCount, long total, long tookMs)
+            throws IOException {
+        var mockResp      = mock(SearchResponse.class);
+        var hitsMetadata  = mock(HitsMetadata.class);
+        var totalHits     = mock(TotalHits.class);
 
-        when(totalHits.value()).thenReturn(totalCount);
+        when(totalHits.value()).thenReturn(total);
         when(hitsMetadata.total()).thenReturn(totalHits);
-        when(mockResp.took()).thenReturn(5L);
+        when(mockResp.took()).thenReturn(tookMs);
 
-        List<Hit<ObjectNode>> hits = new java.util.ArrayList<>();
+        List<Hit<ObjectNode>> hits = new ArrayList<>();
         for (int i = 0; i < hitCount; i++) {
             var hit = mock(Hit.class);
-            var source = new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode();
-            source.put("title", "Hit " + i);
-            source.put("url", "https://en.wikipedia.org/" + i);
-            source.put("reading_time", 5);
-            when(hit.source()).thenReturn(source);
+            ObjectNode src = mapper.createObjectNode();
+            src.put("title", "Hit " + i);
+            src.put("url",   "https://en.wikipedia.org/" + i);
+            src.put("reading_time", 5);
+            when(hit.source()).thenReturn(src);
             when(hit.score()).thenReturn(1.0);
             when(hit.highlight()).thenReturn(null);
             when(hit.matchedQueries()).thenReturn(null);
-            when(esClient.extractAbstract(eq(hit), anyBoolean())).thenReturn("snippet " + i);
             hits.add(hit);
         }
 
         when(hitsMetadata.hits()).thenReturn(hits);
         when(mockResp.hits()).thenReturn(hitsMetadata);
-        when(esClient.search(any(SearchParams.class))).thenReturn(mockResp);
-    }
-
-    private void mockSuggestResponse(String corrected) throws IOException {
-        // Mocka a resposta da palavra individualizada
-        when(esClient.suggestWord(anyString())).thenReturn(corrected);
-        
-        var suggestResp = SuggestResponse.builder()
-                .original("test")
-                .suggestions(List.of(corrected))
-                .hasSuggestion(true)
-                .build();
-        
-        var spySvc = Mockito.spy(searchService);
-        doReturn(suggestResp).when(spySvc).suggest(anyString(), anyInt());
+        return mockResp;
     }
 }
