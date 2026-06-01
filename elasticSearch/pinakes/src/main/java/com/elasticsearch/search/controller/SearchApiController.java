@@ -40,19 +40,15 @@ public class SearchApiController {
      * Returns corrected terms based on the 'content.raw_suggest' vocabulary.
      */
     @GetMapping("/suggest")
-    public CompletableFuture<ResponseEntity<SuggestResponse>> suggest(
+    public ResponseEntity<SuggestResponse> suggest(
             @RequestParam @NotBlank @Size(min = 1, max = 500) String query,
             @RequestParam(defaultValue = "3") @Min(1) @Max(10) int size) {
-
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return ResponseEntity.ok(searchService.suggest(query, size));
-            } catch (IOException e) {
-                log.error("Suggest failed: {}", e.getMessage());
-                return ResponseEntity.internalServerError()
-                        .<SuggestResponse>build();
-            }
-        });
+        try {
+            return ResponseEntity.ok(searchService.suggest(query, size));
+        } catch (IOException e) {
+            log.error("Suggest failed: {}", e.getMessage());
+            return ResponseEntity.internalServerError().<SuggestResponse>build();
+        }
     }
 
     /**
@@ -60,18 +56,15 @@ public class SearchApiController {
      * Debounced by the frontend (200ms, ≥2 chars) to avoid ES overload.
      */
     @GetMapping("/autocomplete")
-    public CompletableFuture<ResponseEntity<List<String>>> autocomplete(
+    public ResponseEntity<List<String>> autocomplete(
             @RequestParam @NotBlank @Size(min = 2, max = 200) String q,
             @RequestParam(defaultValue = "5") @Min(1) @Max(10) int size) {
-
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return ResponseEntity.ok(searchService.autocomplete(q, size));
-            } catch (IOException e) {
-                log.error("Autocomplete failed: {}", e.getMessage());
-                return ResponseEntity.internalServerError().<List<String>>build();
-            }
-        });
+        try {
+            return ResponseEntity.ok(searchService.autocomplete(q, size));
+        } catch (IOException e) {
+            log.error("Autocomplete failed: {}", e.getMessage());
+            return ResponseEntity.internalServerError().<List<String>>build();
+        }
     }
 
     /**
@@ -79,15 +72,13 @@ public class SearchApiController {
      * Aggregation-only query (size=0) — very fast regardless of index size.
      */
     @GetMapping("/stats")
-    public CompletableFuture<ResponseEntity<StatsResponse>> stats() {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return ResponseEntity.ok(searchService.stats());
-            } catch (IOException e) {
-                log.error("Stats failed: {}", e.getMessage());
-                return ResponseEntity.internalServerError().<StatsResponse>build();
-            }
-        });
+    public ResponseEntity<StatsResponse> stats() {
+        try {
+            return ResponseEntity.ok(searchService.stats());
+        } catch (IOException e) {
+            log.error("Stats failed: {}", e.getMessage());
+            return ResponseEntity.internalServerError().<StatsResponse>build();
+        }
     }
 
     /**
@@ -95,17 +86,14 @@ public class SearchApiController {
      * Used by the performance test harness and external integrations.
      */
     @GetMapping("/search")
-    public CompletableFuture<ResponseEntity<SearchResponse>> search(
+    public ResponseEntity<SearchResponse> search(
             @Valid SearchParams params) {
-
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return ResponseEntity.ok(searchService.search(params));
-            } catch (IOException e) {
-                log.error("API search failed for '{}': {}", params.getQuery(), e.getMessage());
-                return ResponseEntity.internalServerError().<SearchResponse>build();
-            }
-        });
+        try {
+            return ResponseEntity.ok(searchService.search(params));
+        } catch (IOException e) {
+            log.error("API search failed for '{}': {}", params.getQuery(), e.getMessage());
+            return ResponseEntity.internalServerError().<SearchResponse>build();
+        }
     }
 
     /** Health check — used by Docker health check and test orchestration */

@@ -137,13 +137,16 @@ public class QueryAnalyser {
 
                 case WORD -> {
                     String original  = seg.text();
-                    String corrected = original; // default: no change
+                    String corrected = original;
 
                     try {
-                        String oracleResult = oracle.correct(original);
+                        // Strip possessive/contraction suffix before oracle call
+                        String root   = stripPossessive(original);   // "Einsin's" → "Einsin"
+                        String suffix = original.substring(root.length()); // "'s"
+
+                        String oracleResult = oracle.correct(root);
                         if (oracleResult != null && !oracleResult.isBlank()) {
-                            // Re-apply original casing style to the oracle correction
-                            corrected = reapplyCasing(original, oracleResult);
+                            corrected = reapplyCasing(root, oracleResult) + suffix;
                         }
                     } catch (Exception e) {
                         log.warn("SpellOracle failed for token '{}': {}", original, e.getMessage());
@@ -222,6 +225,14 @@ public class QueryAnalyser {
      */
     private static final Pattern WORD_PATTERN =
             Pattern.compile("[\\p{L}][\\p{L}'\\-]*");
+
+    /** Strips trailing possessive/contraction suffix ('s, 't, 're, 'll, ...) */
+    private static String stripPossessive(String word) {
+        // Match apostrophe followed by lowercase letters at end of word
+        int apos = word.lastIndexOf('\'');
+        if (apos > 0) return word.substring(0, apos);
+        return word;
+    }
 
     /**
      * Tokenises the raw query into an ordered list of typed segments.

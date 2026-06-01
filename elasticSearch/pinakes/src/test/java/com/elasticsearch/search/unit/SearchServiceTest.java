@@ -25,16 +25,23 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for SearchService — EsClient mocked, no ES instance needed.
  *
- * Tests:
- *  §SPELL-WIRING     — suggestWord() called per token when spellCheck=true
- *  §SPELL-DISABLED   — suggestWord() NOT called when spellCheck=false + dense results
- *  §SPELL-SPARSE     — auto-suggest triggered on sparse (≤5) results
- *  §SPELL-GRACEFUL   — suggestWord() failure does not propagate as search error
- *  §PAGINATION       — totalPages calculated correctly for various total/size combos
- *  §MAPPING          — ES hits mapped to SearchResult DTOs correctly
- *  §PHRASE-EXTRACT   — exact phrases extracted and set on params before ES call
- *  §TOOK             — tookMs from ES response is propagated
- *  §AUTOCOMPLETE     — autocomplete extracts title from hits
+ * §SPELL-WIRING      — suggestWord() called per token when spellCheck=true
+ * §SPELL-DISABLED    — suggestWord() NOT called when spellCheck=false + dense results
+ * §SPELL-SPARSE      — auto-suggest triggered on sparse (≤5) results
+ * §SPELL-GRACEFUL    — suggestWord() failure does not propagate as search error
+ * §PAGINATION        — totalPages calculated for various total/size combos
+ * §MAPPING           — ES hits mapped to SearchResult DTOs correctly
+ * §PHRASE-EXTRACT    — exact phrases extracted + set on params before ES call
+ * §FUZZY-REMAINDER   — fuzzyRemainder null when query all-quoted
+ * §TOOK              — tookMs propagated from ES response
+ * §AUTOCOMPLETE      — titles extracted from hits
+ * §SUGGEST-API       — suggest() returns hasSuggestion=true on corrections
+ * §SUGGEST-NO-OP     — suggest() returns hasSuggestion=false when no corrections
+ * §SORT              — sortField/sortOrder forwarded to ES call
+ * §FILTER-RT         — maxReadingTime set on params forwarded to ES
+ * §FILTER-DATE       — dateFrom/dateTo forwarded to ES call
+ * §SUGGESTION-MODEL  — SearchResponse.suggestion populated when corrections found
+ * §SUGGESTION-NULL   — SearchResponse.suggestion null when spellCheck=false + dense
  */
 @DisplayName("SearchService Unit Tests")
 class SearchServiceTest {
@@ -47,9 +54,7 @@ class SearchServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        SearchProperties props = new SearchProperties();
-        QueryAnalyser analyser = new QueryAnalyser();
-        searchService = new SearchService(esClient, analyser, props);
+        searchService = new SearchService(esClient, new QueryAnalyser(), new SearchProperties());
     }
 
     // ── §SPELL-WIRING ─────────────────────────────────────────────────────
@@ -64,14 +69,13 @@ class SearchServiceTest {
         p.setSpellCheck(true);
         searchService.search(p);
 
-        // "kolmogrov" and "equatons" = 2 tokens
         verify(esClient, times(2)).suggestWord(anyString());
     }
 
     @Test
-    @DisplayName("§SPELL-WIRING: suggestWord() not called when spellCheck=false AND results dense")
+    @DisplayName("§SPELL-DISABLED: suggestWord() not called when spellCheck=false + dense")
     void spellCheckSkippedWhenDisabledAndDense() throws IOException {
-        mockSearch(10, 100); // 100 hits — not sparse
+        mockSearch(10, 100);
         var p = params("binary search");
         p.setSpellCheck(false);
         searchService.search(p);
@@ -82,9 +86,9 @@ class SearchServiceTest {
     // ── §SPELL-SPARSE ─────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("§SPELL-SPARSE: auto-suggest triggered when totalHits ≤ 5 even if spellCheck=false")
+    @DisplayName("§SPELL-SPARSE: auto-suggest triggered when totalHits ≤ 5, spellCheck=false")
     void autoSuggestOnSparseResults() throws IOException {
-        mockSearch(2, 2); // 2 hits — sparse
+        mockSearch(2, 2);
         when(esClient.suggestWord(anyString())).thenReturn("test");
 
         var p = params("kolmogrov equatons");
@@ -92,6 +96,17 @@ class SearchServiceTest {
         searchService.search(p);
 
         verify(esClient, atLeastOnce()).suggestWord(anyString());
+    }
+
+    @Test
+    @DisplayName("§SPELL-SPARSE: auto-suggest NOT triggered when totalHits > 5, spellCheck=false")
+    void noAutoSuggestWhenDenseAndDisabled() throws IOException {
+        mockSearch(10, 100);
+        var p = params("quantum physics");
+        p.setSpellCheck(false);
+        searchService.search(p);
+
+        verify(esClient, never()).suggestWord(anyString());
     }
 
     // ── §SPELL-GRACEFUL ───────────────────────────────────────────────────
@@ -151,7 +166,7 @@ class SearchServiceTest {
     // ── §MAPPING ─────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("§MAPPING: hits mapped to SearchResult with title, url, abs, score")
+    @DisplayName("§MAPPING: hits mapped to SearchResult with title, url, score")
     void hitsAreMappedCorrectly() throws IOException {
         mockSearch(3, 3);
         var p = params("binary search");
@@ -183,7 +198,7 @@ class SearchServiceTest {
     // ── §PHRASE-EXTRACT ───────────────────────────────────────────────────
 
     @Test
-    @DisplayName("§PHRASE-EXTRACT: quoted phrases extracted and set on params")
+    @DisplayName("§PHRASE-EXTRACT: quoted phrases extracted and set on params before ES call")
     void exactPhrasesExtracted() throws IOException {
         mockSearch(5, 5);
         when(esClient.suggestWord(anyString())).thenReturn("word");
@@ -192,7 +207,6 @@ class SearchServiceTest {
         p.setSpellCheck(false);
         searchService.search(p);
 
-        // Verify that search() was called (the params were enriched)
         verify(esClient).search(argThat(sp ->
                 sp.getExactPhrases() != null &&
                 sp.getExactPhrases().contains("binary search") &&
@@ -201,7 +215,7 @@ class SearchServiceTest {
     }
 
     @Test
-    @DisplayName("§PHRASE-EXTRACT: no quotes → exactPhrases is null, fuzzyRemainder is null")
+    @DisplayName("§PHRASE-EXTRACT: no quotes → exactPhrases null, fuzzyRemainder null")
     void noQuotesNoPhrases() throws IOException {
         mockSearch(5, 5);
         var p = params("binary search tree");
@@ -210,6 +224,22 @@ class SearchServiceTest {
 
         verify(esClient).search(argThat(sp ->
                 sp.getExactPhrases() == null &&
+                sp.getFuzzyRemainder() == null
+        ));
+    }
+
+    // ── §FUZZY-REMAINDER ─────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§FUZZY-REMAINDER: all-quoted query has fuzzyRemainder null")
+    void allQuotedFuzzyRemainderNull() throws IOException {
+        mockSearch(3, 3);
+        var p = params("\"binary search\"");
+        p.setSpellCheck(false);
+        searchService.search(p);
+
+        verify(esClient).search(argThat(sp ->
+                sp.getExactPhrases() != null &&
                 sp.getFuzzyRemainder() == null
         ));
     }
@@ -223,8 +253,7 @@ class SearchServiceTest {
         var p = params("test");
         p.setSpellCheck(false);
 
-        var resp = searchService.search(p);
-        assertThat(resp.getTookMs()).isEqualTo(42L);
+        assertThat(searchService.search(p).getTookMs()).isEqualTo(42L);
     }
 
     // ── §AUTOCOMPLETE ─────────────────────────────────────────────────────
@@ -238,6 +267,119 @@ class SearchServiceTest {
         var titles = searchService.autocomplete("bin", 5);
         assertThat(titles).hasSize(3);
         assertThat(titles.get(0)).isEqualTo("Hit 0");
+    }
+
+    @Test
+    @DisplayName("§AUTOCOMPLETE: empty hits → empty list returned")
+    void autocompleteEmptyHits() throws IOException {
+        var mockResp = buildSearchResponse(0, 0L, 1L);
+        when(esClient.autocomplete(anyString(), anyInt())).thenReturn(mockResp);
+
+        assertThat(searchService.autocomplete("xyzzy", 5)).isEmpty();
+    }
+
+    // ── §SUGGEST-API ──────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§SUGGEST-API: suggest() returns hasSuggestion=true when corrections exist")
+    void suggestApiReturnsSuggestion() throws IOException {
+        when(esClient.suggestWord(eq("kolmogrov"))).thenReturn("kolmogorov");
+        when(esClient.suggestWord(eq("equatons"))).thenReturn("equations");
+
+        var resp = searchService.suggest("kolmogrov equatons", 3);
+        assertThat(resp.isHasSuggestion()).isTrue();
+        assertThat(resp.getSuggestions()).isNotEmpty();
+        assertThat(resp.getSuggestions().get(0)).containsIgnoringCase("kolmogorov");
+    }
+
+    @Test
+    @DisplayName("§SUGGEST-NO-OP: suggest() returns hasSuggestion=false when no corrections")
+    void suggestApiNoSuggestionWhenCorrect() throws IOException {
+        when(esClient.suggestWord(anyString())).thenAnswer(inv -> inv.getArgument(0));
+
+        var resp = searchService.suggest("binary search", 3);
+        assertThat(resp.isHasSuggestion()).isFalse();
+        assertThat(resp.getSuggestions()).isEmpty();
+    }
+
+    // ── §SORT ─────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§SORT: sortField and sortOrder forwarded to EsClient.search params")
+    void sortFieldForwarded() throws IOException {
+        mockSearch(5, 5);
+        var p = params("test");
+        p.setSpellCheck(false);
+        p.setSortField("reading_time");
+        p.setSortOrder("asc");
+        searchService.search(p);
+
+        verify(esClient).search(argThat(sp ->
+                "reading_time".equals(sp.getSortField()) &&
+                "asc".equals(sp.getSortOrder())
+        ));
+    }
+
+    // ── §FILTER-RT ────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§FILTER-RT: maxReadingTime forwarded to EsClient.search params")
+    void readingTimeFilterForwarded() throws IOException {
+        mockSearch(5, 5);
+        var p = params("test");
+        p.setSpellCheck(false);
+        p.setMaxReadingTime(5);
+        searchService.search(p);
+
+        verify(esClient).search(argThat(sp -> Integer.valueOf(5).equals(sp.getMaxReadingTime())));
+    }
+
+    // ── §FILTER-DATE ──────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§FILTER-DATE: dateFrom/dateTo forwarded to EsClient.search params")
+    void dateFilterForwarded() throws IOException {
+        mockSearch(5, 5);
+        var p = params("test");
+        p.setSpellCheck(false);
+        p.setDateFrom("2020-01-01");
+        p.setDateTo("2023-12-31");
+        searchService.search(p);
+
+        verify(esClient).search(argThat(sp ->
+                "2020-01-01".equals(sp.getDateFrom()) &&
+                "2023-12-31".equals(sp.getDateTo())
+        ));
+    }
+
+    // ── §SUGGESTION-MODEL ─────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§SUGGESTION-MODEL: SearchResponse.suggestion set when spellCheck=true + corrections")
+    void suggestionPopulatedWhenCorrectionFound() throws IOException {
+        mockSearch(10, 50);
+        when(esClient.suggestWord(eq("kolmogrov"))).thenReturn("kolmogorov");
+        when(esClient.suggestWord(eq("equatons"))).thenReturn("equations");
+
+        var p = params("kolmogrov equatons");
+        p.setSpellCheck(true);
+        var resp = searchService.search(p);
+
+        assertThat(resp.getSuggestion()).isNotNull();
+        assertThat(resp.getSuggestion().isHasSuggestion()).isTrue();
+    }
+
+    @Test
+    @DisplayName("§SUGGESTION-NULL: SearchResponse.suggestion null when spellCheck=false + dense")
+    void suggestionNullWhenDisabledAndDense() throws IOException {
+        mockSearch(10, 100);
+        var p = params("quantum physics");
+        p.setSpellCheck(false);
+        var resp = searchService.search(p);
+
+        // No correction triggered — suggestion should be null or hasSuggestion=false
+        assertThat(resp.getSuggestion() == null ||
+                   !resp.getSuggestion().isHasSuggestion()).isTrue();
     }
 
     // ── helpers ───────────────────────────────────────────────────────────
@@ -270,9 +412,9 @@ class SearchServiceTest {
     @SuppressWarnings("unchecked")
     private SearchResponse<ObjectNode> buildSearchResponse(int hitCount, long total, long tookMs)
             throws IOException {
-        var mockResp      = mock(SearchResponse.class);
-        var hitsMetadata  = mock(HitsMetadata.class);
-        var totalHits     = mock(TotalHits.class);
+        var mockResp     = mock(SearchResponse.class);
+        var hitsMetadata = mock(HitsMetadata.class);
+        var totalHits    = mock(TotalHits.class);
 
         when(totalHits.value()).thenReturn(total);
         when(hitsMetadata.total()).thenReturn(totalHits);

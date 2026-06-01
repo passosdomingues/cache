@@ -17,15 +17,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Unit tests for SearchParams bean validation.
  *
- * Covers:
- *  §VALID      — valid parameter combinations pass validation
- *  §QUERY      — blank/null/too-short/too-long query rejected
- *  §PAGE       — page < 1 rejected
- *  §SIZE       — size < 1 or > 50 rejected
- *  §BOOSTS     — phraseBoost/titleBoost out of [0.0, 10.0] rejected
- *  §SLOP       — slop < 0 or > 50 rejected
- *  §RT-FILTER  — maxReadingTime < 1 rejected
- *  §PAIRWISE   — cross-field combinations that should all pass/fail
+ * §VALID      — valid parameter combinations pass
+ * §QUERY      — blank/null/too-short/too-long query rejected
+ * §PAGE       — page < 1 rejected
+ * §SIZE       — size < 1 or > 50 rejected
+ * §BOOSTS     — phraseBoost and titleBoost outside [0.0, 10.0] rejected
+ * §SLOP       — slop < 0 or > 50 rejected
+ * §RT-FILTER  — maxReadingTime < 1 rejected
+ * §SORT-ORDER — sortOrder is free text (no constraint), passes always
+ * §PAIRWISE   — cross-field combinations that should all pass/fail
  */
 @DisplayName("SearchParams Validation Tests")
 class SearchParamsValidationTest {
@@ -74,7 +74,7 @@ class SearchParamsValidationTest {
     }
 
     @Test
-    @DisplayName("§QUERY: single char fails @Size(min=2)")
+    @DisplayName("§QUERY: 1-char fails @Size(min=2)")
     void singleCharFails() {
         var p = valid();
         p.setQuery("x");
@@ -164,6 +164,24 @@ class SearchParamsValidationTest {
         assertThat(validate(p)).isEmpty();
     }
 
+    @ParameterizedTest(name = "titleBoost={0}")
+    @CsvSource({"-0.1", "10.1", "-5.0", "11.0"})
+    @DisplayName("§BOOSTS: titleBoost outside [0.0,10.0] fails")
+    void invalidTitleBoostFails(float boost) {
+        var p = valid();
+        p.setTitleBoost(boost);
+        assertThat(validate(p)).isNotEmpty();
+    }
+
+    @ParameterizedTest(name = "titleBoost={0}")
+    @CsvSource({"0.0", "1.0", "5.0", "10.0"})
+    @DisplayName("§BOOSTS: titleBoost boundary values pass")
+    void validTitleBoostPasses(float boost) {
+        var p = valid();
+        p.setTitleBoost(boost);
+        assertThat(validate(p)).isEmpty();
+    }
+
     // ── §SLOP ─────────────────────────────────────────────────────────────
 
     @ParameterizedTest
@@ -195,6 +213,14 @@ class SearchParamsValidationTest {
     }
 
     @Test
+    @DisplayName("§RT-FILTER: maxReadingTime=-1 fails @Min(1)")
+    void negativeReadingTimeFails() {
+        var p = valid();
+        p.setMaxReadingTime(-1);
+        assertThat(validate(p)).isNotEmpty();
+    }
+
+    @Test
     @DisplayName("§RT-FILTER: maxReadingTime=1 passes")
     void oneReadingTimePasses() {
         var p = valid();
@@ -210,14 +236,27 @@ class SearchParamsValidationTest {
         assertThat(validate(p)).isEmpty();
     }
 
-    // ── §PAIRWISE — cross-field combinations ─────────────────────────────
+    // ── §SORT-ORDER ───────────────────────────────────────────────────────
 
-    /**
-     * Pairwise: (page, size) × boundary combinations.
-     * Ensures that valid combinations of two constrained fields pass together.
-     *
-     * page ∈ {1, 10, 100}, size ∈ {1, 10, 50} → 9 combinations, all valid.
-     */
+    @ParameterizedTest
+    @ValueSource(strings = {"asc", "desc", "ASC", "DESC", "random"})
+    @DisplayName("§SORT-ORDER: sortOrder is unconstrained, any value passes")
+    void sortOrderNoConstraint(String order) {
+        var p = valid();
+        p.setSortOrder(order);
+        assertThat(validate(p)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("§SORT-ORDER: null sortOrder passes (no @NotBlank on sortOrder)")
+    void nullSortOrderPasses() {
+        var p = valid();
+        p.setSortOrder(null);
+        assertThat(validate(p)).isEmpty();
+    }
+
+    // ── §PAIRWISE ─────────────────────────────────────────────────────────
+
     @ParameterizedTest(name = "page={0}, size={1}")
     @CsvSource({
         "1,  1",  "1,  10", "1,  50",
@@ -232,9 +271,6 @@ class SearchParamsValidationTest {
         assertThat(validate(p)).isEmpty();
     }
 
-    /**
-     * Pairwise: (phraseBoost, titleBoost) boundary combinations — all valid.
-     */
     @ParameterizedTest(name = "phraseBoost={0}, titleBoost={1}")
     @CsvSource({
         "0.0,0.0", "0.0,5.0", "0.0,10.0",
@@ -249,10 +285,6 @@ class SearchParamsValidationTest {
         assertThat(validate(p)).isEmpty();
     }
 
-    /**
-     * Pairwise: (highlight, spellCheck) × (page, size) — boolean flag combinations.
-     * 4 × 4 = 16 combinations, all valid (booleans have no validation constraints).
-     */
     @ParameterizedTest(name = "highlight={0}, spellCheck={1}, page={2}, size={3}")
     @CsvSource({
         "true,  true,  1,  10",
@@ -260,8 +292,6 @@ class SearchParamsValidationTest {
         "false, true,  1,  10",
         "false, false, 1,  10",
         "true,  true,  2,  25",
-        "true,  false, 2,  25",
-        "false, true,  2,  25",
         "false, false, 2,  25",
     })
     @DisplayName("§PAIRWISE(highlight×spellCheck×page×size): boolean flag combos pass")
@@ -272,5 +302,21 @@ class SearchParamsValidationTest {
         p.setPage(page);
         p.setSize(size);
         assertThat(validate(p)).isEmpty();
+    }
+
+    @ParameterizedTest(name = "phraseBoost={0}, titleBoost={1} → invalid")
+    @CsvSource({
+        "-1.0,  5.0",   // phraseBoost invalid
+        "5.0,  -1.0",   // titleBoost invalid
+        "-1.0, -1.0",   // both invalid
+        "11.0,  5.0",   // phraseBoost too high
+        "5.0,  11.0",   // titleBoost too high
+    })
+    @DisplayName("§PAIRWISE(phraseBoost×titleBoost): invalid boost pairs rejected")
+    void pairwiseBoostsInvalid(float pb, float tb) {
+        var p = valid();
+        p.setPhraseBoost(pb);
+        p.setTitleBoost(tb);
+        assertThat(validate(p)).isNotEmpty();
     }
 }

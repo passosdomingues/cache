@@ -5,42 +5,45 @@ import com.elasticsearch.search.service.QueryAnalyser;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.*;
 
 /**
  * Unit tests for QueryAnalyser.
  *
- * Tests:
- *   §TOKENISATION    — correct segmentation of query into WORD/PASSTHROUGH/QUOTED_PHRASE
- *   §HOLISTIC        — full multi-word query corrected token-by-token
- *   §CASE-SENSITIVE  — casing style (UPPER, Title, lower) preserved in corrections
- *   §WHOLE-WORD      — oracle returns full word not a stem
- *   §QUOTED-PHRASE   — quoted segments are never spell-checked
- *   §HTML-DIFF       — corrected tokens wrapped in <strong class="correction">
- *   §PASSTHROUGH     — LaTeX, numbers, punctuation emitted verbatim
- *   §EXTRACT-PHRASES — extractQuotedPhrases returns phrase list
- *   §STRIP-PHRASES   — stripQuotedPhrases removes quoted segments
+ * §HOLISTIC        — full multi-word query corrected token-by-token
+ * §CASE-SENSITIVE  — casing style (UPPER, Title, lower, mixed) preserved
+ * §WHOLE-WORD      — oracle called once per token; hyphenated/apostrophe = 1 token
+ * §QUOTED-PHRASE   — quoted segments never spell-checked; unclosed quote handled
+ * §HTML-DIFF       — <strong>/<span> markup; HTML special chars escaped
+ * §PASSTHROUGH     — LaTeX, numbers, punctuation emitted verbatim
+ * §EXTRACT-PHRASES — extractQuotedPhrases returns phrase list; null-safe
+ * §STRIP-PHRASES   — stripQuotedPhrases; space-collapse; null-safe
+ * §RESULT-FIELDS   — wasCorrected / isQuotedPhrase / isPassthrough flags
+ * §IDEMPOTENT      — already-correct query produces no corrections
+ * §EDGE            — null, blank, very short words, oracle returning null/blank
  */
 @DisplayName("QueryAnalyser Unit Tests")
 class QueryAnalyserTest {
 
     private QueryAnalyser analyser;
 
-    /** Simple oracle: reverses lookup in a fixed correction map */
     private static final Map<String, String> CORRECTIONS = Map.of(
-            "einsin",      "einstein",
-            "foula",       "formula",
-            "revolutiozed","revolutionized",
-            "kolmogrov",   "kolmogorov",
-            "serach",      "search",
-            "binery",      "binary"
+            "einsin",       "einstein",
+            "foula",        "formula",
+            "revolutiozed", "revolutionized",
+            "kolmogrov",    "kolmogorov",
+            "serach",       "search",
+            "binery",       "binary",
+            "quantom",      "quantum",
+            "phyics",       "physics"
     );
 
-    /** Oracle that corrects from the map, returns original if not found */
     private final QueryAnalyser.SpellOracle oracle =
             word -> CORRECTIONS.getOrDefault(word.toLowerCase(), word);
 
@@ -52,33 +55,46 @@ class QueryAnalyserTest {
     @Test
     @DisplayName("§HOLISTIC: full sentence with multiple typos corrected")
     void holisticCorrection() throws Exception {
-        String input = "Einsin's foula, revolutiozed physics";
-        var result = analyser.analyse(input, oracle);
-
+        var result = analyser.analyse("Einsin's foula, revolutiozed physics", oracle);
         assertThat(result.isHasCorrectedTokens()).isTrue();
         assertThat(result.getCorrectedQuery())
                 .containsIgnoringCase("Einstein")
                 .containsIgnoringCase("formula")
                 .containsIgnoringCase("revolutionized")
-                .contains("physics"); // correct — unchanged
+                .contains("physics");
     }
 
     @Test
     @DisplayName("§HOLISTIC: uncorrected words preserved verbatim")
     void correctWordsUntouched() throws Exception {
         var result = analyser.analyse("binary search tree", oracle);
-        // None of these words are in the correction map
         assertThat(result.isHasCorrectedTokens()).isFalse();
         assertThat(result.getCorrectedQuery()).isEqualTo("binary search tree");
     }
 
+    @Test
+    @DisplayName("§HOLISTIC: single-word query corrected")
+    void singleWordCorrection() throws Exception {
+        var result = analyser.analyse("quantom", oracle);
+        assertThat(result.isHasCorrectedTokens()).isTrue();
+        assertThat(result.getCorrectedQuery()).isEqualToIgnoringCase("quantum");
+    }
+
+    @Test
+    @DisplayName("§HOLISTIC: passthrough-only query returns unchanged")
+    void passthroughOnlyQuery() throws Exception {
+        var result = analyser.analyse("123 + 456", oracle);
+        assertThat(result.isHasCorrectedTokens()).isFalse();
+        assertThat(result.getCorrectedQuery()).isEqualTo("123 + 456");
+    }
+
     // ── §CASE-SENSITIVE ───────────────────────────────────────────────────
 
-    @ParameterizedTest(name = "original={0} → corrected should match style {2}")
+    @ParameterizedTest(name = "original={0} → expected={2}")
     @CsvSource({
-        "EINSIN,   einstein,  EINSTEIN",    // all-caps preserved
-        "Einsin,   einstein,  Einstein",    // title-case preserved
-        "einsin,   einstein,  einstein",    // lowercase preserved
+        "EINSIN,   einstein,  EINSTEIN",
+        "Einsin,   einstein,  Einstein",
+        "einsin,   einstein,  einstein",
     })
     @DisplayName("§CASE: casing style of original applied to correction")
     void casingPreserved(String original, String oracleCorrected, String expected) throws Exception {
@@ -87,18 +103,45 @@ class QueryAnalyserTest {
         assertThat(result.getCorrectedQuery()).isEqualTo(expected);
     }
 
+    @Test
+    @DisplayName("§CASE-EDGE: Title-case start (Kolmogrov) → Kolmogorov")
+    void titleCaseSingleUpperFirst() throws Exception {
+        var result = analyser.analyse("Kolmogrov", oracle);
+        assertThat(result.getCorrectedQuery()).isEqualTo("Kolmogorov");
+    }
+
+    @Test
+    @DisplayName("§CASE-EDGE: mixed-case (not all-caps, not title, not lower) → oracle form returned")
+    void mixedCasePreservesOracleForm() throws Exception {
+        QueryAnalyser.SpellOracle caseOracle = word -> "einstein";
+        var result = analyser.analyse("eInSin", caseOracle);
+        assertThat(result.getCorrectedQuery()).isEqualTo("einstein");
+    }
+
     // ── §WHOLE-WORD ───────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("§WHOLE-WORD: oracle is called once per token, never per substring")
+    @DisplayName("§WHOLE-WORD: oracle called once per token")
     void oracleCalledPerToken() throws Exception {
-        java.util.List<String> calls = new java.util.ArrayList<>();
-        QueryAnalyser.SpellOracle trackingOracle = word -> { calls.add(word); return word; };
-
-        analyser.analyse("hello world foo", trackingOracle);
-
-        // Exactly 3 WORD tokens
+        var calls = new java.util.ArrayList<String>();
+        analyser.analyse("hello world foo", word -> { calls.add(word); return word; });
         assertThat(calls).containsExactlyInAnyOrder("hello", "world", "foo");
+    }
+
+    @Test
+    @DisplayName("§WHOLE-WORD: hyphenated compound = 1 WORD token → 1 oracle call")
+    void hyphenatedCompoundSingleToken() throws Exception {
+        AtomicInteger count = new AtomicInteger();
+        analyser.analyse("well-known", w -> { count.incrementAndGet(); return w; });
+        assertThat(count.get()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("§WHOLE-WORD: apostrophe contraction = 1 WORD token per word")
+    void apostropheContractionSingleToken() throws Exception {
+        AtomicInteger count = new AtomicInteger();
+        analyser.analyse("Einstein's theory", w -> { count.incrementAndGet(); return w; });
+        assertThat(count.get()).isEqualTo(2);
     }
 
     // ── §QUOTED-PHRASE ────────────────────────────────────────────────────
@@ -106,24 +149,37 @@ class QueryAnalyserTest {
     @Test
     @DisplayName("§QUOTED-PHRASE: tokens inside quotes are NOT spell-checked")
     void quotedPhraseNotCorrected() throws Exception {
-        // "binery serach" — both words would be corrected if unquoted
         var result = analyser.analyse("\"binery serach\" algorithm", oracle);
-
-        // The quoted part should be returned unchanged
         assertThat(result.getCorrectedQuery())
-                .contains("binery")   // NOT corrected — was quoted
-                .contains("serach");  // NOT corrected — was quoted
+                .contains("binery")
+                .contains("serach");
     }
 
     @Test
-    @DisplayName("§QUOTED-PHRASE: non-quoted typos ARE corrected alongside quoted phrases")
+    @DisplayName("§QUOTED-PHRASE: non-quoted typos corrected alongside quoted phrases")
     void mixedQueryQuotedAndFuzzy() throws Exception {
-        // "binary search" is exact; kolmogrov is a typo
         var result = analyser.analyse("\"binary search\" kolmogrov", oracle);
-
         assertThat(result.getCorrectedQuery())
-                .contains("\"binary search\"")   // unchanged — quoted
-                .containsIgnoringCase("kolmogorov"); // corrected — unquoted
+                .contains("\"binary search\"")
+                .containsIgnoringCase("kolmogorov");
+    }
+
+    @Test
+    @DisplayName("§QUOTED-PHRASE: unclosed quote consumed gracefully to end of input")
+    void unclosedQuoteHandledGracefully() {
+        assertThatCode(() -> analyser.analyse("\"unclosed phrase", oracle))
+                .doesNotThrowAnyException();
+        assertThatCode(() -> {
+            var r = analyser.analyse("\"unclosed phrase", oracle);
+            assertThat(r.getCorrectedQuery()).contains("unclosed").contains("phrase");
+        }).doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("§QUOTED-PHRASE: empty quoted segment handled gracefully")
+    void emptyQuotedSegmentHandled() {
+        assertThatCode(() -> analyser.analyse("\"\" hello", oracle))
+                .doesNotThrowAnyException();
     }
 
     // ── §HTML-DIFF ────────────────────────────────────────────────────────
@@ -132,7 +188,6 @@ class QueryAnalyserTest {
     @DisplayName("§HTML-DIFF: corrected tokens wrapped in <strong class=\"correction\">")
     void htmlDiffMarkup() throws Exception {
         var result = analyser.analyse("binery serach", oracle);
-
         assertThat(result.getCorrectedQueryHtml())
                 .contains("<strong class=\"correction\">")
                 .contains("</strong>");
@@ -142,7 +197,6 @@ class QueryAnalyserTest {
     @DisplayName("§HTML-DIFF: unchanged tokens have no <strong> wrapper")
     void htmlDiffNoMarkupForCorrectWords() throws Exception {
         var result = analyser.analyse("binary search", oracle);
-        // No corrections → no strong tags
         assertThat(result.getCorrectedQueryHtml())
                 .doesNotContain("<strong class=\"correction\">");
     }
@@ -155,30 +209,59 @@ class QueryAnalyserTest {
                 .contains("<span class=\"exact-phrase\">");
     }
 
+    @Test
+    @DisplayName("§HTML-DIFF: & in passthrough escaped to &amp;")
+    void htmlDiffEscapesAmpersand() throws Exception {
+        var result = analyser.analyse("hello & world", oracle);
+        assertThat(result.getCorrectedQueryHtml())
+                .contains("&amp;")
+                .doesNotContain(" & ");
+    }
+
+    @Test
+    @DisplayName("§HTML-DIFF: < and > in passthrough escaped")
+    void htmlDiffEscapesAngledBrackets() throws Exception {
+        var result = analyser.analyse("a < b > c", oracle);
+        assertThat(result.getCorrectedQueryHtml())
+                .contains("&lt;").contains("&gt;");
+    }
+
     // ── §PASSTHROUGH ──────────────────────────────────────────────────────
 
     @Test
     @DisplayName("§PASSTHROUGH: LaTeX notation emitted verbatim")
     void latexPassthrough() throws Exception {
-        String input = "Einsin's foula, \\( E=mc^2 \\), revolutiozed physics";
-        var result = analyser.analyse(input, oracle);
-
-        // LaTeX segment preserved unchanged
-        assertThat(result.getCorrectedQuery())
-                .contains("\\( E=mc^2 \\)");
+        var result = analyser.analyse("Einsin's foula, \\( E=mc^2 \\), revolutiozed physics", oracle);
+        assertThat(result.getCorrectedQuery()).contains("\\( E=mc^2 \\)");
     }
 
     @Test
-    @DisplayName("§PASSTHROUGH: punctuation and special chars preserved")
+    @DisplayName("§PASSTHROUGH: punctuation preserved")
     void punctuationPassthrough() throws Exception {
         var result = analyser.analyse("hello, world! (test)", oracle);
-        assertThat(result.getCorrectedQuery()).contains(",").contains("!").contains("(").contains(")");
+        assertThat(result.getCorrectedQuery())
+                .contains(",").contains("!").contains("(").contains(")");
+    }
+
+    @Test
+    @DisplayName("§PASSTHROUGH: numbers never sent to oracle")
+    void numbersNotSpellChecked() throws Exception {
+        AtomicInteger calls = new AtomicInteger();
+        analyser.analyse("123 456 789", w -> { calls.incrementAndGet(); return w; });
+        assertThat(calls.get()).isZero();
+    }
+
+    @Test
+    @DisplayName("§PASSTHROUGH: passthrough-only query reconstructed identically")
+    void reconstructionEqualsOriginalPassthrough() throws Exception {
+        String input = "123, (x+y)^2 = z";
+        assertThat(analyser.analyse(input, oracle).getCorrectedQuery()).isEqualTo(input);
     }
 
     // ── §EXTRACT-PHRASES ──────────────────────────────────────────────────
 
     @Test
-    @DisplayName("§EXTRACT: extractQuotedPhrases returns all quoted segments")
+    @DisplayName("§EXTRACT: returns all quoted segments in order")
     void extractPhrasesMultiple() {
         List<String> phrases = analyser.extractQuotedPhrases(
                 "\"binary search\" tree \"randomized algorithm\"");
@@ -191,6 +274,21 @@ class QueryAnalyserTest {
     @DisplayName("§EXTRACT: empty list when no quotes")
     void extractPhrasesNone() {
         assertThat(analyser.extractQuotedPhrases("binary search tree")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("§EXTRACT: null input returns empty list without throwing")
+    void extractPhrasesNullSafe() {
+        assertThatCode(() -> analyser.extractQuotedPhrases(null))
+                .doesNotThrowAnyException();
+        assertThat(analyser.extractQuotedPhrases(null)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("§EXTRACT: single-word phrase extracted correctly")
+    void extractSingleWordPhrase() {
+        assertThat(analyser.extractQuotedPhrases("\"quantum\" computing"))
+                .containsExactly("quantum");
     }
 
     // ── §STRIP-PHRASES ────────────────────────────────────────────────────
@@ -206,32 +304,113 @@ class QueryAnalyserTest {
     @Test
     @DisplayName("§STRIP: all-quoted query returns empty remainder")
     void stripPhrasesAllQuoted() {
-        String result = analyser.stripQuotedPhrases("\"binary search\"");
-        assertThat(result).isBlank();
+        assertThat(analyser.stripQuotedPhrases("\"binary search\"")).isBlank();
     }
 
-    // ── §EDGE-CASES ───────────────────────────────────────────────────────
+    @Test
+    @DisplayName("§STRIP: null input returns empty string without throwing")
+    void stripPhrasesNullSafe() {
+        assertThatCode(() -> analyser.stripQuotedPhrases(null)).doesNotThrowAnyException();
+        assertThat(analyser.stripQuotedPhrases(null)).isEmpty();
+    }
 
     @Test
-    @DisplayName("Null query returns empty result without throwing")
-    void nullQuerySafe() throws Exception {
+    @DisplayName("§STRIP: adjacent spaces collapsed after stripping")
+    void stripPhrasesCollapsesSpaces() {
+        String result = analyser.stripQuotedPhrases("tree \"binary search\" algorithm");
+        assertThat(result).doesNotContain("  ");
+    }
+
+    // ── §RESULT-FIELDS ────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§RESULT-FIELDS: corrected token has wasCorrected=true")
+    void correctedTokenFlagTrue() throws Exception {
+        var result = analyser.analyse("binery", oracle);
+        assertThat(result.getTokens())
+                .filteredOn(QueryAnalysisResult.TokenCorrection::isWasCorrected)
+                .isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("§RESULT-FIELDS: correct token has wasCorrected=false")
+    void uncorrectedTokenFlagFalse() throws Exception {
+        var result = analyser.analyse("binary", oracle);
+        assertThat(result.getTokens())
+                .filteredOn(t -> !t.isWasCorrected())
+                .isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("§RESULT-FIELDS: quoted phrase token has isQuotedPhrase=true")
+    void quotedPhraseTokenFlag() throws Exception {
+        var result = analyser.analyse("\"binary search\"", oracle);
+        assertThat(result.getTokens())
+                .filteredOn(QueryAnalysisResult.TokenCorrection::isQuotedPhrase)
+                .isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("§RESULT-FIELDS: punctuation token has isPassthrough=true")
+    void passthroughTokenFlag() throws Exception {
+        var result = analyser.analyse("hello, world", oracle);
+        assertThat(result.getTokens())
+                .filteredOn(QueryAnalysisResult.TokenCorrection::isPassthrough)
+                .isNotEmpty();
+    }
+
+    // ── §IDEMPOTENT ───────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§IDEMPOTENT: re-analysing a correct query produces no corrections")
+    void idempotentOnCorrectQuery() throws Exception {
+        var first  = analyser.analyse("binary search algorithm", oracle);
+        var second = analyser.analyse(first.getCorrectedQuery(), oracle);
+        assertThat(second.isHasCorrectedTokens()).isFalse();
+        assertThat(second.getCorrectedQuery()).isEqualTo(first.getCorrectedQuery());
+    }
+
+    // ── §EDGE ─────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§EDGE: null query returns empty result without throwing")
+    void nullQuerySafe() {
         assertThatCode(() -> analyser.analyse(null, oracle)).doesNotThrowAnyException();
     }
 
     @Test
-    @DisplayName("Blank query returns empty result without throwing")
+    @DisplayName("§EDGE: blank query returns hasCorrectedTokens=false")
     void blankQuerySafe() throws Exception {
-        var result = analyser.analyse("   ", oracle);
+        assertThat(analyser.analyse("   ", oracle).isHasCorrectedTokens()).isFalse();
+    }
+
+    @Test
+    @DisplayName("§EDGE: oracle IOException caught — original token preserved, no rethrow")
+    void oracleExceptionHandled() throws Exception {
+        QueryAnalyser.SpellOracle failingOracle = word -> { throw new java.io.IOException("ES down"); };
+        var result = analyser.analyse("binery serach", failingOracle);
+        assertThat(result.getCorrectedQuery()).isEqualTo("binery serach");
         assertThat(result.isHasCorrectedTokens()).isFalse();
     }
 
     @Test
-    @DisplayName("Oracle exception is caught gracefully — original token preserved")
-    void oracleExceptionHandled() throws Exception {
-        QueryAnalyser.SpellOracle failingOracle = word -> { throw new RuntimeException("ES down"); };
-        var result = analyser.analyse("binery serach", failingOracle);
-        // Should not throw; words remain uncorrected
-        assertThat(result.getCorrectedQuery()).isEqualTo("binery serach");
-        assertThat(result.isHasCorrectedTokens()).isFalse();
+    @DisplayName("§EDGE: oracle returning null uses original token")
+    void oracleNullResultUsesOriginal() throws Exception {
+        var result = analyser.analyse("hello world", word -> null);
+        assertThat(result.getCorrectedQuery()).isEqualTo("hello world");
+    }
+
+    @Test
+    @DisplayName("§EDGE: oracle returning blank string uses original token")
+    void oracleBlankResultUsesOriginal() throws Exception {
+        var result = analyser.analyse("hello world", word -> "   ");
+        assertThat(result.getCorrectedQuery()).isNotBlank();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"a", "ab", "abc"})
+    @DisplayName("§EDGE: very short words processed without exception")
+    void veryShortWordsHandled(String word) {
+        assertThatCode(() -> analyser.analyse(word, oracle)).doesNotThrowAnyException();
     }
 }

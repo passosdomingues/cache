@@ -22,6 +22,11 @@ import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import org.apache.http.nio.conn.NoopIOSessionStrategy;
 import org.apache.http.nio.conn.SchemeIOSessionStrategy;
 import org.apache.http.nio.reactor.IOReactorException;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.nio.conn.ssl.SSLIOSessionStrategy;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.TrustStrategy;
+import javax.net.ssl.SSLContext;
 import org.elasticsearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -147,11 +152,20 @@ public class ElasticsearchConfig {
 
             DefaultConnectingIOReactor ioReactor = new DefaultConnectingIOReactor(ioConfig);
 
-            // Build session strategy registry explicitly — passing null would cause
-            // "I/O session factory registry may not be null" at startup.
+            // Trust all certificates SSLContext for development & docker clusters with self-signed certs
+            SSLContext sslContext = new SSLContextBuilder()
+                    .loadTrustMaterial(null, (TrustStrategy) (chain, authType) -> true)
+                    .build();
+
+            SSLIOSessionStrategy sslStrategy = new SSLIOSessionStrategy(
+                    sslContext,
+                    NoopHostnameVerifier.INSTANCE);
+
+            // Build session strategy registry explicitly to support both HTTP and HTTPS
             Registry<SchemeIOSessionStrategy> sessionRegistry =
                     RegistryBuilder.<SchemeIOSessionStrategy>create()
                             .register("http", NoopIOSessionStrategy.INSTANCE)
+                            .register("https", sslStrategy)
                             .build();
 
             PoolingNHttpClientConnectionManager cm =
@@ -171,7 +185,7 @@ public class ElasticsearchConfig {
             log.info("ES connection pool configured (maxTotal={}, perRoute={}, ttl={}s)",
                     maxConnections, maxConnectionsPerRoute, CONNECTION_TTL_SECONDS);
 
-        } catch (IOReactorException e) {
+        } catch (Exception e) {
             log.warn("Could not create pooling connection manager ({}). " +
                     "Falling back to keep-alive strategy cap.", e.getMessage());
             hc.setKeepAliveStrategy((response, context) -> CONNECTION_TTL_SECONDS * 1_000L);

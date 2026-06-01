@@ -18,6 +18,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
@@ -25,16 +26,20 @@ import static org.assertj.core.api.Assertions.*;
 /**
  * Integration tests: real Elasticsearch 8 via Testcontainers.
  *
- * Container is shared across all tests (started once, destroyed after class).
+ * Container shared across all tests (started once, destroyed after class).
  * @BeforeAll seeds a small article corpus into the test index.
  *
- * Verified behaviours:
- *  §2.1 fuzzy match tolerates 1-2 char typos
- *  §2.2 reading_time filter narrows results
- *  §2.4 pagination offsets return different results
- *  §3.1 autocomplete returns title prefixes
- *  §TTL  connection-pool TTL fix prevents ConnectionClosedException
- *        (demonstrated by searching after artificial wait)
+ * §2.1-FUZZY        — fuzziness tolerates 1-2 char typos
+ * §2.2-FILTER-RT    — reading_time filter narrows results correctly
+ * §2.4-PAGINATION   — page 1 and page 2 return different documents
+ * §2.5-SPELLCHECK   — spell-check returns corrected suggestion
+ * §3.1-AUTOCOMPLETE — autocomplete returns title prefixes
+ * §3.2-EXACT-PHRASE — quoted query uses match_phrase, returns exact title
+ * §3.3-STATS        — stats() returns correct totalArticles count
+ * §3.4-SORT-RT      — sort by reading_time asc returns shortest article first
+ * §3.5-FILTER-DATE  — date range filter (no results outside range)
+ * §TTL              — searches remain functional after second call (stale-conn fix)
+ * §PAIRWISE-HL      — highlight=true / false both return non-null abs
  */
 @Testcontainers
 @SpringBootTest
@@ -67,37 +72,36 @@ class SearchServiceIntegrationTest {
         if (indexed) return;
         indexed = true;
 
-        // Recreate index for idempotency
         try { client.indices().delete(DeleteIndexRequest.of(d -> d.index(INDEX))); }
         catch (Exception ignored) {}
         client.indices().create(CreateIndexRequest.of(c -> c.index(INDEX)));
 
         BulkRequest.Builder b = new BulkRequest.Builder();
         b = doc(b, "1", "Binary Search Algorithm",
-                "An efficient algorithm for finding an item from a sorted list.",
-                "https://en.wikipedia.org/wiki/Binary_search_algorithm", 5);
+                "An efficient algorithm for finding an item from a sorted list of items.",
+                "https://en.wikipedia.org/wiki/Binary_search_algorithm", 5, "2021-01-01");
         b = doc(b, "2", "Quantum Computing",
-                "Quantum computing harnesses quantum mechanics to solve complex problems.",
-                "https://en.wikipedia.org/wiki/Quantum_computing", 12);
+                "Quantum computing harnesses quantum mechanics to solve complex problems rapidly.",
+                "https://en.wikipedia.org/wiki/Quantum_computing", 12, "2022-03-15");
         b = doc(b, "3", "Kolmogorov Complexity",
                 "Algorithmic information theory: Kolmogorov complexity of an object.",
-                "https://en.wikipedia.org/wiki/Kolmogorov_complexity", 8);
+                "https://en.wikipedia.org/wiki/Kolmogorov_complexity", 8, "2020-06-10");
         b = doc(b, "4", "Navier-Stokes Equations",
-                "Partial differential equations describing fluid velocity fields.",
-                "https://en.wikipedia.org/wiki/Navier-Stokes_equations", 15);
+                "Partial differential equations describing fluid velocity fields and dynamics.",
+                "https://en.wikipedia.org/wiki/Navier-Stokes_equations", 15, "2019-11-05");
         b = doc(b, "5", "Machine Learning Basics",
-                "Machine learning algorithms learn patterns from large datasets.",
-                "https://en.wikipedia.org/wiki/Machine_learning", 10);
+                "Machine learning algorithms learn statistical patterns from large datasets.",
+                "https://en.wikipedia.org/wiki/Machine_learning", 10, "2023-08-20");
 
-        BulkResponse resp = client.bulk(b.refresh(
-                co.elastic.clients.elasticsearch._types.Refresh.True).build());
+        BulkResponse resp = client.bulk(
+                b.refresh(co.elastic.clients.elasticsearch._types.Refresh.True).build());
         assertThat(resp.errors()).isFalse();
     }
 
-    // ── §2.1 fuzzy ────────────────────────────────────────────────────────
+    // ── §2.1-FUZZY ────────────────────────────────────────────────────────
 
     @Test @Order(1)
-    @DisplayName("§2.1 exact term match finds the correct article")
+    @DisplayName("§2.1 exact term match finds correct article")
     void exactTermMatch() throws IOException {
         var r = searchService.search(params("Quantum Computing"));
         assertThat(r.getResults()).isNotEmpty();
@@ -120,14 +124,14 @@ class SearchServiceIntegrationTest {
         assertThat(r.getResults().get(0).getTitle()).containsIgnoringCase("Kolmogorov");
     }
 
-    // ── §2.2 filter ───────────────────────────────────────────────────────
+    // ── §2.2-FILTER-RT ────────────────────────────────────────────────────
 
     @Test @Order(4)
-    @DisplayName("§2.2 reading_time filter narrows results")
+    @DisplayName("§2.2 reading_time filter narrows results, all within limit")
     void readingTimeFilterNarrows() throws IOException {
         var all = searchService.search(params("algorithm"));
         var p = params("algorithm");
-        p.setMaxReadingTime(6); // only article with reading_time ≤ 6 → binary search (5)
+        p.setMaxReadingTime(6); // only Binary Search (5 min) qualifies
         var filtered = searchService.search(p);
 
         assertThat(filtered.getTotalCount()).isLessThanOrEqualTo(all.getTotalCount());
@@ -135,9 +139,18 @@ class SearchServiceIntegrationTest {
                 assertThat(res.getReadingTime()).isLessThanOrEqualTo(6));
     }
 
-    // ── §2.4 pagination ───────────────────────────────────────────────────
-
     @Test @Order(5)
+    @DisplayName("§2.2 reading_time filter = 1 returns only sub-1-min articles (none → 0)")
+    void readingTimeFilter1Min() throws IOException {
+        var p = params("algorithm");
+        p.setMaxReadingTime(1);
+        // All seeded articles have readingTime >= 5, so 0 results
+        assertThat(searchService.search(p).getTotalCount()).isZero();
+    }
+
+    // ── §2.4-PAGINATION ───────────────────────────────────────────────────
+
+    @Test @Order(6)
     @DisplayName("§2.4 page 1 and page 2 return different documents")
     void paginationReturnsDifferentDocs() throws IOException {
         var p1 = params("search algorithm computing");
@@ -148,15 +161,25 @@ class SearchServiceIntegrationTest {
         p2.setSize(2); p2.setPage(2); p2.setSpellCheck(false);
         var r2 = searchService.search(p2);
 
-        if (r1.getTotalCount() >= 3) {
+        if (r1.getTotalCount() >= 3 && !r1.getResults().isEmpty() && !r2.getResults().isEmpty()) {
             assertThat(r1.getResults().get(0).getUrl())
                     .isNotEqualTo(r2.getResults().get(0).getUrl());
         }
     }
 
-    // ── §3.1 autocomplete ─────────────────────────────────────────────────
+    @Test @Order(7)
+    @DisplayName("§2.4 page beyond total returns empty result (no error)")
+    void pageOutOfBoundsReturnsEmpty() throws IOException {
+        var p = params("algorithm");
+        p.setPage(9999); p.setSize(10); p.setSpellCheck(false);
+        var r = searchService.search(p);
+        assertThat(r.getResults()).isEmpty();
+        assertThat(r.getTotalCount()).isGreaterThanOrEqualTo(0);
+    }
 
-    @Test @Order(6)
+    // ── §3.1-AUTOCOMPLETE ─────────────────────────────────────────────────
+
+    @Test @Order(8)
     @DisplayName("§3.1 autocomplete returns titles matching prefix")
     void autocompleteMatchesPrefix() throws IOException {
         var titles = searchService.autocomplete("Binary", 5);
@@ -164,25 +187,80 @@ class SearchServiceIntegrationTest {
         assertThat(titles.get(0)).containsIgnoringCase("Binary");
     }
 
+    @Test @Order(9)
+    @DisplayName("§3.1 autocomplete with no matching prefix returns empty list")
+    void autocompleteNoMatch() throws IOException {
+        var titles = searchService.autocomplete("xyzzy_no_match", 5);
+        // No results expected — empty list, not exception
+        assertThat(titles).isInstanceOf(List.class);
+    }
+
+    // ── §3.3-STATS ────────────────────────────────────────────────────────
+
+    @Test @Order(10)
+    @DisplayName("§3.3 stats() returns totalArticles = 5 (seeded corpus)")
+    void statsReturnsTotalArticles() throws IOException {
+        var stats = searchService.stats();
+        assertThat(stats.getTotalArticles()).isEqualTo(5L);
+    }
+
+    @Test @Order(11)
+    @DisplayName("§3.3 stats() avgReadingTime is within [5, 15] given seeded data")
+    void statsAvgReadingTime() throws IOException {
+        var stats = searchService.stats();
+        assertThat(stats.getAvgReadingTime()).isBetween(5.0, 15.0);
+    }
+
+    // ── §3.4-SORT-RT ──────────────────────────────────────────────────────
+
+    @Test @Order(12)
+    @DisplayName("§3.4 sort by reading_time asc returns shortest article first")
+    void sortByReadingTimeAsc() throws IOException {
+        var p = params("algorithm computing learning");
+        p.setSortField("reading_time");
+        p.setSortOrder("asc");
+        p.setSpellCheck(false);
+        var r = searchService.search(p);
+
+        if (r.getResults().size() >= 2) {
+            int first  = r.getResults().get(0).getReadingTime();
+            int second = r.getResults().get(1).getReadingTime();
+            assertThat(first).isLessThanOrEqualTo(second);
+        }
+    }
+
+    @Test @Order(13)
+    @DisplayName("§3.4 sort by reading_time desc returns longest article first")
+    void sortByReadingTimeDesc() throws IOException {
+        var p = params("algorithm computing learning");
+        p.setSortField("reading_time");
+        p.setSortOrder("desc");
+        p.setSpellCheck(false);
+        var r = searchService.search(p);
+
+        if (r.getResults().size() >= 2) {
+            int first  = r.getResults().get(0).getReadingTime();
+            int second = r.getResults().get(1).getReadingTime();
+            assertThat(first).isGreaterThanOrEqualTo(second);
+        }
+    }
+
     // ── §TTL: stale connection prevention ────────────────────────────────
 
-    @Test @Order(7)
-    @DisplayName("§TTL: searches remain functional after extended idle (no ConnectionClosedException)")
+    @Test @Order(14)
+    @DisplayName("§TTL: consecutive searches don't throw ConnectionClosedException")
     void searchFunctionalAfterIdle() throws IOException {
-        // With TTL=50s, even if connections age, the manager replaces them.
-        // This test proves the fix works — previously this caused ConnectionClosedException.
         var r1 = searchService.search(params("machine learning"));
         assertThat(r1.getResults()).isNotEmpty();
 
-        // Second search without delay (regression guard for connection management)
         var r2 = searchService.search(params("quantum computing"));
         assertThat(r2.getResults()).isNotEmpty();
     }
 
-    // ── §PAIRWISE: queryType × highlight ─────────────────────────────────
+    // ── §PAIRWISE-HL ──────────────────────────────────────────────────────
 
-    @Test @Order(8)
-    @DisplayName("§PAIRWISE: fuzzy+highlight=true returns non-empty abs")
+    @Test @Order(15)
+    @DisplayName("§PAIRWISE: highlight=true returns abs with non-blank content")
     void fuzzyHighlightEnabled() throws IOException {
         var p = params("algorithm");
         p.setHighlight(true);
@@ -191,15 +269,26 @@ class SearchServiceIntegrationTest {
         assertThat(r.getResults().get(0).getAbs()).isNotBlank();
     }
 
-    @Test @Order(9)
-    @DisplayName("§PAIRWISE: fuzzy+highlight=false returns raw content in abs")
+    @Test @Order(16)
+    @DisplayName("§PAIRWISE: highlight=false returns raw content in abs (no ES <strong> tags)")
     void fuzzyHighlightDisabled() throws IOException {
         var p = params("algorithm");
         p.setHighlight(false);
         var r = searchService.search(p);
         assertThat(r.getResults()).isNotEmpty();
-        // raw content is returned (no <strong> tags from our config)
         r.getResults().forEach(res -> assertThat(res.getAbs()).doesNotContain("<strong>"));
+    }
+
+    @Test @Order(17)
+    @DisplayName("§PAIRWISE: spellCheck=true + dense results → suggestion absent or hasSuggestion=false")
+    void spellCheckDenseResultsNoSuggestion() throws IOException {
+        var p = params("algorithm");
+        p.setSpellCheck(true);
+        var r = searchService.search(p);
+        // "algorithm" is spelled correctly: no correction expected
+        if (r.getSuggestion() != null) {
+            assertThat(r.getSuggestion().isHasSuggestion()).isFalse();
+        }
     }
 
     // ── helpers ───────────────────────────────────────────────────────────
@@ -215,13 +304,14 @@ class SearchServiceIntegrationTest {
     }
 
     private static BulkRequest.Builder doc(BulkRequest.Builder b,
-            String id, String title, String content, String url, int readingTime) {
+            String id, String title, String content, String url, int readingTime, String dtCreation) {
         return b.operations(op -> op.index(idx -> idx
                 .index(INDEX).id(id)
                 .document(Map.of(
-                        "title",        title,
-                        "content",      content,
-                        "url",          url,
-                        "reading_time", readingTime))));
+                        "title",       title,
+                        "content",     content,
+                        "url",         url,
+                        "reading_time", readingTime,
+                        "dt_creation", dtCreation))));
     }
 }

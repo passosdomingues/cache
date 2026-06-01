@@ -300,12 +300,12 @@ clean:
 	@echo -e "$(C_GREEN)[clean] Feito.$(C_RESET)"
 
 # ─── Dados ────────────────────────────────────────────────────
-seed:
+seed: infra-up
 	@echo -e "$(C_BLUE)[seed] Populando Elasticsearch com dataset Wikipedia...$(C_RESET)"
-	@if [ -d "../datasets" ] && [ -f "../datasets/importWiki.sh" ]; then \
-		cd ../datasets && chmod +x importWiki.sh && ./importWiki.sh; \
+	@if [ -d "datasets" ] && [ -f "datasets/importWiki.sh" ]; then \
+		cd datasets && chmod +x importWiki.sh && ./importWiki.sh; \
 	else \
-		echo -e "$(C_RED)[ERRO] Diretório datasets ou importWiki.sh não encontrado em ../datasets$(C_RESET)"; \
+		echo -e "$(C_RED)[ERRO] Diretório datasets ou importWiki.sh não encontrado em ./datasets$(C_RESET)"; \
 		exit 1; \
 	fi
 	@echo -e "$(C_GREEN)[seed] Carga de dados concluída.$(C_RESET)"
@@ -325,7 +325,7 @@ docs:
 			--output doc/api.html --title "Pinakes API" 2>/dev/null && \
 		echo -e "$(C_GREEN)  ✓ doc/api.html gerado$(C_RESET)"; \
 	else \
-		echo -e "$(C_YELLOW)  ⚠ npx não encontrado. HTML da API não gerado.$(C_RESET)"; \
+		echo -e "$(C_YELLOW)  npx não encontrado. HTML da API não gerado.$(C_RESET)"; \
 	fi
 	@echo -e "$(C_GREEN)[docs] Documentação em doc/$(C_RESET)"
 

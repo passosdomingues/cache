@@ -25,19 +25,21 @@ import static org.mockito.Mockito.*;
 /**
  * Pairwise tests: QueryAnalyser ↔ SearchService interaction.
  *
- * Tests all combinations of query types that QueryAnalyser produces
- * and how SearchService wires them to EsClient:
+ * queryType × spellCheck matrix:
+ *   fuzzy-only   × true/false
+ *   exact-only   × true/false
+ *   mixed        × true/false
+ *   typo         × true  → suggestion populated
+ *   all-quoted   × true  → no word tokens → suggestWord never called
+ *   empty        × any   → no exception
  *
- *   QueryType  × SpellCheck → expected exactPhrases, fuzzyRemainder, suggestWord calls
- *   ─────────────────────────────────────────────────────────────────────────────────
- *   fuzzy only     × true  → suggestWord per token, exactPhrases=null
- *   fuzzy only     × false → no suggestWord (dense results), exactPhrases=null
- *   exact only     × true  → suggestWord skips quoted part, exactPhrases=[phrase]
- *   exact only     × false → no suggestWord, exactPhrases=[phrase]
- *   mixed          × true  → suggestWord for unquoted tokens, exactPhrases=[phrase]
- *   mixed          × false → no suggestWord (dense), exactPhrases=[phrase]
- *   typo           × true  → corrected tokens in analysis, suggestion set
- *   empty          × any   → handled without exception
+ * Additional:
+ *   §CORRECTION-HTML   — correctedQueryHtml forwarded to SuggestResponse
+ *   §SPARSE-EXACT      — sparse + exact-phrase: auto-suggest still skipped (no WORD tokens)
+ *   §MULTI-PHRASE      — two quoted phrases both set in exactPhrases
+ *   §FUZZY-REMAINDER   — mixed query: fuzzyRemainder contains only the unquoted part
+ *   §PAIRWISE-SIZE     — queryType × pageSize variations
+ *   §PAIRWISE-SORT     — queryType × sort combinations
  */
 @DisplayName("Pairwise: QueryAnalyser × SearchService")
 class QueryAnalyserSearchServicePairTest {
@@ -94,7 +96,7 @@ class QueryAnalyserSearchServicePairTest {
         p.setSpellCheck(true);
         searchService.search(p);
 
-        // quoted phrase → no word tokens → suggestWord NOT called
+        // Quoted phrase only → zero WORD tokens → suggestWord NOT called
         verify(esClient, never()).suggestWord(anyString());
         verify(esClient).search(argThat(sp ->
                 sp.getExactPhrases() != null &&
@@ -120,7 +122,7 @@ class QueryAnalyserSearchServicePairTest {
     // ── mixed × true ─────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("mixed × spellCheck=true → suggestWord for unquoted, exactPhrases set")
+    @DisplayName("mixed × spellCheck=true → suggestWord for unquoted only, exactPhrases set")
     void mixedQuerySpellCheckEnabled() throws IOException {
         mockDense(5);
         when(esClient.suggestWord(anyString())).thenReturn("tree");
@@ -129,7 +131,6 @@ class QueryAnalyserSearchServicePairTest {
         p.setSpellCheck(true);
         searchService.search(p);
 
-        // "treee" is the only unquoted word → suggestWord called once
         verify(esClient, times(1)).suggestWord(anyString());
         verify(esClient).search(argThat(sp ->
                 sp.getExactPhrases() != null &&
@@ -140,7 +141,7 @@ class QueryAnalyserSearchServicePairTest {
     // ── mixed × false ────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("mixed × spellCheck=false (dense) → no suggestWord, exactPhrases and remainder set")
+    @DisplayName("mixed × spellCheck=false (dense) → no suggestWord, exactPhrases + remainder set")
     void mixedQuerySpellCheckDisabledDense() throws IOException {
         mockDense(10);
         var p = params("\"binary search\" tree");
@@ -156,10 +157,9 @@ class QueryAnalyserSearchServicePairTest {
     // ── typo × true ──────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("typo × spellCheck=true → suggestion populated in response when corrections found")
+    @DisplayName("typo × spellCheck=true → suggestion populated when corrections found")
     void typoQueryProducesSuggestion() throws IOException {
         mockDense(2);
-        // Oracle corrects "kolmogrov" → "kolmogorov"
         when(esClient.suggestWord(eq("kolmogrov"))).thenReturn("kolmogorov");
         when(esClient.suggestWord(eq("equatons"))).thenReturn("equations");
 
@@ -173,7 +173,99 @@ class QueryAnalyserSearchServicePairTest {
                 .containsIgnoringCase("kolmogorov");
     }
 
-    // ── pairwise: queryType × pageSize ────────────────────────────────────
+    // ── all-quoted × true ────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("all-quoted × spellCheck=true → suggestWord never called (zero WORD tokens)")
+    void allQuotedSpellCheckEnabled() throws IOException {
+        mockDense(5);
+        when(esClient.suggestWord(anyString())).thenReturn("word");
+
+        var p = params("\"binary search\" \"machine learning\"");
+        p.setSpellCheck(true);
+        searchService.search(p);
+
+        verify(esClient, never()).suggestWord(anyString());
+        verify(esClient).search(argThat(sp ->
+                sp.getExactPhrases() != null &&
+                sp.getExactPhrases().size() == 2));
+    }
+
+    // ── §CORRECTION-HTML ─────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§CORRECTION-HTML: correctedQueryHtml forwarded into SuggestResponse")
+    void correctedHtmlForwardedToSuggestion() throws IOException {
+        mockDense(2);
+        when(esClient.suggestWord(eq("binery"))).thenReturn("binary");
+        when(esClient.suggestWord(eq("serach"))).thenReturn("search");
+
+        var p = params("binery serach");
+        p.setSpellCheck(true);
+        var resp = searchService.search(p);
+
+        assertThat(resp.getSuggestion()).isNotNull();
+        assertThat(resp.getSuggestion().getCorrectedQueryHtml())
+                .contains("<strong class=\"correction\">");
+    }
+
+    // ── §SPARSE-EXACT ─────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§SPARSE-EXACT: sparse results + all-quoted → auto-suggest has no WORD tokens to correct")
+    void sparseResultsWithExactPhraseNoSuggestWord() throws IOException {
+        // Total hits = 2 → sparse, but query is all-quoted → no WORD tokens
+        mockWithTotal(2, 2);
+        when(esClient.suggestWord(anyString())).thenReturn("corrected");
+
+        var p = params("\"binary search\"");
+        p.setSpellCheck(false); // disabled but sparse triggers auto-suggest
+
+        searchService.search(p);
+
+        // Even auto-suggest must call suggestWord per word token.
+        // "binary search" has 2 words BUT they are in a quoted phrase → not spell-checked.
+        // The auto-suggest path calls suggest() → analyse() → oracle for each WORD token.
+        // But "\"binary search\"" → QUOTED_PHRASE token only → oracle never called.
+        verify(esClient, never()).suggestWord(anyString());
+    }
+
+    // ── §MULTI-PHRASE ─────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§MULTI-PHRASE: two quoted phrases both land in exactPhrases list")
+    void multipleQuotedPhrasesExtracted() throws IOException {
+        mockDense(5);
+        var p = params("\"binary search\" \"machine learning\"");
+        p.setSpellCheck(false);
+        searchService.search(p);
+
+        verify(esClient).search(argThat(sp ->
+                sp.getExactPhrases() != null &&
+                sp.getExactPhrases().contains("binary search") &&
+                sp.getExactPhrases().contains("machine learning") &&
+                sp.getExactPhrases().size() == 2));
+    }
+
+    // ── §FUZZY-REMAINDER ─────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§FUZZY-REMAINDER: mixed query → fuzzyRemainder is the unquoted part only")
+    void fuzzyRemainderIsUnquotedPart() throws IOException {
+        mockDense(5);
+        var p = params("\"binary search\" tree algorithm");
+        p.setSpellCheck(false);
+        searchService.search(p);
+
+        verify(esClient).search(argThat(sp ->
+                sp.getFuzzyRemainder() != null &&
+                sp.getFuzzyRemainder().contains("tree") &&
+                sp.getFuzzyRemainder().contains("algorithm") &&
+                !sp.getFuzzyRemainder().contains("binary") &&
+                !sp.getFuzzyRemainder().contains("search")));
+    }
+
+    // ── §PAIRWISE-SIZE ────────────────────────────────────────────────────
 
     @ParameterizedTest(name = "query={0} size={1}")
     @CsvSource({
@@ -194,6 +286,53 @@ class QueryAnalyserSearchServicePairTest {
         assertThatCode(() -> searchService.search(p)).doesNotThrowAnyException();
     }
 
+    // ── §PAIRWISE-SORT ────────────────────────────────────────────────────
+
+    @ParameterizedTest(name = "query={0} sortField={1} sortOrder={2}")
+    @CsvSource({
+        "'quantum physics',   reading_time, asc",
+        "'\"binary search\"', reading_time, desc",
+        "'machine learning',  '',           desc",
+    })
+    @DisplayName("§PAIRWISE(queryType×sort): sort combinations forwarded without error")
+    void queryTypeSortCombinations(String query, String sortField, String sortOrder)
+            throws IOException {
+        mockDense(5);
+        var p = params(query);
+        p.setSpellCheck(false);
+        p.setSortField(sortField.isBlank() ? null : sortField);
+        p.setSortOrder(sortOrder);
+
+        assertThatCode(() -> searchService.search(p)).doesNotThrowAnyException();
+        verify(esClient, atLeastOnce()).search(any(SearchParams.class));
+        clearInvocations(esClient);
+    }
+
+    // ── §PAIRWISE-HL ─────────────────────────────────────────────────────
+
+    @ParameterizedTest(name = "query={0} highlight={1} spellCheck={2}")
+    @CsvSource({
+        "'quantum physics',   true,  true",
+        "'quantum physics',   true,  false",
+        "'quantum physics',   false, true",
+        "'quantum physics',   false, false",
+        "'\"binary search\"', true,  false",
+        "'\"binary search\"', false, false",
+    })
+    @DisplayName("§PAIRWISE(query×highlight×spellCheck): all combos run without exception")
+    void queryHighlightSpellCheckCombinations(String query, boolean hl, boolean sc)
+            throws IOException {
+        mockDense(5);
+        when(esClient.suggestWord(anyString())).thenReturn("corrected");
+
+        var p = params(query);
+        p.setHighlight(hl);
+        p.setSpellCheck(sc);
+
+        assertThatCode(() -> searchService.search(p)).doesNotThrowAnyException();
+        clearInvocations(esClient);
+    }
+
     // ── helpers ───────────────────────────────────────────────────────────
 
     private SearchParams params(String query) {
@@ -210,12 +349,17 @@ class QueryAnalyserSearchServicePairTest {
 
     @SuppressWarnings("unchecked")
     private void mockDense(int hitCount) throws IOException {
-        var resp      = mock(SearchResponse.class);
-        var meta      = mock(HitsMetadata.class);
-        var total     = mock(TotalHits.class);
+        mockWithTotal(hitCount, hitCount + 10);
+    }
 
-        when(total.value()).thenReturn((long) (hitCount + 10));
-        when(meta.total()).thenReturn(total);
+    @SuppressWarnings("unchecked")
+    private void mockWithTotal(int hitCount, long total) throws IOException {
+        var resp  = mock(SearchResponse.class);
+        var meta  = mock(HitsMetadata.class);
+        var tot   = mock(TotalHits.class);
+
+        when(tot.value()).thenReturn(total);
+        when(meta.total()).thenReturn(tot);
         when(resp.took()).thenReturn(5L);
 
         List<Hit<ObjectNode>> hits = new ArrayList<>();

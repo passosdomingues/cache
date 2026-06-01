@@ -51,7 +51,9 @@ public class SearchService {
         List<String> exactPhrases = queryAnalyser.extractQuotedPhrases(params.getQuery());
         String fuzzyRemainder      = queryAnalyser.stripQuotedPhrases(params.getQuery());
         params.setExactPhrases(exactPhrases.isEmpty() ? null : exactPhrases);
-        params.setFuzzyRemainder(fuzzyRemainder.isBlank() ? null : fuzzyRemainder);
+        // fuzzyRemainder só faz sentido quando há frases exatas para "o que sobrou"
+        params.setFuzzyRemainder(exactPhrases.isEmpty() || fuzzyRemainder.isBlank()
+        ? null : fuzzyRemainder);
 
         // 3. ES search
         var esResp = esClient.search(params);

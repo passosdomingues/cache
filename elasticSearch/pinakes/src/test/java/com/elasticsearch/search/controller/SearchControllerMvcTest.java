@@ -25,17 +25,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * MVC slice tests for SearchController.
  *
- * Uses @WebMvcTest (web layer only, no ES beans).
- * SearchProperties is @MockBean so @ConfigurationProperties binding is skipped.
- * QueryAnalyser is a real bean (pure logic, no dependencies).
- *
- * §HOME        — no-query renders home, service not called
- * §SEARCH-OK   — results model attributes populated
- * §SEARCH-EMPTY — zero results → hasResults=false, no error
- * §SEARCH-ERR  — ES exception → error attribute set
- * §VALIDATION  — invalid params → error attribute, service not called
- * §PHRASE-BADGE — hasExactPhrases flag for quoted queries
- * §PAIRWISE    — highlight × spellCheck × page × queryType combos
+ * §HOME          — no-query renders home, service not called
+ * §SEARCH-OK     — results model attributes populated
+ * §SEARCH-EMPTY  — zero results → hasResults=false, no error
+ * §SEARCH-ERR    — ES exception → error attribute set
+ * §VALIDATION    — invalid params → error attribute, service not called
+ * §PHRASE-BADGE  — hasExactPhrases flag for quoted queries
+ * §SUGGESTION    — suggestion object forwarded to model
+ * §SORT-FILTER   — sort/filter params forwarded to model
+ * §PAIRWISE      — highlight × spellCheck × page × queryType combos
  */
 @WebMvcTest(SearchController.class)
 @Import(QueryAnalyser.class)
@@ -44,15 +42,7 @@ class SearchControllerMvcTest {
 
     @Autowired MockMvc mvc;
     @MockBean  SearchService searchService;
-
-    /**
-     * SearchProperties is @ConfigurationProperties + @Component.
-     * @WebMvcTest does not process @ConfigurationProperties by default,
-     * so we mock it to avoid a missing-bean error. The controller only calls
-     * props.getFuzziness() when params.fuzziness is null — which it never is
-     * given SearchParams defaults — so no mock setup is needed.
-     */
-    @MockBean SearchProperties searchProperties;
+    @MockBean  SearchProperties searchProperties;
 
     // ── §HOME ─────────────────────────────────────────────────────────────
 
@@ -93,11 +83,19 @@ class SearchControllerMvcTest {
     }
 
     @Test
-    @DisplayName("§SEARCH-OK: query and page forwarded to model for form persistence")
+    @DisplayName("§SEARCH-OK: query and page forwarded to model")
     void queryForwardedToModel() throws Exception {
         when(searchService.search(any())).thenReturn(response(List.of(), 0L, 0, 5L));
         mvc.perform(get("/").param("query", "quantum").param("page", "2"))
                 .andExpect(model().attribute("query", "quantum"));
+    }
+
+    @Test
+    @DisplayName("§SEARCH-OK: tookMs forwarded from response")
+    void tookMsInModel() throws Exception {
+        when(searchService.search(any())).thenReturn(response(List.of(), 0L, 0, 77L));
+        mvc.perform(get("/").param("query", "quantum"))
+                .andExpect(model().attribute("tookMs", 77L));
     }
 
     // ── §SEARCH-EMPTY ─────────────────────────────────────────────────────
@@ -134,7 +132,7 @@ class SearchControllerMvcTest {
     // ── §VALIDATION ───────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("§VALIDATION: 1-char query → validation error, service not called")
+    @DisplayName("§VALIDATION: 1-char query → error attribute, service not called")
     void singleCharQueryError() throws Exception {
         mvc.perform(get("/").param("query", "x"))
                 .andExpect(model().attributeExists("error"))
@@ -143,7 +141,7 @@ class SearchControllerMvcTest {
     }
 
     @Test
-    @DisplayName("§VALIDATION: 2-char query passes validation, service is called")
+    @DisplayName("§VALIDATION: 2-char query passes, service is called")
     void twoCharQueryPasses() throws Exception {
         when(searchService.search(any())).thenReturn(response(List.of(), 0L, 0, 1L));
         mvc.perform(get("/").param("query", "AI"))
@@ -152,11 +150,28 @@ class SearchControllerMvcTest {
     }
 
     @Test
-    @DisplayName("§VALIDATION: page=0 → validation error, service not called")
+    @DisplayName("§VALIDATION: page=0 → error attribute, service not called")
     void zeroPageError() throws Exception {
         mvc.perform(get("/").param("query", "quantum").param("page", "0"))
                 .andExpect(model().attributeExists("error"))
                 .andExpect(model().attribute("hasResults", false));
+        verifyNoInteractions(searchService);
+    }
+
+    @Test
+    @DisplayName("§VALIDATION: size=51 → error attribute, service not called")
+    void sizeOverMaxError() throws Exception {
+        mvc.perform(get("/").param("query", "quantum").param("size", "51"))
+                .andExpect(model().attributeExists("error"))
+                .andExpect(model().attribute("hasResults", false));
+        verifyNoInteractions(searchService);
+    }
+
+    @Test
+    @DisplayName("§VALIDATION: size=0 → error attribute, service not called")
+    void sizeZeroError() throws Exception {
+        mvc.perform(get("/").param("query", "quantum").param("size", "0"))
+                .andExpect(model().attributeExists("error"));
         verifyNoInteractions(searchService);
     }
 
@@ -178,12 +193,69 @@ class SearchControllerMvcTest {
                 .andExpect(model().attribute("hasExactPhrases", false));
     }
 
+    // ── §SUGGESTION ───────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§SUGGESTION: suggestion object forwarded to model when set in response")
+    void suggestionForwardedToModel() throws Exception {
+        SuggestResponse suggestion = SuggestResponse.builder()
+                .original("kolmogrov")
+                .suggestions(List.of("kolmogorov"))
+                .correctedQueryHtml("<strong>kolmogorov</strong>")
+                .hasSuggestion(true)
+                .build();
+
+        when(searchService.search(any())).thenReturn(
+                SearchResponse.builder()
+                        .results(List.of())
+                        .totalCount(2L).totalPages(1)
+                        .currentPage(1).pageSize(10).tookMs(5L)
+                        .suggestion(suggestion)
+                        .build());
+
+        mvc.perform(get("/").param("query", "kolmogrov"))
+                .andExpect(model().attributeExists("suggestion"));
+    }
+
+    // ── §SORT-FILTER ──────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("§SORT-FILTER: sort params accepted without validation error")
+    void sortParamsAccepted() throws Exception {
+        when(searchService.search(any())).thenReturn(response(List.of(), 0L, 0, 1L));
+        mvc.perform(get("/")
+                .param("query", "quantum")
+                .param("sortField", "reading_time")
+                .param("sortOrder", "asc"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeDoesNotExist("error"));
+        verify(searchService).search(any());
+    }
+
+    @Test
+    @DisplayName("§SORT-FILTER: maxReadingTime filter accepted without error")
+    void readingTimeFilterAccepted() throws Exception {
+        when(searchService.search(any())).thenReturn(response(List.of(), 0L, 0, 1L));
+        mvc.perform(get("/")
+                .param("query", "quantum")
+                .param("maxReadingTime", "10"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeDoesNotExist("error"));
+        verify(searchService).search(any());
+    }
+
+    @Test
+    @DisplayName("§SORT-FILTER: maxReadingTime=0 fails validation, service not called")
+    void readingTimeZeroFails() throws Exception {
+        mvc.perform(get("/")
+                .param("query", "quantum")
+                .param("maxReadingTime", "0"))
+                .andExpect(model().attributeExists("error"));
+        verifyNoInteractions(searchService);
+    }
+
     // ── §PAIRWISE ─────────────────────────────────────────────────────────
 
-    /**
-     * Pairwise: (highlight, spellCheck) × page × queryType.
-     * All 6 combinations reach the service without errors.
-     */
     @ParameterizedTest(name = "highlight={0} spellCheck={1} page={2}")
     @CsvSource({
         "true,  true,  1",
@@ -197,19 +269,16 @@ class SearchControllerMvcTest {
     void highlightSpellCheckPageCombinations(boolean hl, boolean sc, int page) throws Exception {
         when(searchService.search(any())).thenReturn(response(List.of(), 0L, 0, 1L));
         mvc.perform(get("/")
-                        .param("query", "quantum mechanics")
-                        .param("highlight",  String.valueOf(hl))
-                        .param("spellCheck", String.valueOf(sc))
-                        .param("page",       String.valueOf(page)))
+                .param("query", "quantum mechanics")
+                .param("highlight",  String.valueOf(hl))
+                .param("spellCheck", String.valueOf(sc))
+                .param("page",       String.valueOf(page)))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeDoesNotExist("error"));
         verify(searchService, atLeastOnce()).search(any());
         clearInvocations(searchService);
     }
 
-    /**
-     * Pairwise: queryType × size parameter combinations.
-     */
     @ParameterizedTest(name = "query={0} size={1}")
     @CsvSource({
         "'quantum physics',        5",
