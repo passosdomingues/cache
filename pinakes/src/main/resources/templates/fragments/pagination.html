@@ -1,0 +1,50 @@
+<!-- ===============================================================
+     Pinakes -- Pagination Fragment
+     Passes all tuning params through to keep sidebar state.
+     =============================================================== -->
+<nav th:fragment="pagination"
+     class="pagination"
+     th:if="${totalPages > 1}"
+     aria-label="Search results pages">
+
+    <div class="pagination-info" aria-live="polite">
+        Page <strong th:text="${page}">1</strong>
+        of <strong th:text="${totalPages}">10</strong>
+    </div>
+
+    <div class="pagination-controls">
+        <!-- Previous page -->
+        <a th:href="@{/(query=${query},
+                        page=${page - 1},
+                        fuzziness=${fuzziness},
+                        phraseBoost=${phraseBoost},
+                        titleBoost=${titleBoost},
+                        slop=${slop},
+                        highlight=${highlight},
+                        spellCheck=${spellCheck})}"
+           class="page-btn"
+           th:classappend="${page <= 1} ? ' disabled' : ''"
+           th:attr="aria-disabled=${page <= 1}"
+           aria-label="Go to previous page">
+            <i data-lucide="chevron-left" aria-hidden="true"></i>
+            Previous
+        </a>
+
+        <!-- Next page -->
+        <a th:href="@{/(query=${query},
+                        page=${page + 1},
+                        fuzziness=${fuzziness},
+                        phraseBoost=${phraseBoost},
+                        titleBoost=${titleBoost},
+                        slop=${slop},
+                        highlight=${highlight},
+                        spellCheck=${spellCheck})}"
+           class="page-btn"
+           th:classappend="${page >= totalPages} ? ' disabled' : ''"
+           th:attr="aria-disabled=${page >= totalPages}"
+           aria-label="Go to next page">
+            Next
+            <i data-lucide="chevron-right" aria-hidden="true"></i>
+        </a>
+    </div>
+</nav>

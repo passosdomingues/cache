@@ -1,0 +1,43 @@
+<!-- ===============================================================
+     Pinakes -- Result Item Fragment
+     Shows URL, title, highlighted abstract, and reading-time badge.
+     =============================================================== -->
+<article th:fragment="result-item(result)" class="result-card">
+
+    <!-- Source URL -->
+    <a th:href="${result.url}"
+       target="_blank"
+       rel="noopener noreferrer"
+       class="result-url"
+       th:text="${result.url}"
+       th:title="${result.url}">https://example.com</a>
+
+    <!-- Title -->
+    <a th:href="${result.url}"
+       target="_blank"
+       rel="noopener noreferrer"
+       class="result-title"
+       th:text="${result.title}">Document Title</a>
+
+    <!-- Abstract — ES highlight rendered as HTML -->
+    <p class="result-abs" th:utext="${result.abs}">Abstract…</p>
+
+    <!-- Metadata row: reading time + relevance score -->
+    <div class="result-meta"
+         th:if="${(result.readingTime != null and result.readingTime > 0)
+               or (result.score != null and result.score > 0)}">
+
+        <span class="result-badge"
+              th:if="${result.readingTime != null and result.readingTime > 0}">
+            <i data-lucide="clock" aria-hidden="true" style="width:11px;height:11px;"></i>
+            <span th:text="${result.readingTime} + ' min'">5 min</span>
+        </span>
+
+        <span class="result-badge"
+              th:if="${result.score != null and result.score > 0}">
+            <i data-lucide="trending-up" aria-hidden="true" style="width:11px;height:11px;"></i>
+            <span th:text="${#numbers.formatDecimal(result.score, 1, 2)}">1.00</span>
+        </span>
+
+    </div>
+</article>
