@@ -50,6 +50,9 @@ import java.util.List;
  * §FILTERS       — §2.3: reading_time and dt_creation range filters.
  *
  * §SORT          — §2.6: configurable sort field + direction.
+ *
+ * §DID-YOU-MEAN  — SuggestMode changed from Missing to Popular so corrections
+ *                  appear even when the misspelled word exists in the corpus.
  * ══════════════════════════════════════════════════════════════
  */
 @Slf4j
@@ -123,6 +126,12 @@ public class EsClient {
      * §RAW-SUGGEST fix: targets content.raw_suggest (standard analyser, no
      * Snowball) so "Schrödinger" stays "Schrödinger" not "schroding".
      *
+     * §DID-YOU-MEAN fix: uses SuggestMode.Popular (not Missing) so corrections
+     * are returned when the suggested term has higher document frequency than
+     * the input — even if the misspelled term exists somewhere in the corpus.
+     * Missing mode silently swallowed corrections for typos that happened to
+     * appear in any Wikipedia article, preventing the "Did you mean?" banner.
+     *
      * @param word  a single token (no spaces)
      * @return      best correction, or {@code word} if none found
      */
@@ -140,7 +149,7 @@ public class EsClient {
                                         .field("content.raw_suggest")
                                         .size(1)
                                         .suggestMode(
-                                            co.elastic.clients.elasticsearch._types.SuggestMode.Missing)
+                                            co.elastic.clients.elasticsearch._types.SuggestMode.Popular)
                                 )
                         )
                 ), ObjectNode.class);
