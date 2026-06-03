@@ -1,0 +1,64 @@
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "analyzer_for_content": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "asciifolding",
+            "english_snowball"
+          ]
+        }
+      },
+      "filter": {
+        "english_snowball": {
+          "type": "snowball",
+          "language": "English"
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "title": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "url": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "content": {
+        "type": "text",
+        "analyzer": "analyzer_for_content",
+        "fields": {
+          "raw_suggest": {
+            "type": "text",
+            "analyzer": "standard"
+          }
+        }
+      },
+      "reading_time": {
+        "type": "long"
+      },
+      "dt_creation": {
+        "type": "date"
+      },
+      "label": {
+        "type": "keyword"
+      }
+    }
+  }
+}

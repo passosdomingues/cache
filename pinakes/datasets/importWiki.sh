@@ -16,10 +16,25 @@ if [ ! -f "$FILE_NAME" ]; then
     exit 1
 fi
 
-echo "Arquivo '$FILE_NAME' localizado. Iniciando transferencia para o Elasticsearch..."
+echo "Preparando o índice '$INDEX_NAME' com as configurações e mapeamentos corretos..."
+
+# Remove o índice antigo (se existir) para aplicar o novo mapping limpo
+curl -s -k -u "$ES_USER:$ES_PASS" -X DELETE "https://$ES_HOST:$ES_PORT/$INDEX_NAME" > /dev/null
+
+# Cria o índice com as configurações e mapeamentos definidos em wikipedia-mapping.json
+curl -s -k -u "$ES_USER:$ES_PASS" \
+     -H "Content-Type: application/json" \
+     -X PUT "https://$ES_HOST:$ES_PORT/$INDEX_NAME" \
+     -d @wikipedia-mapping.json > /dev/null
+
+if [ $? -ne 0 ]; then
+    echo "Erro ao criar o índice '$INDEX_NAME' com o mapping customizado."
+    exit 1
+fi
+
+echo "Índice '$INDEX_NAME' criado com sucesso. Iniciando transferência bulk..."
 
 # --- Execução do Comando Bulk ---
-# Os IDs dentro do wiki.json garantem idempotência nativa no comando _bulk (sobrescreve se já existir)
 curl -s -u "$ES_USER:$ES_PASS" \
      -k \
      -H "Content-Type: application/x-ndjson" \
@@ -33,33 +48,24 @@ fi
 
 echo "Comando bulk concluído com sucesso para o índice '$INDEX_NAME'."
 
-# --- Garantia de Idempotência para o wikipedia_v2 ---
-echo "Verificando a existência do índice ou alias '$ALIAS_NAME'..."
-HTTP_STATUS=$(curl -s -k -u "$ES_USER:$ES_PASS" -o /dev/null -w "%{http_code}" "https://$ES_HOST:$ES_PORT/$ALIAS_NAME")
+# --- Garantia de que wikipedia_v2 seja um Alias apontando para wikipedia ---
+echo "Configurando o alias '$ALIAS_NAME' apontando para '$INDEX_NAME'..."
 
-if [ "$HTTP_STATUS" -eq 200 ]; then
-    echo "O índice ou alias '$ALIAS_NAME' já existe perfeitamente. Nenhuma ação necessária."
+# Se ALIAS_NAME for um índice físico, removemos para evitar conflitos
+# Se for um alias já existente, removemos também para garantir a recriação limpa
+curl -s -k -u "$ES_USER:$ES_PASS" -X DELETE "https://$ES_HOST:$ES_PORT/$ALIAS_NAME" > /dev/null
+
+# Cria o alias apontando para o índice correto
+curl -s -k -u "$ES_USER:$ES_PASS" \
+     -H "Content-Type: application/json" \
+     -X POST "https://$ES_HOST:$ES_PORT/_aliases" \
+     -d "{\"actions\": [{\"add\": {\"index\": \"$INDEX_NAME\", \"alias\": \"$ALIAS_NAME\"}}]}" > /dev/null
+
+if [ $? -eq 0 ]; then
+    echo "Alias '$ALIAS_NAME' configurado com sucesso apontando para '$INDEX_NAME'!"
 else
-    echo "'$ALIAS_NAME' não encontrado (Status $HTTP_STATUS). Configurando apontamento automático..."
-    
-    # OPÇÃO A: Criar um Alias (Recomendado - Instantâneo e não duplica espaço em disco)
-    curl -s -k -u "$ES_USER:$ES_PASS" \
-         -H "Content-Type: application/json" \
-         -X POST "https://$ES_HOST:$ES_PORT/_aliases" \
-         -d "{\"actions\": [{\"add\": {\"index\": \"$INDEX_NAME\", \"alias\": \"$ALIAS_NAME\"}}]}" > /dev/null
-
-    # OPÇÃO B: Se você preferir um Reindex físico em vez de Alias, comente a Opção A e descomente as linhas abaixo:
-    # curl -s -k -u "$ES_USER:$ES_PASS" \
-    #      -H "Content-Type: application/json" \
-    #      -X POST "https://$ES_HOST:$ES_PORT/_reindex" \
-    #      -d "{\"source\": {\"index\": \"$INDEX_NAME\"}, \"dest\": {\"index\": \"$ALIAS_NAME\"}}" > /dev/null
-
-    if [ $? -eq 0 ]; then
-        echo "Apontamento para '$ALIAS_NAME' estabelecido com sucesso!"
-    else
-        echo "Erro ao tentar mapear o índice '$ALIAS_NAME'."
-        exit 1
-    fi
+    echo "Erro ao tentar mapear o alias '$ALIAS_NAME'."
+    exit 1
 fi
 
 echo "Carga de dados e mapeamentos validados com sucesso."
