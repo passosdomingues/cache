@@ -1,6 +1,7 @@
 # Pinakes — Wikipedia Full-Text Search Engine
 
 > Elasticsearch 8 · Spring Boot 3 · Thymeleaf · Docker · Python test suite
+> Contributions: Marcos Vinicius de Paula
 
 ## Quick Start
 
