@@ -2,9 +2,9 @@
 # Makefile Principal - Disciplina de Estatística em R
 # ==============================================================================
 
-# Executáveis do R
-R_BIN   := $(shell if [ -f ./env/bin/R ]; then echo "./env/bin/R"; else echo "R"; fi)
-RSCRIPT := $(shell if [ -f ./env/bin/Rscript ]; then echo "./env/bin/Rscript"; else echo "Rscript"; fi)
+# Executáveis do R (prioridade: sistema via APT — integração nativa com Cinnamon)
+R_BIN   := $(shell which R 2>/dev/null || echo "./env/bin/R")
+RSCRIPT := $(shell which Rscript 2>/dev/null || echo "./env/bin/Rscript")
 
 .PHONY: help check-env gui rcmdr console r aula-01 run-all clean nova-aula graficos
 
@@ -15,9 +15,8 @@ help: ## Exibe o menu principal de comandos do repositório
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
 	@echo "======================================================================"
 
-gui: ## Abre a Interface Gráfica interativa do RCommander (Rcmdr)
-	@echo "Iniciando RCommander (Interface Gráfica)..."
-	@R_PROFILE_USER=scripts/start_gui.R $(R_BIN)
+gui: ## Abre o RCommander em background — libera o terminal imediatamente
+	@bash scripts/launch_rcmdr.sh
 
 rcmdr: gui ## Atalho para 'make gui'
 
