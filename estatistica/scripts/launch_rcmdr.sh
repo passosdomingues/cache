@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # scripts/launch_rcmdr.sh
-# Abre a interface gráfica do RCommander sem travar o terminal
+# Abre a interface gráfica do RCommander em background e mantém a janela aberta
 # ==============================================================================
 
 WORKDIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -24,7 +24,11 @@ options(Rcmdr = list(
 ))
 
 suppressMessages(library(Rcmdr))
-Rcmdr::Commander()
+
+# Garantir que a janela permaneça aberta aguardando ação do usuário
+if (exists("CommanderWindow", envir = Rcmdr:::RcmdrEnv())) {
+  tcltk::tkwait.window(Rcmdr:::CommanderWindow())
+}
 RSCRIPT
 
 export R_PROFILE_USER="$TMPFILE"
