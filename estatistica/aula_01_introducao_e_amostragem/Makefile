@@ -2,10 +2,9 @@
 # Makefile - Aula 01: Introdução ao R e Técnicas de Amostragem
 # ==============================================================================
 
-# Detectar executável do Rscript (env local compartilhado -> PATH)
 RSCRIPT := $(shell if [ -f ../env/bin/Rscript ]; then echo "../env/bin/Rscript"; else echo "Rscript"; fi)
 
-.PHONY: help check-env hello basico estatistica amostragem banco run-all clean
+.PHONY: help check-env hello basico estatistica amostragem banco graficos run-all clean
 
 help: ## Exibe a lista de comandos da Aula 01
 	@echo "======================================================================"
@@ -33,8 +32,11 @@ amostragem: ## Técnicas de amostragem (Acaso, Estratificada, Sistemática)
 banco: ## Criação e salvamento do banco de dados (fármacos)
 	@$(RSCRIPT) src/04_banco_de_dados.R
 
-run-all: hello basico estatistica amostragem banco ## Executa todos os scripts da Aula 01
+graficos: ## Geração e exportação de gráficos (Histograma, Boxplot, ggplot2)
+	@$(RSCRIPT) src/05_graficos.R
+
+run-all: hello basico estatistica amostragem banco graficos ## Executa todos os scripts da Aula 01
 
 clean: ## Limpa arquivos temporários da Aula 01
-	rm -rf data/*.csv data/*.RData reports/*.pdf reports/*.html
-	@echo "Arquivos temporários da Aula 01 limpos."
+	rm -rf data/*.csv data/*.RData reports/*.pdf reports/*.html reports/*.png
+	@echo "Arquivos temporários e gráficos da Aula 01 limpos."

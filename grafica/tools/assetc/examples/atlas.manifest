@@ -1,0 +1,18 @@
+# Exemplo de manifesto para o assetc (Sprint 4): pipeline de imagem +
+# atlas. Cada [hero_*] "image" e transformado via ImageMagick e recebe
+# uma cadeia de mipmaps; [hero_atlas] empacota as duas dependencias em
+# um unico atlas (Sprite Compiler), com sua propria cadeia de mipmaps.
+
+[hero_body]
+type=image
+path=assets/hero_body.png
+
+[hero_head]
+type=image
+path=assets/hero_head.png
+
+[hero_atlas]
+type=atlas
+depends=hero_body,hero_head
+max_width=64
+padding=1

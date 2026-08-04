@@ -28,31 +28,50 @@ estatistica/
 
 ---
 
-## 🚀 Como Utilizar
+# ⚡ Como Usar nas Próximas Aulas
 
-### 1. Executando as Aulas
-Você pode rodar os comandos a partir da raiz ou entrando em qualquer pasta de aula específica:
+Este guia rápido explica como criar novas aulas e gerenciar a sua workstation de Estatística em R.
 
-- **Executar a Aula 01**:
-  ```bash
-  make aula-01
-  ```
+---
 
-- **Executar todas as aulas do curso**:
-  ```bash
-  make run-all
-  ```
+## 1. Criando uma Nova Aula Automaticamente
 
-- **Verificar ambiente R**:
-  ```bash
-  make check-env
-  ```
-
-### 2. Criando uma Nova Aula (Exemplo: Aula 02)
-Para criar a estrutura de uma nova aula automaticamente com o seu próprio `Makefile`, utilize o comando:
+Quando você tiver uma nova aula (por exemplo, a Aula 02 de Probabilidade), basta executar o comando abaixo na **raiz do projeto** (`/home/rafael/github/cache/estatistica`):
 
 ```bash
 make nova-aula N=02 NAME=probabilidade
 ```
 
-Isso criará a pasta `aula_02_probabilidade/` pronta com `Makefile`, `src/main.R`, `data/` e `reports/`.
+> [!TIP]
+> **O que isso faz?**
+> O comando acima criará automaticamente a pasta `aula_02_probabilidade/` contendo:
+> - `Makefile` próprio pré-configurado
+> - Pasta `src/` com `main.R` inicial
+> - Pastas `data/` e `reports/` prontas
+> - `README.md` explicativo da aula
+
+---
+
+## 2. Comandos Principais do Repositório
+
+### Na Raiz do Projeto (`estatistica/`)
+
+| Comando | Ação |
+| :--- | :--- |
+| `make nova-aula N=XX NAME=nome` | Cria o projeto de uma nova aula a partir do template |
+| `make aula-01` | Executa todos os scripts da Aula 01 |
+| `make run-all` | Executa **todas as aulas** do repositório em sequência |
+| `make check-env` | Verifica o ambiente do R e versões instaladas |
+| `make clean` | Limpa dados gerados e relatórios de todas as aulas |
+
+---
+
+### Dentro da Pasta de Uma Aula Específica (ex: `aula_01_introducao_e_amostragem/`)
+
+```bash
+cd aula_01_introducao_e_amostragem
+
+make help      # Exibe os comandos disponíveis para a aula
+make run-all   # Executa os scripts da aula
+make clean     # Limpa arquivos gerados na aula
+```
