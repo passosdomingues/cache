@@ -64,6 +64,18 @@ Toolchain. O jogo em si é apenas o critério de aceite.**
 
 ## Build
 
+Via Makefile (recomendado):
+
+```bash
+make build   # configura e compila
+make run     # roda o hello-engine
+make test    # roda todos os testes (CTest)
+make bench   # roda o job-benchmark (100.000 jobs, Sprint 2)
+make clean   # limpa o build
+```
+
+Ou via scripts diretamente:
+
 ```bash
 ./scripts/build.sh
 ./scripts/run.sh

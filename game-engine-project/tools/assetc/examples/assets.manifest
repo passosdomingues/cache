@@ -1,0 +1,12 @@
+# Exemplo de manifesto para o assetc (Sprint 3).
+# Front-end "raw": copia o arquivo fonte para o pacote sem transformação
+# (front-ends de Image/Audio chegam nos Sprints 4 e 5).
+
+[hero_sprite]
+type=raw
+path=assets/hero.txt
+
+[hero_metadata]
+type=raw
+path=assets/hero_meta.json
+depends=hero_sprite

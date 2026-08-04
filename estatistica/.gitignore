@@ -1,0 +1,12 @@
+# Conda / Micromamba Local Environment
+env/
+
+# R files
+.Rhistory
+.RData
+.Ruserdata
+
+# Outputs
+data/*.RData
+reports/*.pdf
+reports/*.html

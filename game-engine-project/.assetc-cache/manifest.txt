@@ -1,0 +1,16 @@
+[hero_metadata]
+type=raw
+source=tools/assetc/examples/assets/hero_meta.json
+source_hash=9a9ddd0c33d98249
+frontend=raw@1
+dependencies=hero_sprite
+output_hash=9a9ddd0c33d98249
+
+[hero_sprite]
+type=raw
+source=tools/assetc/examples/assets/hero.txt
+source_hash=264c5af9d442fc9c
+frontend=raw@1
+dependencies=
+output_hash=264c5af9d442fc9c
+

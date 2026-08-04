@@ -35,12 +35,12 @@ Filesystem, Timer, Logger, Configuration, Threads, Mutex, Semaphore,
 Atomic, Socket, CLI, Memory, Assertions.
 **Entrega:** Platform Tests
 
-### Sprint 2 — Job System
+### Sprint 2 — Job System ✅
 Thread Pool, Job Queue, Task Scheduler, Dependency Graph, Future,
 Cancellation, Priority, Profiling, Benchmark.
 **Entrega:** 100.000 jobs
 
-### Sprint 3 — Asset Compiler
+### Sprint 3 — Asset Compiler ✅
 Pipeline, Hash, Manifest, Dependency Graph, Incremental Build, Cache,
 Binary Package, Metadata.
 **Entrega:** `assetc`

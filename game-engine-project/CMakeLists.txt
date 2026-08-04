@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(GameEngineProject
-    VERSION 0.0.1
+    VERSION 0.0.4
     DESCRIPTION "Engine de jogos organizada como um compilador de assets"
     LANGUAGES CXX
 )
@@ -26,6 +26,8 @@ enable_testing()
 
 add_subdirectory(src/core)
 add_subdirectory(src/platform)
+add_subdirectory(src/jobs)
+add_subdirectory(tools/assetc)
 add_subdirectory(tests)
 
 message(STATUS "GameEngineProject ${PROJECT_VERSION} — C++${CMAKE_CXX_STANDARD} — build type: ${CMAKE_BUILD_TYPE}")
