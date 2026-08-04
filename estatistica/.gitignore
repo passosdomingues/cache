@@ -1,12 +1,20 @@
-# Conda / Micromamba Local Environment
+# Conda / Micromamba Local Environment (não commitar — vários GBs)
 env/
 
-# R files
+# Bibliotecas R geradas localmente
+data/*.csv
+data/*.RData
+
+# Relatórios e gráficos gerados
+reports/*.pdf
+reports/*.html
+reports/*.png
+
+# Arquivos de sessão do R (gerados automaticamente)
 .Rhistory
 .RData
 .Ruserdata
+*.Rproj.user/
 
-# Outputs
-data/*.RData
-reports/*.pdf
-reports/*.html
+# Logs do RCommander
+/tmp/rcmdr*.log
