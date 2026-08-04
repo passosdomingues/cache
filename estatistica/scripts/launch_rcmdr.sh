@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # scripts/launch_rcmdr.sh
-# Lança o RCommander em background — libera o terminal instantaneamente
+# Lança a interface gráfica do RCommander em background mantendo a sessão viva
 # ==============================================================================
 
 WORKDIR="/home/rafael/github/cache/estatistica"
@@ -10,8 +10,7 @@ mkdir -p "$R_LIBS_USER"
 
 cd "$WORKDIR" || exit 1
 
-R_PROFILE_USER="$WORKDIR/scripts/start_gui.R" nohup R --interactive > /tmp/rcmdr.log 2>&1 &
-RPID=$!
-disown "$RPID" 2>/dev/null || true
+# Lança a sessão R interativa em um processo desacoplado em background
+x-terminal-emulator -title "RCommander" -e bash -c "R_PROFILE_USER=$WORKDIR/scripts/start_gui.R R --no-save" >/dev/null 2>&1 &
 
-echo "RCommander iniciado! (PID: $RPID) — terminal liberado."
+echo "RCommander iniciado! — terminal liberado."
