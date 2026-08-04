@@ -14,12 +14,12 @@ help: ## Exibe o menu principal de comandos do repositório
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
 	@echo "======================================================================"
 
-gui: ## Abre a Interface Gráfica do RCommander (Rcmdr)
-	@R_PROFILE_USER=scripts/start_gui.R $(R_BIN)
+gui: ## Abre o RCommander em background (libera o terminal imediatamente)
+	@bash scripts/launch_rcmdr.sh
 
 rcmdr: gui ## Atalho para 'make gui'
 
-console: ## Abre o Console Interativo do R
+console: ## Abre o Console Interativo do R no diretório da workstation
 	@$(R_BIN)
 
 r: console ## Atalho para 'make console'
