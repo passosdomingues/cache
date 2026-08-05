@@ -1,0 +1,11 @@
+services:
+  mpi-didatico:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mpi-didatico-cpp:latest
+    container_name: mpi_didatico_container
+    command: mpirun --allow-run-as-root --oversubscribe -np 4 ./build/mpi_didatico --all
+    volumes:
+      - ./plots:/app/plots
+      - ./data/output:/app/data/output
