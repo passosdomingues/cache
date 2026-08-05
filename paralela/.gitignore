@@ -1,0 +1,35 @@
+# Build
+build/
+*.o
+*.a
+*.so
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+Makefile.cmake
+CTestTestfile.cmake
+_deps/
+
+# Output data
+data/output/*.csv
+data/output/*.dat
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker
+.dockerignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

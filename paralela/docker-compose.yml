@@ -1,0 +1,52 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# docker-compose.yml — AGN N-Body Simulation
+#
+# Usage:
+#   docker compose up --build
+#   NP=4 N=2000 STEPS=1000 docker compose up --build
+#
+# The simulation runs inside a single container using mpirun with multiple
+# local processes (shared-memory transport — zero network overhead).
+# ═══════════════════════════════════════════════════════════════════════════════
+
+services:
+
+  agn-simulation:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+
+    image: agn-simulation:latest
+    container_name: agn_sim
+
+    # Override entrypoint to use mpirun
+    entrypoint: []
+    command: >
+      mpirun
+        --allow-run-as-root
+        --oversubscribe
+        -np ${NP:-8}
+        ./build/agn_simulation
+          --particles ${N:-1000}
+          --steps ${STEPS:-500}
+
+    # Mount output directory so CSVs are accessible on the host
+    volumes:
+      - ./data/output:/agn_sim/data/output
+
+    # Resource limits — respect the i7-8565U's 4 physical cores
+    deploy:
+      resources:
+        limits:
+          cpus: "8"
+          memory: "4G"
+
+    # Environment variables forwarded into the container
+    environment:
+      - OMPI_MCA_btl_vader_single_copy_mechanism=none
+      - OMPI_MCA_btl=self,vader
+
+    # Keep stdin open for interactive use
+    stdin_open: false
+    tty: false
