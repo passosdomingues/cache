@@ -171,12 +171,19 @@ check-java:
 		 $(JAVA) -version && \
 		 echo "$(YELLOW)  Fix: export JDK21=/opt/java-temurin-21$(RESET)" && exit 1)
 
-## Remove arquivos de build
-clean:
-	@echo "$(CYAN)▶ Limpando arquivos de build...$(RESET)"
-	$(MVN) clean -q 2>/dev/null || rm -rf $(TARGET_DIR)
-	@rm -f $(MPI_BIN)
-	@echo "$(GREEN)✓ Limpo$(RESET)"
+## Para containers e processos remanescentes (Docker, MPI, Java)
+stop:
+	@echo "$(YELLOW)🛑 Parando containers Docker e processos do ApsuGame...$(RESET)"
+	@docker stop $(DOCKER_CONTAINER) 2>/dev/null || true
+	@pkill -f "apsu-game" 2>/dev/null || true
+	@pkill -f "MapGenerator" 2>/dev/null || true
+	@echo "$(GREEN)✓ Todos os processos parados.$(RESET)"
+
+## Remove arquivos de build e limpa a memória
+clean: stop
+	@echo "$(YELLOW)🧹 Limpando diretórios de build (target/ e binários MPI)...$(RESET)"
+	@rm -rf $(TARGET_DIR) $(MPI_DIR)/map_gen $(MPI_DIR)/*.o
+	@echo "$(GREEN)✓ Limpeza concluída.$(RESET)"
 
 ## Exibe ajuda com todos os targets
 help:
