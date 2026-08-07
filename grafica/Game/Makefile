@@ -27,10 +27,12 @@ MPI_DIR      := mpi
 JAVAFX_PATH  ?= /opt/javafx-21/lib
 JAVAFX_MODS  := javafx.controls,javafx.graphics,javafx.media
 
-# Java / Maven
-JAVA         := java
-JAVAC        := javac
-MVN          := mvn
+# JDK 21 Temurin — detectado automaticamente
+# Maven usa JAVA_HOME, build-local usa JDK21 diretamente
+JDK21        ?= /opt/java-temurin-21
+JAVA         := $(JDK21)/bin/java
+JAVAC        := $(JDK21)/bin/javac
+MVN          := JAVA_HOME=$(JDK21) mvn
 
 # Docker
 DOCKER_IMG   := $(APP_NAME):$(VERSION)
@@ -153,7 +155,7 @@ mpi-build: check-mpi
 ## Executa a demo MPI com 8 processos (aproveitando os 8 cores do i7-8565U)
 mpi-run: mpi-build
 	@echo "$(CYAN)$(BOLD)▶ Rodando gerador de mapa paralelo com $(MPI_CORES) processos...$(RESET)"
-	$(MPIRUN) -np $(MPI_CORES) $(MPI_BIN)
+	$(MPIRUN) --oversubscribe -np $(MPI_CORES) $(MPI_BIN)
 
 ## Alias conveniente
 mpi-demo: mpi-run
@@ -165,8 +167,9 @@ mpi-demo: mpi-run
 ## Verifica se Java 21 está disponível
 check-java:
 	@$(JAVA) -version 2>&1 | grep -E "version \"(21|22|23|24|25)" > /dev/null || \
-		(echo "$(RED)✗ Java 21+ necessário. Java encontrado:$(RESET)" && \
-		 $(JAVA) -version && exit 1)
+		(echo "$(RED)✗ JDK 21+ necessário. Java encontrado:$(RESET)" && \
+		 $(JAVA) -version && \
+		 echo "$(YELLOW)  Fix: export JDK21=/opt/java-temurin-21$(RESET)" && exit 1)
 
 ## Remove arquivos de build
 clean:

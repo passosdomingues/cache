@@ -13,14 +13,15 @@
 | Aspecto | Status | Detalhe |
 |---|---|---|
 | **Sprint Atual** | 🟡 Sprint 4 | Polish & Assets |
-| **Build (javac direto)** | 🟢 OK | `javac` com JDK 21 Temurin + JavaFX local ✅ |
-| **Build (mvn compile)** | 🔴 BLOCKED | Maven usa JAVA_HOME=JDK 17 → fix: usar Temurin 21 |
-| **Jogo Jogável** | 🟡 CÓDIGO COMPLETO | Aguarda execução `java --module-path` para validar |
-| **Sprites** | 🟢 PRONTOS | 6 PNGs em `src/main/resources/` (5.3MB total) |
-| **Makefile** | 🟢 COMPLETO | `make help` mostra todos os targets |
-| **Dockerfile** | 🟢 COMPLETO | Multi-stage, Liberica JDK 21 Full |
-| **Git** | 🟡 PENDENTE | `.gitignore` criado, repositório não inicializado |
-| **MPI demo** | 🟢 PRONTO | `mpi/MapGenerator.c` criado, aguarda `make mpi-demo` |
+| **Build (`make build-local`)** | 🟢 OK | javac JDK 21 Temurin + JAVAFX_PATH ✅ |
+| **Build (`make run` via Maven)** | 🟢 OK | JAVA_HOME=JDK21 definido no Makefile ✅ |
+| **MPI (`make mpi-demo`)** | 🟢 OK | 8 processos, mapa 96×16 gerado ✅ |
+| **Jogo Jogável** | 🟡 COMPILADO | Aguarda execução com display X11 |
+| **Sprites** | 🟢 PRONTOS | 6 PNGs em `src/main/resources/` (5.3MB) |
+| **Makefile** | 🟢 COMPLETO | Todos os targets funcionando |
+| **Dockerfile** | 🟢 PRONTO | Multi-stage, aguarda `docker build` |
+| **Git** | 🟢 INICIALIZADO | 2 commits no `main` |
+| **MPI** | 🟢 TESTADO | `make mpi-demo` ✅ |
 
 ---
 
@@ -99,26 +100,15 @@
 
 ---
 
-## 🔴 Bloqueios Ativos
+### Bloqueios Resolvidos
 
-### BLOCK-003 — Maven usa JDK 17 (JAVA_HOME aponta para JDK 17)
-- **Sintoma:** `mvn compile` falha com `invalid target release: 21`
-- **Causa:** `JAVA_HOME=/home/rafael/java/current` → JDK 17.0.12
-- **JDK 21 disponível:** `/opt/java-temurin-21/` (Temurin 21.0.6) ✅
-- **Workaround atual:** `javac` direto com JDK 21 Temurin → **compila sem erros** ✅
-- **Fix permanente (escolha uma):**
-  ```bash
-  # Opção A — exportar JAVA_HOME para esta sessão:
-  export JAVA_HOME=/opt/java-temurin-21
-  mvn compile
+| Bloqueio | Resolução | Data |
+|---|---|---|
+| BLOCK-001: `pom.xml` não existia | Criado com JavaFX 21 + assembly plugin | 2026-08-07 |
+| BLOCK-002: sprites fora de `resources/` | Copiados via script | 2026-08-07 |
+| BLOCK-003: Maven usava JDK 17 | Makefile define `MVN := JAVA_HOME=$(JDK21) mvn` | 2026-08-07 |
 
-  # Opção B — adicionar ao ~/.bashrc:
-  echo 'export JAVA_HOME=/opt/java-temurin-21' >> ~/.bashrc
-
-  # Opção C — usar o Makefile com JDK explícito (já configurado no run-local):
-  make run-local  # usa javac + JAVAFX_PATH diretamente, sem Maven
-  ```
-- **Impacto:** `make run` (via Maven) bloqueado. `make run-local` funciona.
+**Não há bloqueios ativos.** ✔
 
 ---
 
@@ -166,15 +156,16 @@
 
 ## 🎯 Próximas Ações (Ordered Priority)
 
-> Execute nesta ordem para chegar na Sprint 4:
+> Sprint 4 iniciada. Execute nesta ordem:
 
-1. **[Dev DevOps]** Fixar JAVA_HOME → `export JAVA_HOME=/opt/java-temurin-21`
-2. **[Dev JavaFX]** Executar o jogo: `make run-local` (já funciona via javac!)
-3. **[Dev DevOps]** Inicializar git: `git init && git add . && git commit -m "feat: initial commit v0.2.0-SNAPSHOT"`
-4. **[Dev JavaFX]** Validar sprites in-game (APSU-040) — proporção, transparência
-5. **[Dev DevOps]** Testar `make mpi-demo` (requer OpenMPI instalado)
-6. **[Dev DevOps]** Testar `make docker-build && make docker-run`
-7. **[Dev JavaFX]** Implementar parallax se sprites OK (APSU-041)
+1. **[Dev JavaFX]** `make run-local` — executar o jogo e validar sprites in-game (APSU-040)
+2. **[Dev JavaFX]** Ajustar proporção dos sprites se necessário (ImageMagick `convert`)
+3. **[Dev JavaFX]** Implementar parallax de 2 camadas (APSU-041)
+4. **[Dev DevOps]** Testar `make docker-build && make docker-run`
+5. **[Dev JavaFX]** Benchmark FPS com `AnimationTimer` (APSU-043)
+6. **[Sprint 5]** Gerar fat JAR: `make package` e testar
+7. **[Sprint 5]** README.md final com screenshots e instruções
+8. **[Sprint 5]** Tag v1.0.0: `git tag -a v1.0.0 -m "Release v1.0.0"`
 
 ---
 
