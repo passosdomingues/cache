@@ -7,6 +7,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
+import javafx.scene.media.AudioClip;
 import javafx.scene.paint.*;
 import javafx.scene.text.*;
 import javafx.stage.Stage;
@@ -69,7 +70,9 @@ public class ApsuGame extends Application {
     Diff  diff  = Diff.SABIO;
 
     // --- Sprites (null = usar fallback geométrico) ---
-    Image imgHero, imgBoss, imgNpc, imgBg1, imgBg2, imgBg3;
+    Image imgHero, imgBoss, imgNpc, imgBg1, imgBg2, imgBg3, imgFg1, imgFg2, imgFg3;
+    final Map<String, AudioClip> sounds = new HashMap<>();
+    AudioClip music;
 
     // --- Input ---
     /** Teclas atualmente pressionadas (para movimento contínuo) */
@@ -151,6 +154,10 @@ public class ApsuGame extends Application {
     // --- Timestamp atual em nanosegundos (atualizado pelo AnimationTimer) ---
     long nano;
 
+    // --- Dificuldade adaptativa (previsivel, nunca muda o layout da fase) ---
+    long phaseStartNano;
+    int phaseHits;
+
     // =========================================================
     // 3. INICIALIZAÇÃO
     // =========================================================
@@ -166,12 +173,18 @@ public class ApsuGame extends Application {
         Scene scene = new Scene(new StackPane(canvas), W, H, Color.BLACK);
 
         // Carregar assets — null se não encontrado (fallback geométrico)
-        imgHero = loadImg("hero.png");
-        imgBoss = loadImg("boss.png");
-        imgNpc  = loadImg("npc.png");
-        imgBg1  = loadImg("bg1.png");
-        imgBg2  = loadImg("bg2.png");
-        imgBg3  = loadImg("bg3.png");
+        // PNGs pré-renderizados pelo Blender sempre vencem os assets legados.
+        // Assim um personagem/camada pode migrar sozinho, sem trocar o jogo todo.
+        imgHero = loadFirstImg("sprites/adapa/Swim/d0_f001.png", "sprites/adapa/Idle/d0_f001.png", "sprites/adapa/Static/d0_f001.png", "hero.png");
+        imgBoss = loadFirstImg("sprites/kullullu/Idle/d0_f001.png", "sprites/kullullu/Static/d0_f001.png", "boss.png");
+        imgNpc  = loadFirstImg("sprites/enki/Idle/d0_f001.png", "sprites/enki/Static/d0_f001.png", "npc.png");
+        imgBg1  = loadFirstImg("levels/phase1/background.png", "bg1.png");
+        imgBg2  = loadFirstImg("levels/phase2/background.png", "bg2.png");
+        imgBg3  = loadFirstImg("levels/phase3/background.png", "bg3.png");
+        imgFg1  = loadImg("levels/phase1/foreground.png");
+        imgFg2  = loadImg("levels/phase2/foreground.png");
+        imgFg3  = loadImg("levels/phase3/foreground.png");
+        loadAudio();
 
         // Input: teclado contínuo (Set) + eventos pontuais (onKey)
         scene.setOnKeyPressed(e  -> { keys.add(e.getCode()); onKey(e.getCode()); });
@@ -192,6 +205,7 @@ public class ApsuGame extends Application {
         stage.setFullScreen(true);
         stage.setFullScreenExitHint("");  // remove hint "pressione ESC"
         stage.show();
+        if (music != null) music.play();
     }
 
     /** Reinicia todos os campos para começar uma nova partida */
@@ -215,6 +229,8 @@ public class ApsuGame extends Application {
         alertMsg = "";
         lastShotTime = 0;
         lastBubbleTime = nano;
+        phaseStartNano = nano;
+        phaseHits = 0;
     }
 
     // --- Início das Fases ---
@@ -230,6 +246,8 @@ public class ApsuGame extends Application {
         tab1X = PHASE_LEN - 280;
         tab1Y = H / 2.0 - TAB_H / 2;
         state = State.PHASE1;
+        phaseStartNano = nano;
+        phaseHits = 0;
         showAlert("⚓ Fase 1 — As Águas Claras");
     }
 
@@ -244,13 +262,16 @@ public class ApsuGame extends Application {
         enemies.add(new double[]{ 850,  H * .40, spd, 55,  H * .40, 2 });
         enemies.add(new double[]{ 1750, H * .50, spd, 55,  H * .50, 2 });
         enemies.add(new double[]{ 2650, H * .40, spd, 60,  H * .40, 0 });
-        // Corais — pares teto/chão em worldX
-        double[] coralX = {380, 620, 860, 1100, 1340, 1580, 1820, 2060, 2300, 2540};
+        // Corredor labirinto: aberturas alternadas obrigam leitura do percurso,
+        // mas continuam largas o suficiente para o nado livre e o controle simples.
+        double[] coralX = {420, 710, 1000, 1290, 1580, 1870, 2160, 2450, 2740};
+        double[] gapTop = {120, 395, 205, 430, 150, 360, 245, 415, 185};
+        final double gapH = 235;
         for (int i = 0; i < coralX.length; i++) {
-            double topH = 55 + (i % 3) * 28;
-            double botH = 50 + ((i + 1) % 3) * 28;
-            corals.add(new double[]{ coralX[i], 0,      70, topH });  // teto
-            corals.add(new double[]{ coralX[i], H - botH, 70, botH }); // chão
+            double topH = gapTop[i];
+            double botH = H - topH - gapH;
+            corals.add(new double[]{ coralX[i], 0, 118, topH });
+            corals.add(new double[]{ coralX[i], H - botH, 118, botH });
         }
         // Easter egg
         chestWorldX = 1480;
@@ -259,6 +280,8 @@ public class ApsuGame extends Application {
         tab2X = PHASE_LEN - 280;
         tab2Y = H / 2.0 - TAB_H / 2;
         state = State.PHASE2;
+        phaseStartNano = nano;
+        phaseHits = 0;
         showAlert("🪸 Fase 2 — As Cavernas de Coral");
     }
 
@@ -273,6 +296,8 @@ public class ApsuGame extends Application {
         heroY = H / 2.0 - HERO_H / 2;
         lastBubbleTime = nano + 1_400_000_000L; // entrada legivel antes do primeiro ataque
         state = State.PHASE3;
+        phaseStartNano = nano;
+        phaseHits = 0;
         showAlert("💀 Fase 3 — O Templo Submerso");
     }
 
@@ -377,6 +402,7 @@ public class ApsuGame extends Application {
         if (key(KeyCode.SPACE) && nano - lastShotTime > 400_000_000L) {
             spawnBeam();
             lastShotTime = nano;
+            playSound("shoot");
         }
 
         updateBeamsScroll();
@@ -390,6 +416,7 @@ public class ApsuGame extends Application {
                 tab1alive = false;
                 tabs++;
                 spawnBurst(tabScreenX + TAB_W / 2, tab1Y + TAB_H / 2, Color.GOLD);
+                playSound("collect");
                 showAlert("✦ 1ª Tabuleta da Sabedoria coletada! ✦");
             }
         }
@@ -427,6 +454,7 @@ public class ApsuGame extends Application {
         if (key(KeyCode.SPACE) && nano - lastShotTime > 400_000_000L) {
             spawnBeam();
             lastShotTime = nano;
+            playSound("shoot");
         }
 
         updateBeamsScroll();
@@ -441,6 +469,7 @@ public class ApsuGame extends Application {
             easterFound    = true;
             easterShowTime = nano;
             spawnBurst(chestScreenX + 30, chestY + 22, Color.GOLD);
+            playSound("collect");
         }
 
         // Coletar Tabuleta 2
@@ -450,6 +479,7 @@ public class ApsuGame extends Application {
                 tab2alive = false;
                 tabs++;
                 spawnBurst(tabScreenX + TAB_W / 2, tab2Y + TAB_H / 2, Color.GOLD);
+                playSound("collect");
                 showAlert("✦ 2ª Tabuleta da Sabedoria coletada! ✦");
             }
         }
@@ -471,6 +501,7 @@ public class ApsuGame extends Application {
         if (key(KeyCode.SPACE) && nano - lastShotTime > 350_000_000L) {
             spawnBeamTowardBoss();
             lastShotTime = nano;
+            playSound("shoot");
         }
 
         // Mover feixes e detectar acerto no boss
@@ -488,23 +519,26 @@ public class ApsuGame extends Application {
                 bit.remove();
                 bossHP--;
                 spawnBurst(bossX + BOSS_W / 2, bossY + BOSS_H / 2, Color.CYAN);
+                playSound("boss-hit");
                 if (bossHP <= 0) {
                     tabs++;
                     spawnBurst(bossX + BOSS_W / 2, bossY + BOSS_H / 2, Color.GOLD);
+                    playSound("victory");
                     state = State.VICTORY;
                 }
             }
         }
 
         // Boss dispara bolhas em leque
-        long bubbleInterval = (diff == Diff.SABIO) ? 2_200_000_000L : 1_200_000_000L;
+        long bubbleInterval = (long) (((diff == Diff.SABIO) ? 2_200_000_000L : 1_200_000_000L)
+                / threatScale());
         if (nano - lastBubbleTime > bubbleInterval) {
             lastBubbleTime = nano;
             int   count    = (diff == Diff.SABIO) ? 2 : 4;
             double spread  = Math.PI * 0.7;
             for (int i = 0; i < count; i++) {
                 double angle = Math.PI * 0.8 + i * (spread / Math.max(count - 1, 1));
-                double bspd  = (diff == Diff.SABIO) ? 4.0 : 6.0;
+                double bspd  = ((diff == Diff.SABIO) ? 4.0 : 6.0) * threatScale();
                 bubbles.add(new double[]{
                     bossX, bossY + BOSS_H / 2,
                     Math.cos(angle) * bspd, Math.sin(angle) * bspd
@@ -584,7 +618,7 @@ public class ApsuGame extends Application {
         double t = nano / 1_000_000_000.0;
         for (double[] e : enemies) {
             // e[1]=screenY | e[2]=speed | e[3]=amplitude | e[4]=baseY | e[0]=worldX(como phase)
-            e[1] = e[4] + Math.sin(t * e[2] + e[0] * 0.009) * e[3];
+            e[1] = e[4] + Math.sin(t * e[2] * threatScale() + e[0] * 0.009) * e[3];
         }
     }
 
@@ -607,9 +641,11 @@ public class ApsuGame extends Application {
     void damageHero(double px, double py, Color c) {
         if (invincible) return;
         heroHP--;
+        phaseHits++;
         invincible = true;
         invStart   = nano;
         spawnBurst(px, py, c);
+        playSound("hurt");
         if (heroHP <= 0) state = State.GAMEOVER;
     }
 
@@ -793,6 +829,7 @@ public class ApsuGame extends Application {
         drawBeamsScroll(gc);
         drawHero(gc, heroX - camX, heroY);
         drawParticles(gc);
+        if (imgFg1 != null) gc.drawImage(imgFg1, 0, 0, W, H);
         renderHUD(gc, "Fase 1 — As Águas Claras");
         renderAlert(gc);
     }
@@ -822,6 +859,7 @@ public class ApsuGame extends Application {
         drawBeamsScroll(gc);
         drawHero(gc, heroX - camX, heroY);
         drawParticles(gc);
+        if (imgFg2 != null) gc.drawImage(imgFg2, 0, 0, W, H);
         renderHUD(gc, "Fase 2 — As Cavernas de Coral");
         renderAlert(gc);
     }
@@ -847,6 +885,7 @@ public class ApsuGame extends Application {
         drawBeams(gc);
         drawHero(gc, heroX, heroY);
         drawParticles(gc);
+        if (imgFg3 != null) gc.drawImage(imgFg3, 0, 0, W, H);
         renderHUD(gc, "Fase 3 — O Templo Submerso");
         renderAlert(gc);
     }
@@ -939,6 +978,8 @@ public class ApsuGame extends Application {
         gc.setFill(Color.web("#6094c0"));
         gc.setFont(Font.font("Serif", 14));
         gc.fillText(phaseName, 24, 94);
+        gc.setFill(Color.web("#88b8d0"));
+        gc.fillText("Ameaça adaptativa: " + threatLabel(), 164, 94);
 
         // Badge de dificuldade (canto superior direito)
         gc.setFill(Color.rgb(0, 4, 16, 0.74));
@@ -1391,6 +1432,54 @@ public class ApsuGame extends Application {
     }
 
     /**
+     * Ajuste discreto e transparente: joga bem por tempo suficiente e o mar
+     * fica mais agitado; ao sofrer dano, a pressao baixa para evitar espirais
+     * de derrota. O layout nunca muda no meio da tentativa.
+     */
+    double threatScale() {
+        double elapsed = (nano - phaseStartNano) / 1_000_000_000.0;
+        double base = diff == Diff.IRA ? 1.18 : 0.82;
+        double mastery = phaseHits == 0 && elapsed > 18 ? 0.18 : 0.0;
+        double recovery = phaseHits > 0 ? Math.min(0.28, phaseHits * 0.10) : 0.0;
+        return clamp(base + mastery - recovery, 0.55, 1.38);
+    }
+
+    String threatLabel() {
+        double scale = threatScale();
+        return scale < 0.78 ? "calma" : scale > 1.12 ? "intensa" : "normal";
+    }
+
+    /** Carrega audio opcional; o jogo permanece funcional sem arquivos. */
+    void loadAudio() {
+        for (String name : new String[]{ "shoot", "collect", "hurt", "boss-hit", "victory" }) {
+            try {
+                var url = getClass().getResource("/audio/" + name + ".wav");
+                if (url != null) sounds.put(name, new AudioClip(url.toExternalForm()));
+            } catch (Exception e) {
+                System.out.println("[WARN] som " + name + ": " + e.getMessage());
+            }
+        }
+        try {
+            var url = getClass().getResource("/audio/apsu-theme.wav");
+            if (url != null) {
+                music = new AudioClip(url.toExternalForm());
+                music.setCycleCount(AudioClip.INDEFINITE);
+                music.setVolume(0.18);
+            }
+        } catch (Exception e) {
+            System.out.println("[WARN] musica: " + e.getMessage());
+        }
+    }
+
+    void playSound(String name) {
+        AudioClip clip = sounds.get(name);
+        if (clip != null) {
+            clip.setVolume(name.equals("hurt") ? 0.40 : 0.28);
+            clip.play();
+        }
+    }
+
+    /**
      * Carrega imagem do classpath Maven (resources/) ou filesystem.
      * Retorna null sem exceção se não encontrar — fallback geométrico cuida do resto.
      */
@@ -1404,6 +1493,22 @@ public class ApsuGame extends Application {
         } catch (Exception e) {
             System.out.println("[WARN] " + name + ": " + e.getMessage());
         }
+        return null;
+    }
+
+    /** Tenta assets novos sem poluir o console quando somente o fallback existe. */
+    Image loadFirstImg(String... names) {
+        for (String name : names) {
+            try {
+                InputStream is = getClass().getResourceAsStream("/" + name);
+                if (is != null) return new Image(is);
+                File f = new File("src/main/resources/" + name);
+                if (f.exists()) return new Image(f.toURI().toString());
+            } catch (Exception e) {
+                System.out.println("[WARN] " + name + ": " + e.getMessage());
+            }
+        }
+        System.out.println("[INFO] " + names[names.length - 1] + " não encontrado → fallback geométrico");
         return null;
     }
 }

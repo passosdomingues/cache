@@ -18,6 +18,14 @@
 
 ### Adicionado
 - Pipeline local `make character-reference` / `make character-3d`: referência substituível e geração Hunyuan3D por API com cache SHA-256, sem sobrescrever modelos anteriores.
+- Trilha ambiente e efeitos de tiro, coleta, dano, boss e vitória em `resources/audio/`; todos podem ser substituídos mantendo o nome do arquivo.
+- Ponte Blender → PNG: `make blender-sprites` exporta Actions e direções para assets de runtime; fundos e primeiro plano aceitam substituição por fase.
+- FXGL 21.1 + `ApsuFXGLGame`, um laboratório compilado para migração gradual de entidades e cenas.
+
+### Modificado
+- Fase 2 virou um corredor labiríntico com aberturas alternadas; dificuldade adaptativa reage ao desempenho sem mudar o layout durante uma tentativa.
+- Exportação Blender agora assume o layout real `assets/characters/<asset>.blend` e usa todos os CPUs lógicos por padrão; `BLENDER_THREADS` permite limitar esse uso.
+- O exportador usa perfil responsivo de render software (96 px, 1 amostra, uma direção) e a pose estática de Adapa passou a ser carregada pelo jogo como fallback antes do sprite legado.
 
 ### Pendente para próxima versão
 - Validação de sprites in-game (proporção, transparência) — APSU-040

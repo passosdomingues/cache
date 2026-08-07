@@ -41,7 +41,7 @@ DISPLAY      ?= :0
 # MPI
 MPICC        := mpicc
 MPIRUN       := mpirun
-MPI_CORES    := 8
+MPI_CORES    ?= $(shell nproc)
 MPI_SRC      := $(MPI_DIR)/MapGenerator.c
 MPI_BIN      := $(MPI_DIR)/map_gen
 
@@ -54,9 +54,9 @@ BOLD   := \033[1m
 RESET  := \033[0m
 
 # ============================================================
-.PHONY: all build run run-local package docker-build docker-run \
+.PHONY: all build run run-local run-fxgl package docker-build docker-run \
         mpi-demo mpi-build mpi-run clean help check-java check-docker check-mpi \
-        character-reference character-3d
+        character-reference character-3d hunyuan-status audio-assets blender-sprites blender-sprites-mpi
 
 # Target padrão
 all: run
@@ -75,6 +75,11 @@ build: check-java
 run: check-java
 	@echo "$(CYAN)$(BOLD)▶ Iniciando As Águas de Apsu via Maven...$(RESET)"
 	$(MVN) javafx:run
+
+## Inicia o laboratório de entidades FXGL (base da migração incremental)
+run-fxgl: check-java
+	@echo "$(CYAN)$(BOLD)▶ Iniciando laboratório FXGL...$(RESET)"
+	$(MVN) -Dmain.class=ApsuFXGLGame javafx:run
 
 ## Executa usando JavaFX local em JAVAFX_PATH (sem Maven, mais rápido)
 run-local: check-java build-local
@@ -166,6 +171,19 @@ mpi-demo: mpi-run
 # ============================================================
 CHARACTER ?= adapa
 FILE ?=
+ASSET ?= adapa
+# Layout atual do projeto. O caminho antigo assets/blender/... continua aceito
+# quando passado explicitamente em BLEND=.
+BLEND ?= assets/characters/$(ASSET).blend
+BLENDER_BIN ?= /opt/blender-4.5.5-lts/blender
+BLENDER_THREADS ?= $(shell nproc)
+# O Blender deste host cai em renderizacao software/EGL no modo headless.
+# Este perfil produz o sprite jogavel rapidamente; aumente apenas no render final.
+BLENDER_RESOLUTION ?= 96
+BLENDER_SAMPLES ?= 1
+BLENDER_DIRECTIONS ?= 1
+MPI_RENDER_PROCS ?= 4
+MPI_RENDER_THREADS ?= 2
 
 ## Define a imagem-base de um personagem sem apagar geracoes anteriores
 character-reference:
@@ -175,6 +193,26 @@ character-reference:
 ## Gera/reutiliza GLB por hash da referencia usando API Hunyuan3D local
 character-3d:
 	@tools/hunyuan3d_generate.sh "assets/characters/$(CHARACTER)/reference.png" "$(CHARACTER)"
+
+## Mostra se este host/API consegue atender a geracao Hunyuan3D
+hunyuan-status:
+	@tools/hunyuan3d_status.sh
+
+## Cria a trilha ambiente e os efeitos sonoros locais substituiveis
+audio-assets:
+	@tools/generate_audio.sh
+
+## Renderiza um .blend para PNGs de sprite (requer Blender instalado)
+blender-sprites:
+	@BLENDER_BIN="$(BLENDER_BIN)" BLENDER_THREADS="$(BLENDER_THREADS)" BLENDER_RESOLUTION="$(BLENDER_RESOLUTION)" BLENDER_SAMPLES="$(BLENDER_SAMPLES)" BLENDER_DIRECTIONS="$(BLENDER_DIRECTIONS)" tools/render_blender_sprites.sh "$(BLEND)" "$(ASSET)"
+
+## Renderiza 8 direções com MPI: 4 processos x 2 threads (offline, não no game loop)
+blender-sprites-mpi: check-mpi
+	@echo "$(CYAN)▶ MPI Blender: $(MPI_RENDER_PROCS) processos × $(MPI_RENDER_THREADS) threads, 8 direções$(RESET)"
+	$(MPIRUN) --oversubscribe -np $(MPI_RENDER_PROCS) env \
+		BLENDER_BIN="$(BLENDER_BIN)" BLENDER_THREADS="$(MPI_RENDER_THREADS)" \
+		BLENDER_RESOLUTION="$(BLENDER_RESOLUTION)" BLENDER_SAMPLES="$(BLENDER_SAMPLES)" \
+		BLENDER_DIRECTIONS=8 tools/render_blender_mpi_worker.sh "$(BLEND)" "$(ASSET)"
 
 # ============================================================
 # UTILITÁRIOS
@@ -212,6 +250,7 @@ help:
 	@echo "  $(GREEN)make build$(RESET)         Compila com Maven"
 	@echo "  $(GREEN)make run$(RESET)           Compila e executa via Maven"
 	@echo "  $(GREEN)make run-local$(RESET)     Executa com JAVAFX_PATH=$(JAVAFX_PATH)"
+	@echo "  $(GREEN)make run-fxgl$(RESET)      Executa a fundação FXGL"
 	@echo "  $(GREEN)make package$(RESET)       Gera fat JAR em target/"
 	@echo ""
 	@echo "$(BOLD)DOCKER:$(RESET)"
@@ -227,6 +266,9 @@ help:
 	@echo "$(BOLD)ASSETS 3D:$(RESET)"
 	@echo "  make character-reference CHARACTER=adapa FILE=/imagem.png"
 	@echo "  make character-3d CHARACTER=adapa  Gera/reutiliza GLB pelo Hunyuan3D local"
+	@echo "  make audio-assets                 Cria trilha e efeitos substituiveis"
+	@echo "  make blender-sprites ASSET=adapa  (usa assets/characters/adapa.blend)"
+	@echo "  make blender-sprites-mpi ASSET=adapa  Renderiza as 8 direções em paralelo"
 	@echo ""
 	@echo "$(BOLD)UTILITÁRIOS:$(RESET)"
 	@echo "  $(RED)make clean$(RESET)         Remove arquivos de build"

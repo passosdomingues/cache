@@ -84,7 +84,7 @@ v1.0.0 ── Sprint 5 ── [⚪ TODO]       QA + Release + Documentação fin
 | Sprites PNG integrados ao classpath Maven | ⚪ TODO |
 | Animações de sprite sheet (swimming cycle) | ⚪ TODO |
 | Sistema de câmera paralax (múltiplas camadas) | ⚪ TODO |
-| Efeitos sonoros (JavaFX AudioClip) | ⚪ TODO |
+| Efeitos sonoros (JavaFX AudioClip) | 🟢 DONE |
 | Benchmark 60 FPS estável | ⚪ TODO |
 | Profiling com VisualVM | ⚪ TODO |
 
@@ -98,7 +98,8 @@ v1.0.0 ── Sprint 5 ── [⚪ TODO]       QA + Release + Documentação fin
 | Testes de regressão manual | ⚪ TODO |
 | Fat JAR executável (`mvn package`) | ⚪ TODO |
 | README completo com instruções de instalação | ⚪ TODO |
-| Avaliação de viabilidade Hunyuan3D local | ⚪ TODO |
+| Pipeline Hunyuan3D idempotente + diagnóstico | 🟡 PRONTO |
+| Exportação Blender multithread para sprites | 🟡 IN_PROGRESS |
 | Tag v1.0.0 no Git | ⚪ TODO |
 
 ---

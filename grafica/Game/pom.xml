@@ -19,9 +19,17 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javafx.version>21.0.3</javafx.version>
         <main.class>ApsuGame</main.class>
+        <!-- FXGL 25 e' compilado para Java 25; esta linha do projeto usa JDK 21. -->
+        <fxgl.version>21.1</fxgl.version>
     </properties>
 
     <dependencies>
+        <!-- Engine para a migração incremental: entidades, input, colisão e cenas. -->
+        <dependency>
+            <groupId>com.github.almasb</groupId>
+            <artifactId>fxgl</artifactId>
+            <version>${fxgl.version}</version>
+        </dependency>
         <!-- JavaFX Controls (botões, menus — necessário para Stage/Scene) -->
         <dependency>
             <groupId>org.openjfx</groupId>

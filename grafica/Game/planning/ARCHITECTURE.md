@@ -44,6 +44,29 @@
 
 ---
 
+## ADR-009 — FXGL como migração incremental para v2
+
+**Data:** 2026-08-07 | **Status:** ✅ Aprovado
+
+**Decisão:** manter `ApsuGame` (Canvas) como runtime de produção enquanto
+`ApsuFXGLGame` estabelece a fundação FXGL para novas entidades, input, colisão,
+câmera e cenas. Não haverá reescrita total antes de cada sistema ser reproduzido
+e validado no laboratório.
+
+**Compatibilidade:** o projeto fixa FXGL `21.1`: a release `25` é compilada
+para Java 25, enquanto o runtime do jogo é Java 21 LTS.
+
+**Motivo:** FXGL é uma engine Java/JavaFX para jogos 2D, com entidades,
+animações e partículas; ela reduz a infraestrutura manual para a expansão do
+projeto. A transição gradual preserva o jogo jogável e os assets existentes.
+
+**Fronteira 2.5D:** Blender/Hunyuan produzem `.blend` e GLB de autoria. O
+runtime recebe PNGs pré-renderizados e dados de colisão, não malhas 3D. Assim,
+um personagem ou camada do cenário pode ser trocado isoladamente sem elevar o
+requisito de GPU do jogador.
+
+---
+
 ## ADR-001 — Monolito vs. Classes Separadas
 
 **Data:** 2026-08-07 | **Status:** ✅ Aprovado

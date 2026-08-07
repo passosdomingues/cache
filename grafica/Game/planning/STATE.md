@@ -17,7 +17,10 @@
 | **Build (`make run` via Maven)** | 🟢 OK | JAVA_HOME=JDK21 definido no Makefile ✅ |
 | **MPI (`make mpi-demo`)** | 🟢 OK | 8 processos, mapa 96×16 gerado ✅ |
 | **Jogo Jogável** | 🟡 COMPILADO | Progressão de mundo corrigida; aguarda validação manual com display X11 |
-| **Pipeline Hunyuan3D** | 🟡 PRONTA | API local indisponível neste host; cache idempotente implementado |
+| **Pipeline Hunyuan3D** | 🟡 PRONTA | Cache idempotente inclui modelo/textura/seed; API local indisponível neste host |
+| **Áudio** | 🟢 PRONTO | Trilha ambiente e 5 SFX WAV locais, substituíveis por arquivo |
+| **FXGL** | 🟢 INTEGRADO | FXGL 21.1 validado com Java 21; laboratório executável separado |
+| **Blender export** | 🟡 VALIDADO | Pose estática Adapa exportada; render software leva ~28 s por frame |
 | **Sprites** | 🟢 PRONTOS | 6 PNGs em `src/main/resources/` (5.3MB) |
 | **Makefile** | 🟢 COMPLETO | Todos os targets funcionando |
 | **Dockerfile** | 🟢 PRONTO | Multi-stage, aguarda `docker build` |
@@ -92,6 +95,8 @@
 | APSU-043 Benchmark FPS | Dev JavaFX | ⚪ Pendente |
 | APSU-044 Progressão e balanceamento | Dev JavaFX | 🟢 Corrigido; precisa playtest |
 | APSU-045 Pipeline personagem 3D idempotente | Asset/DevOps | 🟡 Cliente pronto; servidor Hunyuan pendente |
+| APSU-046 Áudio e dificuldade adaptativa | Dev JavaFX | 🟢 Implementado; requer playtest de mixagem |
+| APSU-047 Fundação FXGL + ponte Blender | Dev JavaFX | 🟢 Compilada; migração incremental planejada |
 
 ### Imediato — Fix de Build Maven
 
@@ -117,6 +122,7 @@
 |---|---|---|
 | Hunyuan3D local não está instalado/servido em `127.0.0.1:8080` | Não gera GLB neste host ainda | Instalar/rodar uma instância compatível ou apontar `HUNYUAN3D_URL` para ela |
 | GPU disponível é Intel integrada (sem CUDA) | Hunyuan3D 2.1 com textura não é viável nesta máquina | Usar servidor com GPU NVIDIA/CUDA, ou geração somente de malha em máquina externa |
+| `adapa.blend` sem Armature/Actions | Só é possível exportar a pose estática atual | Fazer rig e Actions `Idle`/`Swim`/`Attack` no Blender |
 
 ---
 
@@ -170,6 +176,8 @@
 2. **[Asset]** Para trocar Adapa: `make character-reference CHARACTER=adapa FILE=/caminho/imagem.png`
 3. **[Asset/ML]** Subir a API Hunyuan3D e rodar `make character-3d CHARACTER=adapa`
 4. **[Dev JavaFX]** Ajustar proporção dos sprites se necessário (ImageMagick `convert`)
+5. **[Arte 3D]** Exportar o primeiro `adapa.blend` com `make blender-sprites BLEND=... ASSET=adapa`
+6. **[Dev FXGL]** Migrar primeiro a entidade decorativa/coral para `ApsuFXGLGame`, validando antes de mover personagem e fases.
 4. **[Dev DevOps]** Testar `make docker-build && make docker-run`
 5. **[Dev JavaFX]** Benchmark FPS com `AnimationTimer` (APSU-043)
 6. **[Sprint 5]** Gerar fat JAR: `make package` e testar
