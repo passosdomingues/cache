@@ -11,6 +11,14 @@
 
 ## [Unreleased] — Sprint 4 em andamento
 
+### Corrigido
+- Progressão das fases: herói, câmera, tabuletas, projéteis e colisões das fases 1–2 agora usam coordenadas de mundo consistentes; o portal final fica alcançável.
+- Inimigos podem ser derrotados pelo feixe e somem ao contato, removendo a fonte de dano por frame; invencibilidade após dano aumentada para 2,4 s.
+- Balanceamento Sábio/Ira: menos inimigos, oscilações e velocidades menores, além de atraso no primeiro ataque do boss.
+
+### Adicionado
+- Pipeline local `make character-reference` / `make character-3d`: referência substituível e geração Hunyuan3D por API com cache SHA-256, sem sobrescrever modelos anteriores.
+
 ### Pendente para próxima versão
 - Validação de sprites in-game (proporção, transparência) — APSU-040
 - Parallax de 2 camadas — APSU-041

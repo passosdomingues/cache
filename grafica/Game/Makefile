@@ -55,7 +55,8 @@ RESET  := \033[0m
 
 # ============================================================
 .PHONY: all build run run-local package docker-build docker-run \
-        mpi-demo mpi-build mpi-run clean help check-java check-docker check-mpi
+        mpi-demo mpi-build mpi-run clean help check-java check-docker check-mpi \
+        character-reference character-3d
 
 # Target padrão
 all: run
@@ -161,6 +162,21 @@ mpi-run: mpi-build
 mpi-demo: mpi-run
 
 # ============================================================
+# ASSETS GENERATIVOS — Hunyuan3D local (API em 127.0.0.1:8080)
+# ============================================================
+CHARACTER ?= adapa
+FILE ?=
+
+## Define a imagem-base de um personagem sem apagar geracoes anteriores
+character-reference:
+	@test -n "$(FILE)" || (echo "Uso: make character-reference CHARACTER=adapa FILE=/caminho/imagem.png" && exit 2)
+	@tools/set_character_reference.sh "$(CHARACTER)" "$(FILE)"
+
+## Gera/reutiliza GLB por hash da referencia usando API Hunyuan3D local
+character-3d:
+	@tools/hunyuan3d_generate.sh "assets/characters/$(CHARACTER)/reference.png" "$(CHARACTER)"
+
+# ============================================================
 # UTILITÁRIOS
 # ============================================================
 
@@ -207,6 +223,10 @@ help:
 	@echo "  $(YELLOW)make mpi-demo$(RESET)      Compila e roda gerador de mapa paralelo"
 	@echo "  $(YELLOW)make mpi-build$(RESET)     Apenas compila o MapGenerator.c"
 	@echo "  $(YELLOW)make mpi-run$(RESET)       Apenas executa ($(MPI_CORES) processos)"
+	@echo ""
+	@echo "$(BOLD)ASSETS 3D:$(RESET)"
+	@echo "  make character-reference CHARACTER=adapa FILE=/imagem.png"
+	@echo "  make character-3d CHARACTER=adapa  Gera/reutiliza GLB pelo Hunyuan3D local"
 	@echo ""
 	@echo "$(BOLD)UTILITÁRIOS:$(RESET)"
 	@echo "  $(RED)make clean$(RESET)         Remove arquivos de build"

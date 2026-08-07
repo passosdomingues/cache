@@ -4,6 +4,7 @@
 
 # ── BUILD ────────────────────────────────────────────────────
 target/
+assets/characters/*/generated/
 *.class
 *.jar
 *.war

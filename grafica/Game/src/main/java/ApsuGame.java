@@ -76,7 +76,12 @@ public class ApsuGame extends Application {
     final Set<KeyCode> keys = new HashSet<>();
 
     // --- Herói ---
-    double heroX, heroY;    // coordenadas de TELA
+    /**
+     * Nas fases com scroll, heroX e' uma coordenada de MUNDO.  Somente na
+     * arena fixa (fase 3) ela coincide com a coordenada de tela.  Manter esta
+     * regra evita a realimentacao camera/heroi que antes impedia o fim da fase.
+     */
+    double heroX, heroY;
     boolean facingRight = true;
     int    heroHP;
     boolean invincible;
@@ -208,18 +213,19 @@ public class ApsuGame extends Application {
         corals.clear();
         particles.clear();
         alertMsg = "";
+        lastShotTime = 0;
+        lastBubbleTime = nano;
     }
 
     // --- Início das Fases ---
 
     void startPhase1() {
-        double spd = (diff == Diff.SABIO) ? 2.2 : 3.8;
+        double spd = (diff == Diff.SABIO) ? 1.15 : 2.1;
         enemies.clear();
         // Inimigos distribuídos ao longo do mundo (worldX)
-        enemies.add(new double[]{ 700,  H * .45, spd, 130, H * .45, 0 });
-        enemies.add(new double[]{ 1350, H * .30, spd, 110, H * .30, 1 });
-        enemies.add(new double[]{ 2100, H * .55, spd, 150, H * .55, 0 });
-        enemies.add(new double[]{ 2700, H * .38, spd, 120, H * .38, 1 });
+        enemies.add(new double[]{ 850,  H * .45, spd, 75, H * .45, 0 });
+        enemies.add(new double[]{ 1750, H * .32, spd, 65, H * .32, 1 });
+        enemies.add(new double[]{ 2650, H * .56, spd, 80, H * .56, 0 });
         // Tabuleta 1 perto do fim do mundo
         tab1X = PHASE_LEN - 280;
         tab1Y = H / 2.0 - TAB_H / 2;
@@ -228,17 +234,16 @@ public class ApsuGame extends Application {
     }
 
     void startPhase2() {
-        double spd = (diff == Diff.SABIO) ? 2.5 : 4.2;
+        double spd = (diff == Diff.SABIO) ? 1.3 : 2.3;
         enemies.clear();
         corals.clear();
         camX  = 0;
         heroX = 80;
         heroY = H / 2.0;
         // Inimigos
-        enemies.add(new double[]{ 600,  H * .40, spd, 90,  H * .40, 2 });
-        enemies.add(new double[]{ 1300, H * .50, spd, 85,  H * .50, 2 });
-        enemies.add(new double[]{ 2000, H * .45, spd, 100, H * .45, 2 });
-        enemies.add(new double[]{ 2600, H * .35, spd, 75,  H * .35, 0 });
+        enemies.add(new double[]{ 850,  H * .40, spd, 55,  H * .40, 2 });
+        enemies.add(new double[]{ 1750, H * .50, spd, 55,  H * .50, 2 });
+        enemies.add(new double[]{ 2650, H * .40, spd, 60,  H * .40, 0 });
         // Corais — pares teto/chão em worldX
         double[] coralX = {380, 620, 860, 1100, 1340, 1580, 1820, 2060, 2300, 2540};
         for (int i = 0; i < coralX.length; i++) {
@@ -266,6 +271,7 @@ public class ApsuGame extends Application {
         camX  = 0;
         heroX = 80;
         heroY = H / 2.0 - HERO_H / 2;
+        lastBubbleTime = nano + 1_400_000_000L; // entrada legivel antes do primeiro ataque
         state = State.PHASE3;
         showAlert("💀 Fase 3 — O Templo Submerso");
     }
@@ -339,7 +345,7 @@ public class ApsuGame extends Application {
             return p[4] <= 0;
         });
         // Expirar invencibilidade após 1.5s
-        if (invincible && nano - invStart > 1_500_000_000L)
+        if (invincible && nano - invStart > 2_400_000_000L)
             invincible = false;
     }
 
@@ -360,12 +366,12 @@ public class ApsuGame extends Application {
         moveHero(speed);
 
         // Câmera segue herói — ativa quando herói passa 35% da tela
-        double heroWorld = heroX + camX;
-        camX = Math.max(0, heroWorld - W * 0.35);
+        camX = clamp(heroX - W * 0.35, 0, PHASE_LEN - W);
 
         // Conter herói nos limites do mundo visível
-        heroX = clamp(heroX, camX + 25, camX + W - HERO_W - 10);
+        heroX = clamp(heroX, 25, PHASE_LEN - HERO_W - 25);
         heroY = clamp(heroY, 30, H - HERO_H - 30);
+        double hx = heroX - camX;
 
         // Disparo de feixe (ESPAÇO)
         if (key(KeyCode.SPACE) && nano - lastShotTime > 400_000_000L) {
@@ -380,7 +386,7 @@ public class ApsuGame extends Application {
         // Coletar Tabuleta 1
         if (tab1alive) {
             double tabScreenX = tab1X - camX;
-            if (rectsHit(heroX, heroY, HERO_W, HERO_H, tabScreenX, tab1Y, TAB_W, TAB_H)) {
+            if (rectsHit(hx, heroY, HERO_W, HERO_H, tabScreenX, tab1Y, TAB_W, TAB_H)) {
                 tab1alive = false;
                 tabs++;
                 spawnBurst(tabScreenX + TAB_W / 2, tab1Y + TAB_H / 2, Color.GOLD);
@@ -389,7 +395,7 @@ public class ApsuGame extends Application {
         }
 
         // Transição para Fase 2 ao chegar no fim do mundo
-        if ((heroX + camX) > PHASE_LEN - 150 && tabs >= 1) startPhase2();
+        if (heroX > PHASE_LEN - 150 && tabs >= 1) startPhase2();
     }
 
     // --- Fase 2 ---
@@ -398,22 +404,22 @@ public class ApsuGame extends Application {
         double speed = (diff == Diff.SABIO) ? 4.5 : 6.0;
         moveHero(speed);
 
-        double heroWorld = heroX + camX;
-        camX = Math.max(0, heroWorld - W * 0.35);
+        camX = clamp(heroX - W * 0.35, 0, PHASE_LEN - W);
 
         // Conter herói (teto/chão mais restrito por causa dos corais)
-        heroX = clamp(heroX, camX + 25, camX + W - HERO_W - 10);
+        heroX = clamp(heroX, 25, PHASE_LEN - HERO_W - 25);
         heroY = clamp(heroY, 55, H - HERO_H - 55);
+        double hx = heroX - camX;
 
         // Colisão com corais (obstáculos sólidos — causa dano e empurrão)
         for (double[] c : corals) {
             double cx = c[0] - camX, cy = c[1], cw = c[2], ch = c[3];
             if (cx < -80 || cx > W + 80) continue; // fora da tela — pular
-            if (rectsHit(heroX, heroY, HERO_W, HERO_H, cx, cy, cw, ch)) {
+            if (rectsHit(hx, heroY, HERO_W, HERO_H, cx, cy, cw, ch)) {
                 // Empurrar herói para fora do coral
                 if (cy == 0) heroY = cy + ch + 2;   // colidiu com teto
                 else         heroY = cy - HERO_H - 2; // colidiu com chão
-                damageHero(heroX + HERO_W / 2, heroY + HERO_H / 2, Color.ORANGERED);
+                damageHero(hx + HERO_W / 2, heroY + HERO_H / 2, Color.ORANGERED);
             }
         }
 
@@ -430,7 +436,7 @@ public class ApsuGame extends Application {
         // Easter Egg — pressionar ESPAÇO perto do baú
         double chestScreenX = chestWorldX - camX;
         if (!easterFound && key(KeyCode.SPACE)
-                && rectsHit(heroX, heroY, HERO_W + 50, HERO_H + 50,
+                && rectsHit(hx, heroY, HERO_W + 50, HERO_H + 50,
                              chestScreenX - 30, chestY - 30, 120, 100)) {
             easterFound    = true;
             easterShowTime = nano;
@@ -440,7 +446,7 @@ public class ApsuGame extends Application {
         // Coletar Tabuleta 2
         if (tab2alive) {
             double tabScreenX = tab2X - camX;
-            if (rectsHit(heroX, heroY, HERO_W, HERO_H, tabScreenX, tab2Y, TAB_W, TAB_H)) {
+            if (rectsHit(hx, heroY, HERO_W, HERO_H, tabScreenX, tab2Y, TAB_W, TAB_H)) {
                 tab2alive = false;
                 tabs++;
                 spawnBurst(tabScreenX + TAB_W / 2, tab2Y + TAB_H / 2, Color.GOLD);
@@ -448,7 +454,7 @@ public class ApsuGame extends Application {
             }
         }
 
-        if ((heroX + camX) > PHASE_LEN - 150 && tabs >= 2) startPhase3();
+        if (heroX > PHASE_LEN - 150 && tabs >= 2) startPhase3();
     }
 
     // --- Fase 3: Boss Fight ---
@@ -525,7 +531,7 @@ public class ApsuGame extends Application {
 
     // --- Helpers de Update ---
 
-    /** Spawna feixe horizontal na direção que o herói está olhando */
+    /** Spawna feixe em coordenadas de mundo nas fases com scroll. */
     void spawnBeam() {
         double bx = facingRight ? heroX + HERO_W : heroX;
         double by = heroY + HERO_H / 2;
@@ -546,21 +552,22 @@ public class ApsuGame extends Application {
 
     /**
      * Atualiza feixes nas fases com scroll (Fase 1 e 2).
-     * Feixes usam coordenadas de TELA. Remove ao sair da tela ou acertar inimigo.
+     * Feixes usam coordenadas de MUNDO. Remove ao sair do mundo ou acertar inimigo.
      */
     void updateBeamsScroll() {
         Iterator<double[]> it = beams.iterator();
         while (it.hasNext()) {
             double[] b = it.next();
             b[0] += b[2];
-            if (b[0] < 0 || b[0] > W) { it.remove(); continue; }
+            if (b[0] < 0 || b[0] > PHASE_LEN) { it.remove(); continue; }
 
             // Verificar acerto em inimigos
             boolean hit = false;
-            for (double[] e : enemies) {
-                double ex = e[0] - camX; // converter worldX para tela
-                if (rectsHit(b[0] - 6, b[1] - 6, 12, 12, ex, e[1], ENEMY_W, ENEMY_H)) {
-                    spawnBurst(b[0], b[1], Color.AQUAMARINE);
+            for (Iterator<double[]> enemyIt = enemies.iterator(); enemyIt.hasNext();) {
+                double[] e = enemyIt.next();
+                if (rectsHit(b[0] - 6, b[1] - 6, 12, 12, e[0], e[1], ENEMY_W, ENEMY_H)) {
+                    spawnBurst(b[0] - camX, b[1], Color.AQUAMARINE);
+                    enemyIt.remove(); // ataque deve abrir caminho, como em um platformer classico
                     hit = true;
                     break;
                 }
@@ -584,16 +591,19 @@ public class ApsuGame extends Application {
     /** Verifica colisão do herói com todos os inimigos e aplica dano */
     void checkEnemyCollision() {
         if (invincible) return;
-        for (double[] e : enemies) {
+        for (Iterator<double[]> it = enemies.iterator(); it.hasNext();) {
+            double[] e = it.next();
             double ex = e[0] - camX;
-            if (rectsHit(heroX, heroY, HERO_W, HERO_H, ex, e[1], ENEMY_W, ENEMY_H)) {
-                damageHero(heroX + HERO_W / 2, heroY + HERO_H / 2, Color.RED);
+            double hx = heroX - camX;
+            if (rectsHit(hx, heroY, HERO_W, HERO_H, ex, e[1], ENEMY_W, ENEMY_H)) {
+                it.remove(); // contato remove a ameaca e evita dano repetido injusto
+                damageHero(hx + HERO_W / 2, heroY + HERO_H / 2, Color.RED);
                 break;
             }
         }
     }
 
-    /** Aplica dano ao herói, ativa iframe de 1.5s, spawna partículas */
+    /** Aplica dano ao herói e uma janela generosa para reposicionamento. */
     void damageHero(double px, double py, Color c) {
         if (invincible) return;
         heroHP--;
@@ -780,8 +790,8 @@ public class ApsuGame extends Application {
         drawPortal(gc, PHASE_LEN - 100 - camX);
 
         for (double[] e : enemies) drawEnemy(gc, e[0] - camX, e[1], (int) e[5]);
-        drawBeams(gc);
-        drawHero(gc, heroX, heroY);
+        drawBeamsScroll(gc);
+        drawHero(gc, heroX - camX, heroY);
         drawParticles(gc);
         renderHUD(gc, "Fase 1 — As Águas Claras");
         renderAlert(gc);
@@ -809,8 +819,8 @@ public class ApsuGame extends Application {
         drawPortal(gc, PHASE_LEN - 100 - camX);
 
         for (double[] e : enemies) drawEnemy(gc, e[0] - camX, e[1], (int) e[5]);
-        drawBeams(gc);
-        drawHero(gc, heroX, heroY);
+        drawBeamsScroll(gc);
+        drawHero(gc, heroX - camX, heroY);
         drawParticles(gc);
         renderHUD(gc, "Fase 2 — As Cavernas de Coral");
         renderAlert(gc);
@@ -1190,16 +1200,28 @@ public class ApsuGame extends Application {
     void drawBeams(GraphicsContext gc) {
         double t = nano / 1_000_000_000.0;
         for (double[] b : beams) {
-            double g = 9 + Math.sin(t * 20) * 2;
-            // Halo externo
-            gc.setFill(Color.rgb(100, 200, 255, 0.24));
-            gc.fillOval(b[0] - g, b[1] - g, g * 2, g * 2);
-            // Núcleo brilhante
-            gc.setFill(Color.web("#b0f0ff"));
-            gc.fillOval(b[0] - 5, b[1] - 5, 10, 10);
-            gc.setFill(Color.WHITE);
-            gc.fillOval(b[0] - 2, b[1] - 2, 4, 4);
+            drawBeam(gc, b[0], b[1], t);
         }
+    }
+
+    /** Renderiza os projeteis de fases com camera: mundo -> tela. */
+    void drawBeamsScroll(GraphicsContext gc) {
+        double t = nano / 1_000_000_000.0;
+        for (double[] b : beams) {
+            drawBeam(gc, b[0] - camX, b[1], t);
+        }
+    }
+
+    void drawBeam(GraphicsContext gc, double x, double y, double t) {
+        double g = 9 + Math.sin(t * 20) * 2;
+        // Halo externo
+        gc.setFill(Color.rgb(100, 200, 255, 0.24));
+        gc.fillOval(x - g, y - g, g * 2, g * 2);
+        // Núcleo brilhante
+        gc.setFill(Color.web("#b0f0ff"));
+        gc.fillOval(x - 5, y - 5, 10, 10);
+        gc.setFill(Color.WHITE);
+        gc.fillOval(x - 2, y - 2, 4, 4);
     }
 
     void drawParticles(GraphicsContext gc) {

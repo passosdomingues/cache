@@ -3,7 +3,7 @@
 > **Este é o documento mais importante para o dia a dia.**
 > Atualizado sempre que uma task muda de estado ou um bloqueio é identificado.
 >
-> **Última atualização:** 2026-08-07 17:41 BRT (Sprint 4 — Início)
+> **Última atualização:** 2026-08-07 (Sprint 4 — gameplay e pipeline 3D)
 > **Responsável pela atualização:** Tech Lead / Dev ativo
 
 ---
@@ -16,7 +16,8 @@
 | **Build (`make build-local`)** | 🟢 OK | javac JDK 21 Temurin + JAVAFX_PATH ✅ |
 | **Build (`make run` via Maven)** | 🟢 OK | JAVA_HOME=JDK21 definido no Makefile ✅ |
 | **MPI (`make mpi-demo`)** | 🟢 OK | 8 processos, mapa 96×16 gerado ✅ |
-| **Jogo Jogável** | 🟡 COMPILADO | Aguarda execução com display X11 |
+| **Jogo Jogável** | 🟡 COMPILADO | Progressão de mundo corrigida; aguarda validação manual com display X11 |
+| **Pipeline Hunyuan3D** | 🟡 PRONTA | API local indisponível neste host; cache idempotente implementado |
 | **Sprites** | 🟢 PRONTOS | 6 PNGs em `src/main/resources/` (5.3MB) |
 | **Makefile** | 🟢 COMPLETO | Todos os targets funcionando |
 | **Dockerfile** | 🟢 PRONTO | Multi-stage, aguarda `docker build` |
@@ -89,6 +90,8 @@
 | APSU-041 Parallax 2 camadas | Dev JavaFX | ⚪ Pendente |
 | APSU-042 Efeitos sonoros | Dev JavaFX | ⚪ Opcional |
 | APSU-043 Benchmark FPS | Dev JavaFX | ⚪ Pendente |
+| APSU-044 Progressão e balanceamento | Dev JavaFX | 🟢 Corrigido; precisa playtest |
+| APSU-045 Pipeline personagem 3D idempotente | Asset/DevOps | 🟡 Cliente pronto; servidor Hunyuan pendente |
 
 ### Imediato — Fix de Build Maven
 
@@ -108,7 +111,12 @@
 | BLOCK-002: sprites fora de `resources/` | Copiados via script | 2026-08-07 |
 | BLOCK-003: Maven usava JDK 17 | Makefile define `MVN := JAVA_HOME=$(JDK21) mvn` | 2026-08-07 |
 
-**Não há bloqueios ativos.** ✔
+### Bloqueios ativos
+
+| Bloqueio | Impacto | Próxima ação |
+|---|---|---|
+| Hunyuan3D local não está instalado/servido em `127.0.0.1:8080` | Não gera GLB neste host ainda | Instalar/rodar uma instância compatível ou apontar `HUNYUAN3D_URL` para ela |
+| GPU disponível é Intel integrada (sem CUDA) | Hunyuan3D 2.1 com textura não é viável nesta máquina | Usar servidor com GPU NVIDIA/CUDA, ou geração somente de malha em máquina externa |
 
 ---
 
@@ -158,9 +166,10 @@
 
 > Sprint 4 iniciada. Execute nesta ordem:
 
-1. **[Dev JavaFX]** `make run-local` — executar o jogo e validar sprites in-game (APSU-040)
-2. **[Dev JavaFX]** Ajustar proporção dos sprites se necessário (ImageMagick `convert`)
-3. **[Dev JavaFX]** Implementar parallax de 2 camadas (APSU-041)
+1. **[Dev JavaFX]** `make run-local` — fazer playtest completo; agora a coleta e os portais usam coordenadas de mundo consistentes
+2. **[Asset]** Para trocar Adapa: `make character-reference CHARACTER=adapa FILE=/caminho/imagem.png`
+3. **[Asset/ML]** Subir a API Hunyuan3D e rodar `make character-3d CHARACTER=adapa`
+4. **[Dev JavaFX]** Ajustar proporção dos sprites se necessário (ImageMagick `convert`)
 4. **[Dev DevOps]** Testar `make docker-build && make docker-run`
 5. **[Dev JavaFX]** Benchmark FPS com `AnimationTimer` (APSU-043)
 6. **[Sprint 5]** Gerar fat JAR: `make package` e testar
