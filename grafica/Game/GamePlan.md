@@ -84,3 +84,5 @@ rafael@mint-zena
                                            GPU: Intel WhiskeyLake-U GT2 [UHD Graphics 620] 
                                            GPU: AMD ATI Radeon R5 M230 / R7 M260DX / Radeon 520/610 Mobile 
                                            Memory: 5202MiB / 15863MiB 
+
+e ve se consegue rodar o Hunyuan3D localmente

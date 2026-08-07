@@ -1,0 +1,103 @@
+# ============================================================
+# .gitignore — As Águas de Apsu (Java/Maven/JavaFX)
+# ============================================================
+
+# ── BUILD ────────────────────────────────────────────────────
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# ── MAVEN ────────────────────────────────────────────────────
+.mvn/
+!.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.properties
+
+# ── JAVAFX ───────────────────────────────────────────────────
+# Libs nativas locais (não commitar — instruir via JAVAFX_PATH)
+*.so
+*.dylib
+*.dll
+
+# ── MPI / C ──────────────────────────────────────────────────
+mpi/map_gen
+mpi/*.o
+*.out
+
+# ── IDEs ─────────────────────────────────────────────────────
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# NetBeans
+nbproject/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# ── SISTEMA OPERACIONAL ──────────────────────────────────────
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ── LOGS ─────────────────────────────────────────────────────
+*.log
+logs/
+hs_err_pid*.log
+replay_pid*.log
+
+# ── DOCKER ───────────────────────────────────────────────────
+# Não commitar imagens exportadas
+*.tar
+
+# ── TEMPORÁRIOS ──────────────────────────────────────────────
+*.tmp
+*.bak
+*.swp
+*.swo
+*#
+
+# ── SEGURANÇA ────────────────────────────────────────────────
+# Nunca commitar credenciais ou configurações privadas
+.env
+.env.local
+secrets.properties
