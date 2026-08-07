@@ -1,7 +1,8 @@
 #include "engine/assetc/frontend.hpp"
 #include "engine/assetc/atlas_packer.hpp"
-#include "engine/assetc/compression.hpp"
+#include "engine/assetc/audio_codec.hpp"
 #include "engine/assetc/image_codec.hpp"
+#include "engine/pkg/compression.hpp"
 #include "engine/platform/filesystem.hpp"
 
 #include <cstring>
@@ -80,7 +81,7 @@ AssetIRNode compile_image(const SourceAsset& asset, const FrontendContext& /*con
         {"mip_count", std::to_string(mips.size())},
         {"uncompressed_size", std::to_string(raw.size())},
     };
-    node.payload = deflate_compress(raw);
+    node.payload = pkg::deflate_compress(raw);
     node.metadata.emplace_back("compressed_size", std::to_string(node.payload.size()));
     return node;
 }
@@ -114,7 +115,7 @@ AssetIRNode compile_atlas(const SourceAsset& asset, const FrontendContext& conte
                                       "' nao parece ser uma imagem valida (use type=image)");
         }
 
-        auto decoded = inflate_decompress(dep->payload, uncompressed_size);
+        auto decoded = pkg::inflate_decompress(dep->payload, uncompressed_size);
         // Layout do payload de uma imagem: [u32 mip_count][u32 w][u32 h][pixels do mip 0]...
         std::uint32_t mip0_w = 0, mip0_h = 0;
         std::memcpy(&mip0_w, decoded.data() + 4, sizeof(mip0_w));
@@ -180,7 +181,60 @@ AssetIRNode compile_atlas(const SourceAsset& asset, const FrontendContext& conte
         {"sprite_count", std::to_string(layout.placements.size())},
         {"uncompressed_size", std::to_string(raw.size())},
     };
-    node.payload = deflate_compress(raw);
+    node.payload = pkg::deflate_compress(raw);
+    node.metadata.emplace_back("compressed_size", std::to_string(node.payload.size()));
+    return node;
+}
+
+// --- front-end "audio" (Sprint 5): FFmpeg -> PCM s16le -> deflate ---
+AssetIRNode compile_audio(const SourceAsset& asset, const FrontendContext& /*context*/) {
+    if (asset.source_path.empty()) {
+        throw std::runtime_error("asset '" + asset.id + "' (type=audio): campo 'path' obrigatorio");
+    }
+
+    AudioTransform transform;
+    transform.trim_start = asset.param("trim_start");
+    transform.trim_duration = asset.param("trim_duration");
+    transform.fade_in = std::stod(asset.param("fade_in", "0"));
+    transform.fade_out = std::stod(asset.param("fade_out", "0"));
+    transform.normalize = asset.param("normalize", "false") == "true";
+    transform.sample_rate = static_cast<std::uint32_t>(std::stoul(asset.param("sample_rate", "44100")));
+    transform.channels = static_cast<std::uint32_t>(std::stoul(asset.param("channels", "2")));
+
+    AudioBuffer audio = load_and_transform_audio(asset.source_path, transform);
+
+    bool loop = asset.param("loop", "false") == "true";
+
+    // Payload nao-comprimido: [u32 sample_rate][u32 channels][u32 frame_count][amostras s16le intercaladas]
+    std::vector<unsigned char> raw;
+    append_u32(raw, audio.sample_rate);
+    append_u32(raw, audio.channels);
+    append_u32(raw, audio.frame_count);
+    std::size_t samples_bytes = audio.samples.size() * sizeof(std::int16_t);
+    std::size_t header_size = raw.size();
+    raw.resize(header_size + samples_bytes);
+    if (samples_bytes > 0) {
+        std::memcpy(raw.data() + header_size, audio.samples.data(), samples_bytes);
+    }
+
+    double duration = (audio.channels > 0 && audio.sample_rate > 0)
+        ? static_cast<double>(audio.frame_count) / static_cast<double>(audio.sample_rate)
+        : 0.0;
+
+    AssetIRNode node;
+    node.id = asset.id;
+    node.type = asset.type;
+    node.source_path = asset.source_path.string();
+    node.dependencies = asset.dependencies;
+    node.metadata = {
+        {"sample_rate", std::to_string(audio.sample_rate)},
+        {"channels", std::to_string(audio.channels)},
+        {"frame_count", std::to_string(audio.frame_count)},
+        {"duration_seconds", std::to_string(duration)},
+        {"loop", loop ? "true" : "false"},
+        {"uncompressed_size", std::to_string(raw.size())},
+    };
+    node.payload = pkg::deflate_compress(raw);
     node.metadata.emplace_back("compressed_size", std::to_string(node.payload.size()));
     return node;
 }
@@ -202,8 +256,9 @@ FrontendRegistry::FrontendRegistry() {
     // Front-end "atlas" (Sprint 4, Sprite Compiler): empacota dependências
     // "image" já compiladas em um único atlas, com tabela de sprites.
     register_frontend("atlas", FrontendInfo{compile_atlas, 1});
-    // Front-ends de Audio (Sprint 5) se registram aqui do mesmo jeito, sem
-    // o núcleo do asset compiler precisar mudar.
+    // Front-end "audio" (Sprint 5): decodifica/transforma via FFmpeg
+    // (trim, fade in/out, normalize) e comprime o payload final.
+    register_frontend("audio", FrontendInfo{compile_audio, 1});
 }
 
 void FrontendRegistry::register_frontend(const std::string& type, FrontendInfo info) {

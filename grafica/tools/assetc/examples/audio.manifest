@@ -1,0 +1,12 @@
+# Exemplo de manifesto para o assetc (Sprint 5): pipeline de audio via
+# FFmpeg. "pickup" e um efeito curto: reamostrado para 22050Hz mono, com
+# fade-in/fade-out e marcado como nao-loop (efeito de UI, nao musica).
+
+[pickup]
+type=audio
+path=assets/pickup.wav
+sample_rate=22050
+channels=1
+fade_in=0.05
+fade_out=0.15
+loop=false

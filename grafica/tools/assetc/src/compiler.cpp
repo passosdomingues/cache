@@ -2,7 +2,7 @@
 #include "engine/assetc/build_cache.hpp"
 #include "engine/assetc/frontend.hpp"
 #include "engine/assetc/hash.hpp"
-#include "engine/assetc/package.hpp"
+#include "engine/pkg/format.hpp"
 #include "engine/platform/logger.hpp"
 
 #include <algorithm>
@@ -68,6 +68,22 @@ std::uint64_t compute_source_hash(const SourceAsset& source) {
         params_repr += key + "=" + value + ";";
     }
     return hash_combine(file_hash, fnv1a_64(params_repr));
+}
+
+// Converte os nos de Asset IR (semantica de build/cache) para as
+// entradas "achatadas" que o formato de pacote (engine::pkg) entende —
+// mantem a separacao entre o compilador de assets e o formato de
+// pacote em si (que tambem e usado pelo Resource Manager, Sprint 6).
+std::vector<pkg::PackageEntry> to_package_entries(std::vector<AssetIRNode>&& nodes) {
+    std::vector<pkg::PackageEntry> entries;
+    entries.reserve(nodes.size());
+    for (auto& node : nodes) {
+        entries.push_back(pkg::PackageEntry{
+            std::move(node.id), std::move(node.type), std::move(node.source_path), node.content_hash,
+            std::move(node.dependencies), std::move(node.metadata), std::move(node.payload),
+        });
+    }
+    return entries;
 }
 } // namespace
 
@@ -156,7 +172,7 @@ BuildStats build(const BuildOptions& options) {
         compiled_by_id[nodes.back().id] = &nodes.back();
     }
 
-    write_package(options.output_path, nodes);
+    pkg::write_package(options.output_path, to_package_entries(std::move(nodes)));
     cache.save();
 
     return stats;

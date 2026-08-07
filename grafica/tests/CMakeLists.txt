@@ -15,3 +15,9 @@ target_include_directories(assetc-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(assetc-tests PRIVATE assetc_lib platform)
 
 add_test(NAME assetc-tests COMMAND assetc-tests)
+
+add_executable(resources-tests resources_tests.cpp)
+target_include_directories(resources-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(resources-tests PRIVATE resources platform jobs pkg)
+
+add_test(NAME resources-tests COMMAND resources-tests)

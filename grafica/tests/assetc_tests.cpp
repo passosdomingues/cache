@@ -3,9 +3,9 @@
 #include "engine/assetc/atlas_packer.hpp"
 #include "engine/assetc/block_format.hpp"
 #include "engine/assetc/compiler.hpp"
-#include "engine/assetc/compression.hpp"
 #include "engine/assetc/hash.hpp"
-#include "engine/assetc/package.hpp"
+#include "engine/pkg/compression.hpp"
+#include "engine/pkg/format.hpp"
 #include "engine/platform/filesystem.hpp"
 
 #include <array>
@@ -16,6 +16,7 @@
 #include <string>
 
 using namespace engine::assetc;
+using namespace engine::pkg;
 namespace fs = std::filesystem;
 
 namespace {
@@ -37,6 +38,14 @@ void write_solid_png(const fs::path& path, unsigned width, unsigned height, cons
                        " xc:" + color + " " + path.string() + " 2>/dev/null";
     if (std::system(cmd.c_str()) != 0) {
         throw std::runtime_error("falha ao gerar PNG de teste (ImageMagick instalado? sudo apt install imagemagick)");
+    }
+}
+
+void write_test_tone(const fs::path& path, double duration_seconds, double frequency = 440.0) {
+    std::string cmd = "ffmpeg -y -f lavfi -i \"sine=frequency=" + std::to_string(frequency) +
+                       ":duration=" + std::to_string(duration_seconds) + "\" " + path.string() + " 2>/dev/null";
+    if (std::system(cmd.c_str()) != 0) {
+        throw std::runtime_error("falha ao gerar audio de teste (FFmpeg instalado? sudo apt install ffmpeg)");
     }
 }
 
@@ -335,6 +344,90 @@ TEST_CASE(atlas_frontend_packs_sprites_and_preserves_pixels) {
     }
     CHECK(checked_body);
     CHECK(checked_head);
+}
+
+TEST_CASE(audio_frontend_decodes_metadata) {
+    auto dir = make_temp_dir("audio_frontend");
+    write_test_tone(dir / "tone.wav", 1.0);
+    write_file(dir / "manifest.dat",
+        "[tone]\ntype=audio\npath=tone.wav\nsample_rate=8000\nchannels=1\n");
+
+    BuildOptions options;
+    options.manifest_path = dir / "manifest.dat";
+    options.output_path = dir / "out.pkg";
+    options.cache_dir = dir / "cache";
+    options.force = true;
+    build(options);
+
+    auto info = read_package_info(options.output_path);
+    CHECK(info.assets.size() == 1);
+    if (info.assets.empty()) return;
+
+    const auto& asset = info.assets[0];
+    CHECK(asset.type == "audio");
+
+    bool has_rate = false, has_channels = false, has_frames = false;
+    for (const auto& [k, v] : asset.metadata) {
+        if (k == "sample_rate") { has_rate = true; CHECK(v == "8000"); }
+        if (k == "channels") { has_channels = true; CHECK(v == "1"); }
+        if (k == "frame_count") { has_frames = true; CHECK(v == "8000"); } // 1s @ 8000Hz
+    }
+    CHECK(has_rate);
+    CHECK(has_channels);
+    CHECK(has_frames);
+}
+
+TEST_CASE(audio_frontend_trim_and_loop_flag) {
+    auto dir = make_temp_dir("audio_trim");
+    write_test_tone(dir / "tone.wav", 3.0);
+    write_file(dir / "manifest.dat",
+        "[tone]\ntype=audio\npath=tone.wav\nsample_rate=8000\nchannels=1\n"
+        "trim_duration=1.0\nloop=true\n");
+
+    BuildOptions options;
+    options.manifest_path = dir / "manifest.dat";
+    options.output_path = dir / "out.pkg";
+    options.cache_dir = dir / "cache";
+    options.force = true;
+    build(options);
+
+    auto info = read_package_info(options.output_path);
+    CHECK(info.assets.size() == 1);
+    if (info.assets.empty()) return;
+
+    bool has_frames = false, has_loop = false;
+    for (const auto& [k, v] : info.assets[0].metadata) {
+        if (k == "frame_count") { has_frames = true; CHECK(v == "8000"); } // 1.0s trim @ 8000Hz
+        if (k == "loop") { has_loop = true; CHECK(v == "true"); }
+    }
+    CHECK(has_frames);
+    CHECK(has_loop);
+}
+
+TEST_CASE(audio_frontend_cache_invalidates_on_param_change) {
+    auto dir = make_temp_dir("audio_cache");
+    write_test_tone(dir / "tone.wav", 1.0);
+    write_file(dir / "manifest.dat", "[tone]\ntype=audio\npath=tone.wav\nfade_out=0.1\n");
+
+    BuildOptions options;
+    options.manifest_path = dir / "manifest.dat";
+    options.output_path = dir / "out.pkg";
+    options.cache_dir = dir / "cache";
+    options.force = true;
+
+    auto stats1 = build(options);
+    CHECK(stats1.compiled == 1);
+
+    options.force = false;
+    auto stats2 = build(options);
+    CHECK(stats2.cache_hits == 1);
+    CHECK(stats2.compiled == 0);
+
+    // Muda so um parametro do manifesto (nao o arquivo fonte): deve invalidar.
+    write_file(dir / "manifest.dat", "[tone]\ntype=audio\npath=tone.wav\nfade_out=0.5\n");
+    auto stats3 = build(options);
+    CHECK(stats3.compiled == 1);
+    CHECK(stats3.cache_hits == 0);
 }
 
 int main() {

@@ -43,3 +43,12 @@ dependencies=
 output_hash=264c5af9d442fc9c
 metadata=
 
+[pickup]
+type=audio
+source=tools/assetc/examples/assets/pickup.wav
+source_hash=4ff636ca344890fb
+frontend=audio@1
+dependencies=
+output_hash=eaae293471cea25b
+metadata=sample_rate=22050;channels=1;frame_count=26460;duration_seconds=1.200000;loop=false;uncompressed_size=52932;compressed_size=30044
+

@@ -50,11 +50,11 @@ ImageMagick, Resize, Crop, Padding, Atlas, Compression, Mipmaps, Metadata,
 Sprite Compiler.
 **Entrega:** `atlas.pkg`
 
-### Sprint 5 — Audio Pipeline
+### Sprint 5 — Audio Pipeline ✅
 FFmpeg, Normalize, Trim, Fade, Loop, Compress, Metadata, Package.
 **Entrega:** `audio.pkg`
 
-### Sprint 6 — Resource Manager
+### Sprint 6 — Resource Manager ✅
 Streaming, Cache, Hot Reload, Reference Counting, Handle, Package Loader.
 **Entrega:** Resource Demo
 

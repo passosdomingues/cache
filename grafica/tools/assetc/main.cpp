@@ -1,6 +1,6 @@
 #include "engine/assetc/compiler.hpp"
 #include "engine/assetc/hash.hpp"
-#include "engine/assetc/package.hpp"
+#include "engine/pkg/format.hpp"
 #include "engine/platform/cli.hpp"
 
 #include <cstdio>
@@ -39,7 +39,7 @@ int run_inspect(const platform::CommandLineParser& args) {
         return 2;
     }
 
-    auto info = assetc::read_package_info(positional.front());
+    auto info = pkg::read_package_info(positional.front());
     std::printf("%-24s %-10s %-16s %10s  origem\n", "id", "tipo", "hash", "bytes");
     for (const auto& asset : info.assets) {
         std::printf("%-24s %-10s %-16s %10llu  %s\n",

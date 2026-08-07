@@ -45,7 +45,14 @@ Toolchain. O jogo em si é apenas o critério de aceite.**
 │   └── adr/            Architecture Decision Records
 ├── src/
 │   ├── core/           Núcleo da engine (Sprint 0: hello-engine)
-│   └── platform/       Camada de abstração de plataforma (Sprint 1+)
+│   ├── platform/       Camada de abstração de plataforma (Sprint 1)
+│   ├── jobs/            Job System (Sprint 2)
+│   ├── pkg/             Formato de pacote (game.pkg) + compressão,
+│   │                    compartilhado entre Toolchain e runtime (Sprint 6)
+│   └── resources/       Resource Manager + Resource Demo (Sprint 6)
+├── tools/
+│   └── assetc/          Asset Compiler: front-ends raw/image/atlas/audio
+│                         (Sprints 3-5)
 ├── tools/              Toolchain (asset compiler, etc. — Sprint 3+)
 ├── tests/              Testes automatizados
 ├── assets/             Assets fonte (vazio por enquanto)
@@ -65,6 +72,8 @@ Toolchain. O jogo em si é apenas o critério de aceite.**
   assetc (Sprint 4)
 - zlib (`sudo apt install zlib1g-dev`, geralmente já vem instalado) —
   compressão do payload de assets no assetc (Sprint 4)
+- FFmpeg (`sudo apt install ffmpeg`) — front-end de áudio do assetc
+  (Sprint 5)
 
 ## Build
 

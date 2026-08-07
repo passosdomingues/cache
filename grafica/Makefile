@@ -44,6 +44,23 @@ atlas-example: build
 		--out=$(BUILD_DIR)/atlas-example.pkg
 	@$(BUILD_DIR)/tools/assetc/assetc inspect $(BUILD_DIR)/atlas-example.pkg
 
+## Roda o exemplo de audio do assetc (Sprint 5): pipeline de audio via
+## FFmpeg. Requer FFmpeg (sudo apt install ffmpeg).
+audio-example: build
+	@$(BUILD_DIR)/tools/assetc/assetc build \
+		--manifest=tools/assetc/examples/audio.manifest \
+		--out=$(BUILD_DIR)/audio-example.pkg
+	@$(BUILD_DIR)/tools/assetc/assetc inspect $(BUILD_DIR)/audio-example.pkg
+
+## Roda o Resource Manager (Sprint 6) sobre um game.pkg de exemplo:
+## compila o manifesto de atlas e demonstra streaming, cache/refcounting,
+## handles, acquire_async via Job System e o mecanismo de hot reload.
+resource-demo: build
+	@$(BUILD_DIR)/tools/assetc/assetc build \
+		--manifest=tools/assetc/examples/atlas.manifest \
+		--out=$(BUILD_DIR)/resource-demo-example.pkg
+	@$(BUILD_DIR)/src/resources/resource-demo --package=$(BUILD_DIR)/resource-demo-example.pkg
+
 ## Remove o diretório de build inteiro.
 clean:
 	@rm -rf $(BUILD_DIR)
@@ -59,5 +76,7 @@ help:
 	@echo "  make bench    - compila e roda o job-benchmark (100.000 jobs)"
 	@echo "  make assetc-example - roda o exemplo do assetc (build + cache hit + inspect)"
 	@echo "  make atlas-example  - roda o exemplo de atlas/image pipeline (Sprint 4)"
+	@echo "  make audio-example  - roda o exemplo de audio pipeline (Sprint 5)"
+	@echo "  make resource-demo  - roda o Resource Manager sobre um pacote de exemplo (Sprint 6)"
 	@echo "  make clean    - remove o diretório de build"
 	@echo "  make rebuild  - clean + build"

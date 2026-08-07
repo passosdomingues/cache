@@ -5,6 +5,62 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.0.7] — Sprint 6
+### Adicionado
+- `src/pkg/` (novo) — biblioteca compartilhada entre Toolchain e runtime,
+  extraída de `tools/assetc/`: formato binário `game.pkg` v2
+  (`write_package`/`read_package_info`/`read_package_payload`, agora com
+  `PackageEntry` separado do Asset IR de build) e compressão deflate/zlib.
+- `src/resources/` (novo) — `ResourceManager` (RFC 03):
+  - Streaming (payload só descomprime no primeiro `acquire()`), cache com
+    reference counting (`release()` evita da memória ao chegar a 0),
+    `ResourceHandle` com geração (detecta handle "stale"),
+    `acquire_async()` via Job System (Sprint 2), e `poll_hot_reload()`
+    (relê o `.pkg` do disco, substitui payload de recursos residentes
+    cujo hash mudou).
+  - Executável `resource-demo` (entrega do Sprint 6).
+  - `tests/resources_tests.cpp` — 8 testes, incluindo hot reload real
+    (reescreve o pacote em disco e confirma que os bytes residentes
+    mudam sem invalidar o handle).
+- `docs/adr/0004-zlib-runtime-dependency.md` — decisão explícita de
+  permitir zlib (e só zlib) como dependência de runtime, distinta de
+  ImageMagick/FFmpeg (restritos à Toolchain).
+- `Makefile`: atalho `make resource-demo`.
+
+### Modificado
+- `tools/assetc/` refatorado para consumir `src/pkg/` em vez de manter
+  cópia própria do formato de pacote e da compressão — elimina
+  duplicação; `assetc-tests` continua 14/14 após a mudança (validado).
+
+## [0.0.6] — Sprint 5
+### Adicionado
+- Front-end `audio` no `FrontendRegistry` de `tools/assetc/`, seguindo o
+  mesmo padrão do `image` (Sprint 4): ferramenta de terceiro via CLI
+  (FFmpeg) + payload estruturado + compressão + metadata:
+  - `audio_codec` — decodifica e transforma áudio via FFmpeg CLI: trim
+    (`atrim`), fade-in (`afade`), fade-out (truque
+    `areverse,afade,areverse`, independente de conhecer a duração
+    total), normalização de loudness (`loudnorm`, EBU R128 em passo
+    único), resample e downmix para mono/estéreo; extrai PCM s16le
+    intercalado
+  - Payload comprimido com o mesmo módulo `compression` (deflate/zlib) já
+    usado por `image`/`atlas` — nenhuma mudança necessária ali
+  - Metadados: `sample_rate`, `channels`, `frame_count`,
+    `duration_seconds`, `loop` (flag propagada do manifesto para o
+    runtime decidir o que fazer com ela — Sprint 6+)
+- `src/process_utils.{hpp,cpp}` (interno) — `shell_quote`,
+  `tool_available`, `run_command`, `run_capture_binary`,
+  `make_temp_path`, extraídos de `image_codec.cpp` e reusados por
+  `audio_codec.cpp`, eliminando duplicação
+- `tests/assetc_tests.cpp` +3 testes: metadata de áudio (sample_rate/
+  channels/frame_count), trim + flag de loop, invalidação de cache ao
+  mudar um parâmetro do manifesto sem tocar no arquivo fonte (14 no
+  total)
+- `tools/assetc/examples/audio.manifest` + áudio de exemplo gerado via
+  FFmpeg (`sine` synth)
+- Nova dependência de Toolchain documentada no `README.md`: FFmpeg
+- `Makefile`: atalho `make audio-example`
+
 ## [0.0.5] — Sprint 4
 ### Adicionado
 - Front-ends `image` e `atlas` no `FrontendRegistry` de `tools/assetc/`,
