@@ -1,0 +1,63 @@
+# Configuração padrão do Blender Compiler.
+# Todos os parâmetros do pipeline vivem aqui. Nada deve ser hardcoded no código.
+
+input_dir: input
+output_dir: output
+
+preprocessing:
+  target_size: 1024
+  background_removal_method: grabcut   # grabcut | threshold | chroma_key | imagemagick
+  use_imagemagick: false
+  convert_executable: convert
+  canny_threshold1: 50
+  canny_threshold2: 150
+  equalize_histogram: true
+  save_intermediates: true
+
+vision:
+  backend: mock              # mock | qwen_vl | llama_vision | minicpm | moondream | http_generic | ollama
+  endpoint: "http://localhost:11434"
+  model_name: "qwen2.5-vl"
+  timeout_seconds: 60
+  api_key_env: null
+
+semantic:
+  default_object_class: humanoid
+  enforce_symmetry: true
+  min_part_confidence: 0.3
+
+geometry:
+  default_primitive: cube
+  subdivisions_sphere: 16
+  subdivisions_cylinder: 12
+  low_poly_bevel_segments: 0
+  global_scale: 1.0
+
+blender:
+  executable: "/opt/blender-4.5.5-lts/blender"
+  export_gltf: true
+  export_fbx: false
+  export_obj: true
+  use_collections: true
+  generate_uv: true
+
+openscad:
+  executable: openscad
+  export_scad: true
+  render_stl: false
+  fn: 16
+
+mpi:
+  enabled: false
+  num_workers: 4
+
+rig:
+  enabled_for_characters: true
+  auto_weights: true
+  bone_layer_name: Rig
+
+logging:
+  level: INFO
+  log_dir: logs
+  json_logs: false
+

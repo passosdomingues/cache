@@ -1,0 +1,20 @@
+services:
+  blender-compiler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: blender-compiler:latest
+    container_name: blender-compiler
+    volumes:
+      - ./input:/app/input
+      - ./output:/app/output
+      - ./logs:/app/logs
+      - ./config:/app/config
+      - ./examples:/app/examples
+      - blender-cache:/root/.config/blender
+    working_dir: /app
+    entrypoint: ["python3", "cli.py"]
+    command: ["--help"]
+
+volumes:
+  blender-cache:

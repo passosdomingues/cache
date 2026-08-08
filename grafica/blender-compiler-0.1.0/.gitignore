@@ -1,0 +1,89 @@
+# ============================================================
+# .gitignore — Blender Compiler
+# ============================================================
+
+# ── PYTHON & VIRTUAL ENVS ────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+.env/
+
+# Pytest / Coverage / Linting
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ── BLENDER ARTIFACTS ────────────────────────────────────────
+*.blend
+*.blend1
+*.blend2
+*.gltf
+*.glb
+*.fbx
+*.obj
+*.mtl
+*.stl
+*.ply
+
+# ── OPENSCAD ARTIFACTS ───────────────────────────────────────
+*.scad
+*.csg
+
+# ── INPUT / OUTPUT / LOGS ────────────────────────────────────
+input/*.png
+input/*.jpg
+input/*.jpeg
+input/*.webp
+output/
+logs/
+*.log
+
+# ── DOCKER & CONTAINERS ──────────────────────────────────────
+*.tar
+
+# ── TEMPORARY & SYSTEM ───────────────────────────────────────
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.directory
+
+# ── IDEs & EDITORS ───────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+
+# ── ENVIRONMENT & SECRETS ────────────────────────────────────
+.env
+.env.local

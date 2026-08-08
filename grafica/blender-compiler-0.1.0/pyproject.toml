@@ -1,0 +1,36 @@
+[project]
+name = "blender-compiler"
+version = "0.1.0"
+description = "Compilador de geometria procedural: converte imagens multi-ângulo em .blend low poly, 100% CLI e open source."
+requires-python = ">=3.12"
+readme = "README.md"
+license = { text = "MIT" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+# E501: comprimento de linha já controlado pelo black
+# B011/UP042: estilo aceito neste projeto (asserts simples em testes, StrEnum
+# ainda não é usado por compatibilidade mais ampla com pydantic v2)
+ignore = ["E501", "B011", "UP042", "B905"]
+
+[tool.black]
+line-length = 110
+target-version = ["py312"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+disallow_untyped_defs = false
+exclude = ["blender_build_script.py"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
