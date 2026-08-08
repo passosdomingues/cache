@@ -21,3 +21,9 @@ target_include_directories(resources-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(resources-tests PRIVATE resources platform jobs pkg)
 
 add_test(NAME resources-tests COMMAND resources-tests)
+
+add_executable(render-tests render_tests.cpp)
+target_include_directories(render-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(render-tests PRIVATE render)
+
+add_test(NAME render-tests COMMAND render-tests)

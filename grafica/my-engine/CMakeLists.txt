@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(GameEngineProject
-    VERSION 0.0.7
+    VERSION 0.0.8
     DESCRIPTION "Engine de jogos organizada como um compilador de assets"
     LANGUAGES CXX
 )
@@ -29,6 +29,7 @@ add_subdirectory(src/platform)
 add_subdirectory(src/jobs)
 add_subdirectory(src/pkg)
 add_subdirectory(src/resources)
+add_subdirectory(src/render)
 add_subdirectory(tools/assetc)
 add_subdirectory(tests)
 

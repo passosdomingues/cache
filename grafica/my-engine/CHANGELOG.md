@@ -5,6 +5,43 @@ Formato inspirado em [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.0.8] — Sprint 7
+### Adicionado
+- `src/render/` (novo) — `engine::render`, primeira saída gráfica de
+  verdade, sobre GLFW + OpenGL 3.3 core profile (`docs/adr/0005-*.md`
+  justifica GLFW em vez de SDL2):
+  - `Window` — janela + contexto via GLFW
+  - `gl` — loader mínimo próprio (via `glfwGetProcAddress`) das funções
+    OpenGL >= 1.5/3.0 que não têm protótipo no `GL/gl.h` legado do
+    sistema (VAOs/VBOs, shaders, framebuffers) — sem depender de
+    GLAD/GLEW
+  - `ShaderProgram` — compila e linka vertex+fragment shader, lança
+    `std::runtime_error` com o log em caso de erro
+  - `Texture2D` — upload de pixels RGBA8 cru
+  - `Framebuffer` — render-to-texture básico (base para pós-processamento
+    futuro)
+  - `OrthographicCamera2D` + `math.hpp` — Mat4/Vec2 mínimos, só o
+    necessário para uma câmera 2D
+  - `Sprite` + `SpriteBatch` — agrupa sprites por textura e emite o menor
+    número de draw calls possível; nesse contexto 2D, esse batching *é*
+    a Render Queue do sprint (sem estrutura de fila separada)
+  - `image_payload`/`atlas_payload` — interpretação, do lado do runtime,
+    do layout binário que os front-ends `image`/`atlas` (Sprint 4)
+    escrevem, aplicada aos bytes já descomprimidos pelo `ResourceManager`
+    (Sprint 6) — fecha o ciclo front-end→IR→pacote→runtime pela primeira
+    vez com saída visual
+  - `moving-sprite-demo` (entrega do Sprint 7): carrega um atlas real via
+    `game.pkg`, recorta o UV do sprite escolhido, anima com
+    `platform::DeltaClock` e desenha; suporta `--headless` +
+    `--screenshot` para validação automatizada sem janela visível
+- `tests/render_tests.cpp` — 7 testes: parsing de payload de
+  image/atlas (sem GL), criação de janela+contexto headless, shader
+  válido/inválido, upload de textura, framebuffer com leitura de pixel
+  real, sprite batch sem erros de GL
+- Novas dependências de sistema documentadas no `README.md`: GLFW e
+  OpenGL (`libglfw3-dev`, `libgl-dev`)
+- `Makefile`: atalho `make moving-sprite-demo`
+
 ## [0.0.7] — Sprint 6
 ### Adicionado
 - `src/pkg/` (novo) — biblioteca compartilhada entre Toolchain e runtime,

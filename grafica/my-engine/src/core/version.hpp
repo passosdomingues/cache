@@ -10,6 +10,6 @@ struct Version {
 
 // Corresponde à versão do CHANGELOG.md — atualizar a cada sprint que
 // altera comportamento observável do binário.
-inline constexpr Version kEngineVersion{0, 0, 7};
+inline constexpr Version kEngineVersion{0, 0, 8};
 
 } // namespace engine::core

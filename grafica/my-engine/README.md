@@ -49,7 +49,9 @@ Toolchain. O jogo em si é apenas o critério de aceite.**
 │   ├── jobs/            Job System (Sprint 2)
 │   ├── pkg/             Formato de pacote (game.pkg) + compressão,
 │   │                    compartilhado entre Toolchain e runtime (Sprint 6)
-│   └── resources/       Resource Manager + Resource Demo (Sprint 6)
+│   ├── resources/       Resource Manager + Resource Demo (Sprint 6)
+│   └── render/          Window/Context/Shader/Texture/Camera/Sprite/
+│                         Batch/Framebuffer + Moving Sprite Demo (Sprint 7)
 ├── tools/
 │   └── assetc/          Asset Compiler: front-ends raw/image/atlas/audio
 │                         (Sprints 3-5)
@@ -74,6 +76,9 @@ Toolchain. O jogo em si é apenas o critério de aceite.**
   compressão do payload de assets no assetc (Sprint 4)
 - FFmpeg (`sudo apt install ffmpeg`) — front-end de áudio do assetc
   (Sprint 5)
+- GLFW e OpenGL (`sudo apt install libglfw3-dev libgl-dev`) — janela e
+  contexto gráfico do runtime (Sprint 7). Requer um display (X11/Wayland)
+  para rodar de verdade; `docs/adr/0005-*.md` documenta a escolha.
 
 ## Build
 

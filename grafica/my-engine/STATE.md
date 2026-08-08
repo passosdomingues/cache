@@ -7,7 +7,7 @@ arquitetura, `docs/0N-*.md`.
 
 ## Sprint atual
 
-**Sprint 6 — Resource Manager: concluído.**
+**Sprint 7 — OpenGL: concluído.**
 
 ## Sprints concluídos
 
@@ -19,7 +19,8 @@ arquitetura, `docs/0N-*.md`.
 | 3 | Asset Compiler | `assetc` (build/inspect) | ✅ Validado na máquina do usuário via CMake/CTest |
 | 4 | Image Pipeline | `assetc` com `image`/`atlas` | ✅ Validado na máquina do usuário via CMake/CTest |
 | 5 | Audio Pipeline | `assetc` com `audio` | ✅ Validado na máquina do usuário via CMake/CTest |
-| 6 | Resource Manager | `resource-demo` | ✅ Validado por compilação manual (g++ 13, C++20); `resources-tests` 8/8; pendente validar via CMake na máquina do usuário |
+| 6 | Resource Manager | `resource-demo` | ✅ Validado na máquina do usuário via CMake/CTest |
+| 7 | OpenGL | `moving-sprite-demo` | ✅ Validado por compilação manual (g++ 13, C++20 + GLFW + Mesa/llvmpipe via Xvfb): sprite renderizado corretamente (pixel a pixel), atlas UV mapping correto, framebuffer render-to-texture funcional; `render-tests` 7/7; pendente validar via CMake com display real na máquina do usuário |
 
 ## O que existe hoje
 
@@ -83,17 +84,37 @@ arquitetura, `docs/0N-*.md`.
     `audio.manifest`, todos com fontes de exemplo prontas
 
 - **`Makefile`** na raiz — `make build/run/test/bench/clean/rebuild/
-  assetc-example/atlas-example/audio-example/resource-demo`.
+  assetc-example/atlas-example/audio-example/resource-demo/
+  moving-sprite-demo`.
 
 - **`docs/adr/0004-zlib-runtime-dependency.md`** — decisão de permitir
   zlib (só zlib) como dependência de runtime.
 
+- **`src/render/`** (Sprint 7) — `engine::render`, primeira saída
+  gráfica de verdade, sobre `platform`+GLFW+OpenGL 3.3 core:
+  - `Window` — janela + contexto, via GLFW (`docs/adr/0005-*.md`)
+  - `gl` — loader mínimo próprio das funções OpenGL >= 1.5/3.0 não
+    presentes no `GL/gl.h` legado do sistema (via `glfwGetProcAddress`)
+  - `ShaderProgram` — compila/linka, lança com o log em caso de erro
+  - `Texture2D` — upload de RGBA8 cru
+  - `Framebuffer` — render-to-texture básico
+  - `OrthographicCamera2D` + `math.hpp` (Mat4/Vec2 mínimos)
+  - `Sprite` + `SpriteBatch` — batching por textura É a Render Queue
+    neste contexto 2D (sem estrutura de fila separada)
+  - `image_payload`/`atlas_payload` — lê, do lado do runtime, o layout
+    binário que `tools/assetc`'s `image`/`atlas` front-ends escrevem
+    (Sprint 4), a partir dos bytes já descomprimidos pelo
+    `ResourceManager` (Sprint 6)
+  - `moving-sprite-demo` (entrega do sprint) — carrega um atlas real via
+    `game.pkg`, recorta o UV do sprite escolhido, anima e desenha
+  - `tests/render_tests.cpp` — 7 testes (2 de payload sem GL; 5 com
+    contexto GL headless: window+loader, shader válido/inválido,
+    textura, framebuffer com leitura de pixel real, sprite batch)
+
 ## Próximo passo
 
-**Sprint 7 — OpenGL**: Window, Context, Shader, Texture, Camera, Sprite,
-Batch, Framebuffer, Render Queue. Entrega: Moving Sprite. Primeiro sprint
-com saída gráfica de verdade — vai consumir o `ResourceManager` (Sprint 6)
-para carregar assets `image`/`atlas` (Sprint 4) como texturas.
+**Sprint 8 — ECS**: Entity, Component, Systems, Events, Commands,
+Serialization. Entrega: 10.000 entities.
 
 ## Fluxo de trabalho combinado com o usuário
 

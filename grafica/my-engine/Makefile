@@ -61,6 +61,18 @@ resource-demo: build
 		--out=$(BUILD_DIR)/resource-demo-example.pkg
 	@$(BUILD_DIR)/src/resources/resource-demo --package=$(BUILD_DIR)/resource-demo-example.pkg
 
+## Roda a demo do Sprint 7 (OpenGL): abre uma janela real com um sprite
+## se movendo, carregado do atlas de exemplo via ResourceManager. Requer
+## um display (X11/Wayland) — em SSH sem X, use DISPLAY=:0 se disponível
+## ou rode localmente.
+moving-sprite-demo: build
+	@$(BUILD_DIR)/tools/assetc/assetc build \
+		--manifest=tools/assetc/examples/atlas.manifest \
+		--out=$(BUILD_DIR)/moving-sprite-example.pkg
+	@$(BUILD_DIR)/src/render/moving-sprite-demo \
+		--package=$(BUILD_DIR)/moving-sprite-example.pkg \
+		--asset=hero_atlas --sprite=hero_head --frames=600
+
 ## Remove o diretório de build inteiro.
 clean:
 	@rm -rf $(BUILD_DIR)
@@ -78,5 +90,6 @@ help:
 	@echo "  make atlas-example  - roda o exemplo de atlas/image pipeline (Sprint 4)"
 	@echo "  make audio-example  - roda o exemplo de audio pipeline (Sprint 5)"
 	@echo "  make resource-demo  - roda o Resource Manager sobre um pacote de exemplo (Sprint 6)"
+	@echo "  make moving-sprite-demo - abre uma janela com um sprite se movendo (Sprint 7)"
 	@echo "  make clean    - remove o diretório de build"
 	@echo "  make rebuild  - clean + build"

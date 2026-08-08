@@ -58,7 +58,7 @@ FFmpeg, Normalize, Trim, Fade, Loop, Compress, Metadata, Package.
 Streaming, Cache, Hot Reload, Reference Counting, Handle, Package Loader.
 **Entrega:** Resource Demo
 
-### Sprint 7 — OpenGL
+### Sprint 7 — OpenGL ✅
 Window, Context, Shader, Texture, Camera, Sprite, Batch, Framebuffer,
 Render Queue.
 **Entrega:** Moving Sprite
