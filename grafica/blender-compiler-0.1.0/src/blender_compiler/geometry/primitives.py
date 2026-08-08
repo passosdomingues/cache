@@ -218,6 +218,28 @@ def build_bezier_curve_points(
     return points, []
 
 
+def build_extruded_silhouette(
+    size: tuple[float, float, float] = (1, 1, 1),
+    contour_points: list[tuple[float, float]] | None = None,
+) -> tuple[list[Vertex], list[Face]]:
+    """Constrói uma malha 3D extrudada a partir de um contorno 2D ou um losango/estrela low-poly padrão."""
+    from blender_compiler.geometry.extrude import create_extruded_polygon_mesh
+
+    if not contour_points:
+        # Padrão: octógono low-poly proporcional
+        contour_points = [
+            (-0.35 * size[0], -0.5 * size[1]),
+            (0.35 * size[0], -0.5 * size[1]),
+            (0.5 * size[0], -0.2 * size[1]),
+            (0.5 * size[0], 0.2 * size[1]),
+            (0.35 * size[0], 0.5 * size[1]),
+            (-0.35 * size[0], 0.5 * size[1]),
+            (-0.5 * size[0], 0.2 * size[1]),
+            (-0.5 * size[0], -0.2 * size[1]),
+        ]
+    return create_extruded_polygon_mesh(contour_points, depth=size[2])
+
+
 PRIMITIVE_BUILDERS: dict[str, Callable[..., tuple[list[Vertex], list[Face]]]] = {
     "cube": build_cube,
     "plane": build_plane,
@@ -228,4 +250,6 @@ PRIMITIVE_BUILDERS: dict[str, Callable[..., tuple[list[Vertex], list[Face]]]] = 
     "torus": build_torus,
     "bezier": build_bezier_curve_points,
     "curve": build_bezier_curve_points,
+    "extruded_silhouette": build_extruded_silhouette,
 }
+

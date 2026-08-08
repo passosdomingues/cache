@@ -28,20 +28,44 @@ class MockVisionBackend(VisionBackend):
         x, y, bw, bh = view.bbox
         aspect = bh / max(bw, 1)
 
-        if object_hint == "humanoid" or aspect > 1.4:
-            # Heurística proporcional de figura humana: cabeça ~15% da altura
-            # do corpo, com largura própria (não a largura total do corpo),
-            # torso ~35%, pernas ~40%, braços ao lado do torso.
-            head_w = bw * 0.4
-            regions.append(_region("head", x + (bw - head_w) / 2, y, head_w, bh * 0.15, w, h))
-            torso_w = bw * 0.56
-            regions.append(_region("torso", x + (bw - torso_w) / 2, y + bh * 0.15, torso_w, bh * 0.35, w, h))
-            regions.append(_region("left_arm", x, y + bh * 0.17, bw * 0.22, bh * 0.33, w, h))
-            regions.append(_region("right_arm", x + bw * 0.78, y + bh * 0.17, bw * 0.22, bh * 0.33, w, h))
-            regions.append(_region("left_leg", x, y + bh * 0.55, bw * 0.45, bh * 0.45, w, h))
-            regions.append(_region("right_leg", x + bw * 0.55, y + bh * 0.55, bw * 0.45, bh * 0.45, w, h))
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if contours:
+            c = max(contours, key=cv2.contourArea)
+            x_c, y_c, w_c, h_c = cv2.boundingRect(c)
+
+            # Região principal do contorno como objeto extrudado fiel
+            regions.append(_region("main_silhouette", x_c, y_c, w_c, h_c, w, h))
+
+            if object_hint == "humanoid":
+                head_w = bw * 0.4
+                regions.append(_region("head", x + (bw - head_w) / 2, y, head_w, bh * 0.15, w, h))
+                torso_w = bw * 0.56
+                regions.append(_region("torso", x + (bw - torso_w) / 2, y + bh * 0.15, torso_w, bh * 0.35, w, h))
+                regions.append(_region("left_arm", x, y + bh * 0.17, bw * 0.22, bh * 0.33, w, h))
+                regions.append(_region("right_arm", x + bw * 0.78, y + bh * 0.17, bw * 0.22, bh * 0.33, w, h))
+                regions.append(_region("left_leg", x, y + bh * 0.55, bw * 0.45, bh * 0.45, w, h))
+                regions.append(_region("right_leg", x + bw * 0.55, y + bh * 0.55, bw * 0.45, bh * 0.45, w, h))
+            else:
+                # Se o contorno for amplo nas laterais em relação à altura, adiciona regiões de asas/extensões
+                if w_c > h_c * 0.6:
+                    wings_y = y_c + h_c * 0.2
+                    wings_h = h_c * 0.5
+                    regions.append(_region("left_wing", x_c, wings_y, w_c * 0.35, wings_h, w, h))
+                    regions.append(_region("right_wing", x_c + w_c * 0.65, wings_y, w_c * 0.35, wings_h, w, h))
+
+                head_h = h_c * 0.25
+                head_w = w_c * 0.4
+                regions.append(_region("head", x_c + (w_c - head_w) / 2, y_c, head_w, head_h, w, h))
+
+                torso_y = y_c + head_h
+                torso_h = h_c * 0.45
+                regions.append(_region("torso", x_c + w_c * 0.2, torso_y, w_c * 0.6, torso_h, w, h))
+
+                base_y = torso_y + torso_h
+                base_h = h_c - (head_h + torso_h)
+                if base_h > 0:
+                    regions.append(_region("base", x_c + w_c * 0.15, base_y, w_c * 0.7, base_h, w, h))
         else:
-            # Objeto genérico: divide a silhueta em uma única região "body"
             regions.append(_region("body", x, y, bw, bh, w, h))
 
         for r in regions:
@@ -51,7 +75,7 @@ class MockVisionBackend(VisionBackend):
             view_angle=view.view_angle,
             regions=regions,
             is_symmetrical_guess=True,
-            raw_backend_output={"heuristic": "bbox_proportions", "aspect_ratio": aspect},
+            raw_backend_output={"heuristic": "contour_decomposition", "aspect_ratio": aspect},
         )
 
 

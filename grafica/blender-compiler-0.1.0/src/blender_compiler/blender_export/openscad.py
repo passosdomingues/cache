@@ -60,7 +60,11 @@ class OpenSCADExporter:
 
     def _primitive_scad(self, mesh: MeshData) -> str:
         p = mesh.primitive
-        if p == PrimitiveType.SPHERE:
+        if p == PrimitiveType.EXTRUDED_SILHOUETTE and mesh.vertices and mesh.faces:
+            pts = ", ".join([f"[{v[0]:.3f}, {v[1]:.3f}, {v[2]:.3f}]" for v in mesh.vertices])
+            fcs = ", ".join([f"[{', '.join(map(str, f))}]" for f in mesh.faces])
+            return f"polyhedron(points=[{pts}], faces=[{fcs}])"
+        elif p == PrimitiveType.SPHERE:
             return "sphere(r=0.5)"
         elif p == PrimitiveType.CYLINDER:
             return "cylinder(h=1.0, r=0.5, center=true)"

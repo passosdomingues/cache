@@ -36,25 +36,28 @@ def _memory_mb() -> float | None:
 
 
 def setup_logging(log_dir: str = "logs", level: str = "INFO") -> logging.Logger:
-    log_path = Path(log_dir)
-    log_path.mkdir(parents=True, exist_ok=True)
-    log_file = log_path / f"run_{time.strftime('%Y%m%d_%H%M%S')}.log"
-
     logger = logging.getLogger("blender_compiler")
     logger.setLevel(level)
     logger.handlers.clear()
 
     rich_handler = RichHandler(console=console, show_time=True, rich_tracebacks=True, markup=True)
     rich_handler.setLevel(level)
-
-    file_handler = logging.FileHandler(log_file, encoding="utf-8")
-    file_handler.setFormatter(logging.Formatter("%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"))
-    file_handler.setLevel(level)
-
     logger.addHandler(rich_handler)
-    logger.addHandler(file_handler)
+
+    try:
+        log_path = Path(log_dir)
+        log_path.mkdir(parents=True, exist_ok=True)
+        log_file = log_path / f"run_{time.strftime('%Y%m%d_%H%M%S')}.log"
+
+        file_handler = logging.FileHandler(log_file, encoding="utf-8")
+        file_handler.setFormatter(logging.Formatter("%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"))
+        file_handler.setLevel(level)
+        logger.addHandler(file_handler)
+        logger.info(f"Log iniciado em {log_file}")
+    except (OSError, PermissionError) as exc:
+        logger.warning(f"Não foi possível criar log em arquivo ({exc}). Usando apenas console.")
+
     logger.propagate = False
-    logger.info(f"Log iniciado em {log_file}")
     return logger
 
 

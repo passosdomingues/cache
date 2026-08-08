@@ -34,6 +34,8 @@ class PrimitiveType(str, Enum):
     PLANE = "plane"
     BEZIER = "bezier"
     CURVE = "curve"
+    EXTRUDED_SILHOUETTE = "extruded_silhouette"
+
 
 
 # ---------------------------------------------------------------------------
